@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} - MongoDB Events Demo{% endblock %}
+
+{% block content %}
+<div x-data="eventDetail()">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Event Details -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h1 class="card-title">{{ event.title }}</h1>
+                            <span class="badge bg-primary fs-6">{{ event.category }}</span>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">Created: {{ event.created_at.strftime('%Y-%m-%d') }}</small>
+                        </div>
+                    </div>
+                    
+                    {% if event.description %}
+                        <div class="mb-4">
+                            <h5>Description</h5>
+                            <p class="text-muted">{{ event.description }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Event Details</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="bi bi-calendar text-primary me-2"></i>
+                                    <strong>Start:</strong> {{ event.start_date.strftime('%Y-%m-%d %H:%M') }}
+                                </li>
+                                {% if event.end_date %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-calendar-check text-primary me-2"></i>
+                                        <strong>End:</strong> {{ event.end_date.strftime('%Y-%m-%d %H:%M') }}
+                                    </li>
+                                {% endif %}
+                                {% if event.organizer %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-person text-primary me-2"></i>
+                                        <strong>Organizer:</strong> {{ event.organizer }}
+                                    </li>
+                                {% endif %}
+                                {% if event.max_attendees %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-people text-primary me-2"></i>
+                                        <strong>Max Attendees:</strong> {{ event.max_attendees }}
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6>Location</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="bi bi-geo-alt text-primary me-2"></i>
+                                    <strong>Coordinates:</strong> 
+                                    {{ "%.6f"|format(event.location.coordinates[1]) }}, 
+                                    {{ "%.6f"|format(event.location.coordinates[0]) }}
+                                </li>
+                                <li class="mb-2">
+                                    <button class="btn btn-sm btn-outline-secondary" @click="showDirections()">
+                                        <i class="bi bi-compass"></i> Get Directions
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    {% if event.tags %}
+                        <div class="mb-4">
+                            <h6>Tags</h6>
+                            {% for tag in event.tags %}
+                                <span class="badge bg-light text-dark me-2">#{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('events_list') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Events
+                        </a>
+                        <button class="btn btn-primary" @click="shareEvent()">
+                            <i class="bi bi-share"></i> Share Event
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Location Map -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Event Location</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="eventMap" class="map-container"></div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" @click="addToCalendar()">
+                            <i class="bi bi-calendar-plus"></i> Add to Calendar
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" @click="findNearby()">
+                            <i class="bi bi-search"></i> Find Nearby Events
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function eventDetail() {
+    return {
+        map: null,
+        eventLat: {{ event.location.coordinates[1] }},
+        eventLng: {{ event.location.coordinates[0] }},
+        
+        init() {
+            this.initMap();
+        },
+        
+        initMap() {
+            this.map = L.map('eventMap').setView([this.eventLat, this.eventLng], 15);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(this.map);
+            
+            const marker = L.marker([this.eventLat, this.eventLng]).addTo(this.map);
+            marker.bindPopup(`
+                <div class="popup-content">
+                    <h6>{{ event.title }}</h6>
+                    <p class="small">{{ event.category }} Event</p>
+                </div>
+            `).openPopup();
+        },
+        
+        showDirections() {
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${this.eventLat},${this.eventLng}`;
+            window.open(url, '_blank');
+        },
+        
+        shareEvent() {
+            if (navigator.share) {
+                navigator.share({
+                    title: '{{ event.title }}',
+                    text: '{{ event.description[:100] if event.description else "Check out this event!" }}',
+                    url: window.location.href
+                });
+            } else {
+                // Fallback to clipboard
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('Event link copied to clipboard!');
+                });
+            }
+        },
+        
+        addToCalendar() {
+            const startDate = new Date('{{ event.start_date.isoformat() }}');
+            const endDate = new Date('{{ event.end_date.isoformat() if event.end_date else event.start_date.isoformat() }}');
+            
+            const formatDate = (date) => {
+                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            };
+            
+            const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+                `&text={{ event.title|urlencode }}` +
+                `&dates=${formatDate(startDate)}/${formatDate(endDate)}` +
+                `&details={{ (event.description or '')|urlencode }}` +
+                `&location=${this.eventLat},${this.eventLng}`;
+            
+            window.open(calendarUrl, '_blank');
+        },
+        
+        findNearby() {
+            window.location.href = `/?lat=${this.eventLat}&lng=${this.eventLng}&radius=5`;
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Create Event - MongoDB Events Demo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">Create New Event</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" x-data="createEventForm()">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Event Title *</label>
+                                <input type="text" class="form-control" name="title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Category *</label>
+                                <select class="form-select" name="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="conference">Conference</option>
+                                    <option value="workshop">Workshop</option>
+                                    <option value="meetup">Meetup</option>
+                                    <option value="seminar">Seminar</option>
+                                    <option value="networking">Networking</option>
+                                    <option value="social">Social</option>
+                                    <option value="sports">Sports</option>
+                                    <option value="cultural">Cultural</option>
+                                    <option value="educational">Educational</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3" 
+                                  placeholder="Describe your event..."></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Organizer</label>
+                                <input type="text" class="form-control" name="organizer" 
+                                       placeholder="Organization or person name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Max Attendees</label>
+                                <input type="number" class="form-control" name="max_attendees" min="1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Start Date & Time *</label>
+                                <input type="datetime-local" class="form-control" name="start_date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">End Date & Time</label>
+                                <input type="datetime-local" class="form-control" name="end_date">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tags</label>
+                        <input type="text" class="form-control" name="tags" 
+                               placeholder="Separate tags with commas (e.g., tech, python, mongodb)">
+                        <div class="form-text">Use tags to help people discover your event</div>
+                    </div>
+                    
+                    <!-- Location Section -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Event Location *</h5>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Latitude *</label>
+                                <input type="number" class="form-control" name="latitude" 
+                                       x-model="latitude" step="any" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Longitude *</label>
+                                <input type="number" class="form-control" name="longitude" 
+                                       x-model="longitude" step="any" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                    @click="getCurrentLocation()">
+                                <i class="bi bi-geo-alt"></i> Use Current Location
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm ms-2" 
+                                    @click="showMap = !showMap">
+                                <i class="bi bi-map"></i> 
+                                <span x-text="showMap ? 'Hide Map' : 'Show Map'"></span>
+                            </button>
+                        </div>
+                        
+                        <!-- Interactive Map -->
+                        <div x-show="showMap" class="border rounded">
+                            <div id="locationMap" class="map-container"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Create Event
+                        </button>
+                        <a href="{{ url_for('events_list') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function createEventForm() {
+    return {
+        latitude: 40.7128,
+        longitude: -74.0060,
+        showMap: false,
+        map: null,
+        marker: null,
+        
+        init() {
+            this.getCurrentLocation();
+            
+            // Watch for map visibility change
+            this.$watch('showMap', (value) => {
+                if (value) {
+                    this.$nextTick(() => {
+                        this.initMap();
+                    });
+                }
+            });
+        },
+        
+        getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    this.latitude = position.coords.latitude;
+                    this.longitude = position.coords.longitude;
+                    
+                    if (this.map) {
+                        this.updateMap();
+                    }
+                }, (error) => {
+                    console.error('Error getting location:', error);
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        },
+        
+        initMap() {
+            if (this.map) {
+                this.map.remove();
+            }
+            
+            this.map = L.map('locationMap').setView([this.latitude, this.longitude], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(this.map);
+            
+            this.marker = L.marker([this.latitude, this.longitude], {
+                draggable: true
+            }).addTo(this.map);
+            
+            // Update coordinates when marker is dragged
+            this.marker.on('dragend', (e) => {
+                const position = e.target.getLatLng();
+                this.latitude = position.lat;
+                this.longitude = position.lng;
+            });
+            
+            // Update marker when map is clicked
+            this.map.on('click', (e) => {
+                this.latitude = e.latlng.lat;
+                this.longitude = e.latlng.lng;
+                this.updateMarker();
+            });
+        },
+        
+        updateMap() {
+            if (this.map) {
+                this.map.setView([this.latitude, this.longitude], 13);
+                this.updateMarker();
+            }
+        },
+        
+        updateMarker() {
+            if (this.marker) {
+                this.marker.setLatLng([this.latitude, this.longitude]);
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

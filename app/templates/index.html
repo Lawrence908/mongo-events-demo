@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Events Map - MongoDB Events Demo{% endblock %}
+
+{% block content %}
+<div x-data="eventsMap()">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Events Map</h1>
+            
+            <!-- Map Controls -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">Search Radius (km)</label>
+                            <input type="number" class="form-control" x-model="radius" min="1" max="100" step="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Max Results</label>
+                            <input type="number" class="form-control" x-model="maxResults" min="1" max="100" step="1">
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" x-model="useCurrentLocation" id="useLocation">
+                                <label class="form-check-label" for="useLocation">
+                                    Use Current Location
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary w-100" @click="searchEvents()">
+                                <span x-show="!loading">Search Events</span>
+                                <span x-show="loading" class="spinner-border spinner-border-sm me-2"></span>
+                                <span x-show="loading">Loading...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Map Container -->
+            <div class="card">
+                <div class="card-body p-0">
+                    <div id="map" class="map-container"></div>
+                </div>
+            </div>
+            
+            <!-- Search Results -->
+            <div class="mt-4" x-show="events.length > 0">
+                <h3>Found Events (<span x-text="events.length"></span>)</h3>
+                <div class="row">
+                    <template x-for="event in events" :key="event.properties.id">
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card event-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title mb-0" x-text="event.properties.title"></h5>
+                                        <span class="badge bg-secondary category-badge" x-text="event.properties.category"></span>
+                                    </div>
+                                    <p class="card-text text-muted small" x-text="event.properties.description"></p>
+                                    <div class="small text-muted">
+                                        <div><strong>Date:</strong> <span x-text="formatDate(event.properties.start_date)"></span></div>
+                                        <div x-show="event.properties.organizer"><strong>Organizer:</strong> <span x-text="event.properties.organizer"></span></div>
+                                        <div><strong>Distance:</strong> <span x-text="event.properties.distance"></span>m</div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a :href="`/events/${event.properties.id}`" class="btn btn-sm btn-outline-primary">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            
+            <!-- No Results Message -->
+            <div class="alert alert-info mt-4" x-show="searched && events.length === 0">
+                No events found in this area. Try increasing the search radius or searching a different location.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function eventsMap() {
+    return {
+        map: null,
+        markersLayer: null,
+        searchCircle: null,
+        events: [],
+        loading: false,
+        searched: false,
+        radius: 10,
+        maxResults: 50,
+        useCurrentLocation: false,
+        currentLat: 40.7128,
+        currentLng: -74.0060, // Default to NYC
+        
+        init() {
+            this.initMap();
+            this.getCurrentLocation();
+        },
+        
+        initMap() {
+            this.map = L.map('map').setView([this.currentLat, this.currentLng], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(this.map);
+            
+            this.markersLayer = L.layerGroup().addTo(this.map);
+            
+            // Add click event to map
+            this.map.on('click', (e) => {
+                if (!this.useCurrentLocation) {
+                    this.currentLat = e.latlng.lat;
+                    this.currentLng = e.latlng.lng;
+                    this.showSearchArea();
+                }
+            });
+        },
+        
+        getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    this.currentLat = position.coords.latitude;
+                    this.currentLng = position.coords.longitude;
+                    this.map.setView([this.currentLat, this.currentLng], 13);
+                    if (this.useCurrentLocation) {
+                        this.showSearchArea();
+                    }
+                });
+            }
+        },
+        
+        showSearchArea() {
+            if (this.searchCircle) {
+                this.map.removeLayer(this.searchCircle);
+            }
+            
+            this.searchCircle = L.circle([this.currentLat, this.currentLng], {
+                radius: this.radius * 1000, // Convert to meters
+                fillColor: 'blue',
+                fillOpacity: 0.1,
+                color: 'blue',
+                weight: 2,
+                opacity: 0.8
+            }).addTo(this.map);
+        },
+        
+        async searchEvents() {
+            this.loading = true;
+            this.searched = true;
+            
+            if (this.useCurrentLocation) {
+                this.getCurrentLocation();
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for location
+            }
+            
+            this.showSearchArea();
+            
+            try {
+                const response = await fetch(`/api/events/nearby?lat=${this.currentLat}&lng=${this.currentLng}&radius=${this.radius}&limit=${this.maxResults}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    this.events = data.features || [];
+                    this.displayEventMarkers();
+                } else {
+                    console.error('Error fetching events:', data.error);
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+            }
+            
+            this.loading = false;
+        },
+        
+        displayEventMarkers() {
+            this.markersLayer.clearLayers();
+            
+            this.events.forEach(event => {
+                const [lng, lat] = event.geometry.coordinates;
+                
+                const marker = L.marker([lat, lng]).bindPopup(`
+                    <div class="popup-content">
+                        <h6>${event.properties.title}</h6>
+                        <p class="small mb-2">${event.properties.description || ''}</p>
+                        <div class="small text-muted">
+                            <div><strong>Category:</strong> ${event.properties.category}</div>
+                            <div><strong>Date:</strong> ${this.formatDate(event.properties.start_date)}</div>
+                            ${event.properties.organizer ? `<div><strong>Organizer:</strong> ${event.properties.organizer}</div>` : ''}
+                            <div><strong>Distance:</strong> ${event.properties.distance}m</div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="/events/${event.properties.id}" class="btn btn-sm btn-primary">View Details</a>
+                        </div>
+                    </div>
+                `);
+                
+                this.markersLayer.addLayer(marker);
+            });
+            
+            if (this.events.length > 0) {
+                const group = new L.featureGroup(this.markersLayer.getLayers());
+                this.map.fitBounds(group.getBounds().pad(0.1));
+            }
+        },
+        
+        formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    }
+}
+</script>
+{% endblock %}
