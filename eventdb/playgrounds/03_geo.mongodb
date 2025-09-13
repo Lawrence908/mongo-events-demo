@@ -1,0 +1,434 @@
+// MongoDB Playground - Geospatial Queries
+// This file demonstrates MongoDB geospatial capabilities
+
+// Use the eventdb database
+use('eventdb');
+
+// 1. Create geospatial index (if not already created)
+db.venues.createIndex({
+  "location": "2dsphere"
+});
+
+// 2. Find venues near a point
+db.venues.find({
+  "location": {
+    $near: {
+      $geometry: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128] // New York City
+      },
+      $maxDistance: 1000 // 1km in meters
+    }
+  }
+});
+
+// 3. Find venues within a specific distance
+db.venues.find({
+  "location": {
+    $geoWithin: {
+      $center: [
+        [-74.0060, 40.7128], // Center point
+        5000 // 5km radius in meters
+      ]
+    }
+  }
+});
+
+// 4. Find venues within a polygon
+db.venues.find({
+  "location": {
+    $geoWithin: {
+      $geometry: {
+        type: "Polygon",
+        coordinates: [[
+          [-74.1, 40.7],
+          [-73.9, 40.7],
+          [-73.9, 40.8],
+          [-74.1, 40.8],
+          [-74.1, 40.7]
+        ]]
+      }
+    }
+  }
+});
+
+// 5. Find venues intersecting with a line
+db.venues.find({
+  "location": {
+    $geoIntersects: {
+      $geometry: {
+        type: "LineString",
+        coordinates: [
+          [-74.1, 40.7],
+          [-73.9, 40.8]
+        ]
+      }
+    }
+  }
+});
+
+// 6. Geospatial aggregation with $geoNear
+db.venues.aggregate([
+  {
+    $geoNear: {
+      near: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      },
+      distanceField: "distance",
+      spherical: true,
+      maxDistance: 10000 // 10km
+    }
+  },
+  {
+    $limit: 5
+  }
+]);
+
+// 7. Find events near a location using aggregation
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $geoNear: {
+      near: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      },
+      distanceField: "distanceMeters",
+      spherical: true,
+      key: "venue.location",
+      maxDistance: 5000 // 5km
+    }
+  },
+  {
+    $project: {
+      "title": 1,
+      "venue.name": 1,
+      "venue.address": 1,
+      "distanceMeters": 1
+    }
+  }
+]);
+
+// 8. Find events within a specific area
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $match: {
+      "venue.location": {
+        $geoWithin: {
+          $center: [
+            [-74.0060, 40.7128],
+            5000 // 5km radius
+          ]
+        }
+      }
+    }
+  }
+]);
+
+// 9. Calculate distance between two points
+db.venues.aggregate([
+  {
+    $geoNear: {
+      near: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      },
+      distanceField: "distance",
+      spherical: true
+    }
+  },
+  {
+    $project: {
+      "name": 1,
+      "distance": 1,
+      "distanceKm": { $divide: ["$distance", 1000] }
+    }
+  }
+]);
+
+// 10. Find venues within a bounding box
+db.venues.find({
+  "location": {
+    $geoWithin: {
+      $box: [
+        [-74.1, 40.7], // Southwest corner
+        [-73.9, 40.8]  // Northeast corner
+      ]
+    }
+  }
+});
+
+// 11. Geospatial aggregation with grouping
+db.venues.aggregate([
+  {
+    $geoNear: {
+      near: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      },
+      distanceField: "distance",
+      spherical: true,
+      maxDistance: 20000 // 20km
+    }
+  },
+  {
+    $group: {
+      _id: { $floor: { $divide: ["$distance", 1000] } },
+      count: { $sum: 1 },
+      avgDistance: { $avg: "$distance" }
+    }
+  },
+  {
+    $sort: { "_id": 1 }
+  }
+]);
+
+// 12. Find events with distance-based sorting
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $geoNear: {
+      near: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      },
+      distanceField: "distanceMeters",
+      spherical: true,
+      key: "venue.location"
+    }
+  },
+  {
+    $sort: { "distanceMeters": 1 }
+  },
+  {
+    $limit: 10
+  }
+]);
+
+// 13. Find venues within a complex polygon
+db.venues.find({
+  "location": {
+    $geoWithin: {
+      $geometry: {
+        type: "Polygon",
+        coordinates: [[
+          [-74.1, 40.7],
+          [-73.9, 40.7],
+          [-73.8, 40.8],
+          [-74.0, 40.9],
+          [-74.1, 40.8],
+          [-74.1, 40.7]
+        ]]
+      }
+    }
+  }
+});
+
+// 14. Geospatial aggregation with facet
+db.venues.aggregate([
+  {
+    $geoNear: {
+      near: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      },
+      distanceField: "distance",
+      spherical: true
+    }
+  },
+  {
+    $facet: {
+      "nearby": [
+        { $match: { "distance": { $lt: 1000 } } },
+        { $count: "count" }
+      ],
+      "far": [
+        { $match: { "distance": { $gte: 1000 } } },
+        { $count: "count" }
+      ]
+    }
+  }
+]);
+
+// 15. Find events with specific distance range
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $geoNear: {
+      near: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      },
+      distanceField: "distanceMeters",
+      spherical: true,
+      key: "venue.location",
+      minDistance: 1000, // 1km
+      maxDistance: 5000  // 5km
+    }
+  }
+]);
+
+// 16. Calculate average distance to events
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $geoNear: {
+      near: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      },
+      distanceField: "distanceMeters",
+      spherical: true,
+      key: "venue.location"
+    }
+  },
+  {
+    $group: {
+      _id: null,
+      avgDistance: { $avg: "$distanceMeters" },
+      minDistance: { $min: "$distanceMeters" },
+      maxDistance: { $max: "$distanceMeters" }
+    }
+  }
+]);
+
+// 17. Find venues with specific capacity near location
+db.venues.find({
+  "location": {
+    $near: {
+      $geometry: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      },
+      $maxDistance: 2000 // 2km
+    }
+  },
+  "capacity": { $gte: 100 }
+});
+
+// 18. Geospatial aggregation with date filtering
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $match: {
+      "datetime": { $gte: new Date() }
+    }
+  },
+  {
+    $geoNear: {
+      near: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      },
+      distanceField: "distanceMeters",
+      spherical: true,
+      key: "venue.location",
+      maxDistance: 10000 // 10km
+    }
+  }
+]);
+
+// 19. Find venues within multiple circles
+db.venues.find({
+  $or: [
+    {
+      "location": {
+        $geoWithin: {
+          $center: [
+            [-74.0060, 40.7128],
+            1000 // 1km
+          ]
+        }
+      }
+    },
+    {
+      "location": {
+        $geoWithin: {
+          $center: [
+            [-73.9857, 40.7484], // Times Square
+            2000 // 2km
+          ]
+        }
+      }
+    }
+  ]
+});
+
+// 20. Geospatial aggregation with text search
+db.events.aggregate([
+  {
+    $match: {
+      $text: { $search: "music" }
+    }
+  },
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $geoNear: {
+      near: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      },
+      distanceField: "distanceMeters",
+      spherical: true,
+      key: "venue.location"
+    }
+  }
+]);

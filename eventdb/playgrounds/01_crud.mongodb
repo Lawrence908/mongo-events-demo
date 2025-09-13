@@ -1,0 +1,125 @@
+// MongoDB Playground - CRUD Operations
+// This file demonstrates basic CRUD operations on the events collection
+
+// Use the eventdb database
+use('eventdb');
+
+// 1. CREATE - Insert a new event
+db.events.insertOne({
+  "venueId": ObjectId("507f1f77bcf86cd799439011"),
+  "title": "Tech Conference 2024",
+  "description": "Annual technology conference featuring the latest innovations",
+  "tags": ["tech", "conference", "innovation"],
+  "datetime": new Date("2024-06-15T09:00:00Z"),
+  "price": 299.99,
+  "seatsAvailable": 500
+});
+
+// 2. READ - Find all events
+db.events.find().limit(5);
+
+// 3. READ - Find events with specific criteria
+db.events.find({
+  "price": { $lt: 100 },
+  "seatsAvailable": { $gt: 0 }
+}).sort({ "datetime": 1 });
+
+// 4. READ - Find events by tag
+db.events.find({
+  "tags": "music"
+}).limit(3);
+
+// 5. UPDATE - Update event details
+db.events.updateOne(
+  { "title": "Tech Conference 2024" },
+  { 
+    $set: { 
+      "price": 249.99,
+      "seatsAvailable": 450
+    }
+  }
+);
+
+// 6. UPDATE - Increment seats available
+db.events.updateOne(
+  { "title": "Tech Conference 2024" },
+  { $inc: { "seatsAvailable": 50 } }
+);
+
+// 7. UPDATE - Add new tag to events
+db.events.updateMany(
+  { "tags": "tech" },
+  { $addToSet: { "tags": "technology" } }
+);
+
+// 8. DELETE - Remove events with no seats
+db.events.deleteMany({
+  "seatsAvailable": 0
+});
+
+// 9. DELETE - Remove specific event
+db.events.deleteOne({
+  "title": "Tech Conference 2024"
+});
+
+// 10. READ - Count documents
+db.events.countDocuments();
+
+// 11. READ - Find with projection
+db.events.find(
+  { "price": { $exists: true } },
+  { "title": 1, "price": 1, "datetime": 1, "_id": 0 }
+).limit(5);
+
+// 12. READ - Find with sorting and limiting
+db.events.find()
+  .sort({ "datetime": -1 })
+  .limit(10);
+
+// 13. READ - Find events in date range
+db.events.find({
+  "datetime": {
+    $gte: new Date("2024-01-01"),
+    $lt: new Date("2024-12-31")
+  }
+}).count();
+
+// 14. READ - Find events with specific price range
+db.events.find({
+  "price": { $gte: 50, $lte: 200 }
+}).sort({ "price": 1 });
+
+// 15. READ - Find events with multiple tags
+db.events.find({
+  "tags": { $all: ["tech", "conference"] }
+});
+
+// 16. UPDATE - Update multiple documents
+db.events.updateMany(
+  { "price": { $lt: 50 } },
+  { $set: { "category": "budget" } }
+);
+
+// 17. READ - Find events with regex pattern
+db.events.find({
+  "title": { $regex: /conference/i }
+});
+
+// 18. READ - Find events with array size
+db.events.find({
+  "tags": { $size: 3 }
+});
+
+// 19. READ - Find events with specific tag at specific position
+db.events.find({
+  "tags.0": "music"
+});
+
+// 20. READ - Find events with complex query
+db.events.find({
+  $and: [
+    { "price": { $exists: true } },
+    { "seatsAvailable": { $gt: 10 } },
+    { "datetime": { $gte: new Date() } }
+  ]
+}).sort({ "datetime": 1 });

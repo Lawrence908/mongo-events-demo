@@ -1,0 +1,161 @@
+// MongoDB Playground - Text Search
+// This file demonstrates MongoDB text search capabilities
+
+// Use the eventdb database
+use('eventdb');
+
+// 1. Create text index (if not already created)
+db.events.createIndex({
+  "title": "text",
+  "description": "text",
+  "tags": "text"
+});
+
+// 2. Basic text search
+db.events.find({
+  $text: { $search: "music" }
+});
+
+// 3. Text search with score
+db.events.find(
+  { $text: { $search: "music" } },
+  { score: { $meta: "textScore" } }
+).sort({ score: { $meta: "textScore" } });
+
+// 4. Text search with multiple terms
+db.events.find({
+  $text: { $search: "music concert" }
+});
+
+// 5. Text search with phrase
+db.events.find({
+  $text: { $search: "\"rock concert\"" }
+});
+
+// 6. Text search with exclusion
+db.events.find({
+  $text: { $search: "music -jazz" }
+});
+
+// 7. Text search with language specification
+db.events.find({
+  $text: { $search: "music", $language: "en" }
+});
+
+// 8. Text search with case sensitivity
+db.events.find({
+  $text: { $search: "Music", $caseSensitive: true }
+});
+
+// 9. Text search with diacritic sensitivity
+db.events.find({
+  $text: { $search: "café", $diacriticSensitive: true }
+});
+
+// 10. Text search with compound query
+db.events.find({
+  $and: [
+    { $text: { $search: "tech conference" } },
+    { "price": { $lt: 200 } }
+  ]
+});
+
+// 11. Text search with date range
+db.events.find({
+  $and: [
+    { $text: { $search: "workshop" } },
+    { "datetime": { $gte: new Date("2024-01-01") } }
+  ]
+});
+
+// 12. Text search with aggregation
+db.events.aggregate([
+  { $match: { $text: { $search: "music" } } },
+  { $project: { 
+    "title": 1, 
+    "description": 1, 
+    "score": { $meta: "textScore" } 
+  }},
+  { $sort: { score: { $meta: "textScore" } } },
+  { $limit: 5 }
+]);
+
+// 13. Text search with grouping
+db.events.aggregate([
+  { $match: { $text: { $search: "conference" } } },
+  { $group: {
+    _id: "$tags",
+    count: { $sum: 1 },
+    avgPrice: { $avg: "$price" }
+  }}
+]);
+
+// 14. Text search with facet
+db.events.aggregate([
+  { $match: { $text: { $search: "tech" } } },
+  { $facet: {
+    "byPrice": [
+      { $bucket: {
+        groupBy: "$price",
+        boundaries: [0, 50, 100, 200, 500],
+        default: "500+"
+      }}
+    ],
+    "byMonth": [
+      { $group: {
+        _id: { $month: "$datetime" },
+        count: { $sum: 1 }
+      }}
+    ]
+  }}
+]);
+
+// 15. Text search with lookup
+db.events.aggregate([
+  { $match: { $text: { $search: "workshop" } } },
+  { $lookup: {
+    from: "venues",
+    localField: "venueId",
+    foreignField: "_id",
+    as: "venue"
+  }},
+  { $unwind: "$venue" },
+  { $project: {
+    "title": 1,
+    "venue.name": 1,
+    "venue.address": 1,
+    "score": { $meta: "textScore" }
+  }}
+]);
+
+// 16. Text search with sorting by multiple fields
+db.events.find(
+  { $text: { $search: "music" } },
+  { score: { $meta: "textScore" } }
+).sort({ 
+  score: { $meta: "textScore" },
+  "datetime": 1 
+});
+
+// 17. Text search with limit and skip
+db.events.find(
+  { $text: { $search: "conference" } },
+  { score: { $meta: "textScore" } }
+).sort({ score: { $meta: "textScore" } })
+ .skip(10)
+ .limit(5);
+
+// 18. Text search with count
+db.events.countDocuments({
+  $text: { $search: "tech" }
+});
+
+// 19. Text search with distinct values
+db.events.distinct("tags", {
+  $text: { $search: "music" }
+});
+
+// 20. Text search with explain
+db.events.find(
+  { $text: { $search: "workshop" } }
+).explain("executionStats");

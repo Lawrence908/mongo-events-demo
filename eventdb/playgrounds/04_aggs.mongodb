@@ -1,0 +1,567 @@
+// MongoDB Playground - Aggregations
+// This file demonstrates MongoDB aggregation pipeline capabilities
+
+// Use the eventdb database
+use('eventdb');
+
+// 1. Basic aggregation - count events by month
+db.events.aggregate([
+  {
+    $group: {
+      _id: {
+        year: { $year: "$datetime" },
+        month: { $month: "$datetime" }
+      },
+      count: { $sum: 1 }
+    }
+  },
+  {
+    $sort: { "_id.year": 1, "_id.month": 1 }
+  }
+]);
+
+// 2. Aggregation with lookup - events with venue information
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $project: {
+      "title": 1,
+      "venue.name": 1,
+      "venue.address": 1,
+      "datetime": 1,
+      "price": 1
+    }
+  }
+]);
+
+// 3. Aggregation with grouping - events by venue
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $group: {
+      _id: "$venue.name",
+      eventCount: { $sum: 1 },
+      avgPrice: { $avg: "$price" },
+      totalSeats: { $sum: "$seatsAvailable" }
+    }
+  },
+  {
+    $sort: { "eventCount": -1 }
+  }
+]);
+
+// 4. Aggregation with date filtering - upcoming events
+db.events.aggregate([
+  {
+    $match: {
+      "datetime": { $gte: new Date() }
+    }
+  },
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $project: {
+      "title": 1,
+      "venue.name": 1,
+      "datetime": 1,
+      "price": 1,
+      "seatsAvailable": 1
+    }
+  },
+  {
+    $sort: { "datetime": 1 }
+  }
+]);
+
+// 5. Aggregation with facet - multiple analyses
+db.events.aggregate([
+  {
+    $facet: {
+      "byPrice": [
+        {
+          $bucket: {
+            groupBy: "$price",
+            boundaries: [0, 50, 100, 200, 500],
+            default: "500+",
+            output: {
+              count: { $sum: 1 },
+              avgSeats: { $avg: "$seatsAvailable" }
+            }
+          }
+        }
+      ],
+      "byMonth": [
+        {
+          $group: {
+            _id: { $month: "$datetime" },
+            count: { $sum: 1 },
+            avgPrice: { $avg: "$price" }
+          }
+        },
+        { $sort: { "_id": 1 } }
+      ],
+      "byTags": [
+        { $unwind: "$tags" },
+        {
+          $group: {
+            _id: "$tags",
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { "count": -1 } },
+        { $limit: 10 }
+      ]
+    }
+  }
+]);
+
+// 6. Aggregation with unwind and group - tag analysis
+db.events.aggregate([
+  { $unwind: "$tags" },
+  {
+    $group: {
+      _id: "$tags",
+      count: { $sum: 1 },
+      avgPrice: { $avg: "$price" },
+      totalSeats: { $sum: "$seatsAvailable" }
+    }
+  },
+  {
+    $sort: { "count": -1 }
+  }
+]);
+
+// 7. Aggregation with conditional logic - price categories
+db.events.aggregate([
+  {
+    $addFields: {
+      priceCategory: {
+        $switch: {
+          branches: [
+            { case: { $lt: ["$price", 50] }, then: "Budget" },
+            { case: { $lt: ["$price", 100] }, then: "Mid-range" },
+            { case: { $lt: ["$price", 200] }, then: "Premium" }
+          ],
+          default: "Luxury"
+        }
+      }
+    }
+  },
+  {
+    $group: {
+      _id: "$priceCategory",
+      count: { $sum: 1 },
+      avgPrice: { $avg: "$price" },
+      avgSeats: { $avg: "$seatsAvailable" }
+    }
+  }
+]);
+
+// 8. Aggregation with date operations - events by day of week
+db.events.aggregate([
+  {
+    $addFields: {
+      dayOfWeek: { $dayOfWeek: "$datetime" },
+      hour: { $hour: "$datetime" }
+    }
+  },
+  {
+    $group: {
+      _id: {
+        dayOfWeek: "$dayOfWeek",
+        hour: "$hour"
+      },
+      count: { $sum: 1 },
+      avgPrice: { $avg: "$price" }
+    }
+  },
+  {
+    $sort: { "_id.dayOfWeek": 1, "_id.hour": 1 }
+  }
+]);
+
+// 9. Aggregation with array operations - tag frequency
+db.events.aggregate([
+  {
+    $project: {
+      "title": 1,
+      "tags": 1,
+      "tagCount": { $size: "$tags" }
+    }
+  },
+  {
+    $group: {
+      _id: null,
+      avgTagCount: { $avg: "$tagCount" },
+      maxTagCount: { $max: "$tagCount" },
+      minTagCount: { $min: "$tagCount" }
+    }
+  }
+]);
+
+// 10. Aggregation with lookup and match - events with specific venue
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $match: {
+      "venue.capacity": { $gte: 500 }
+    }
+  },
+  {
+    $group: {
+      _id: "$venue.name",
+      eventCount: { $sum: 1 },
+      totalCapacity: { $first: "$venue.capacity" },
+      avgPrice: { $avg: "$price" }
+    }
+  }
+]);
+
+// 11. Aggregation with sorting and limiting - top events by price
+db.events.aggregate([
+  {
+    $match: {
+      "price": { $exists: true, $gt: 0 }
+    }
+  },
+  {
+    $sort: { "price": -1 }
+  },
+  {
+    $limit: 10
+  },
+  {
+    $project: {
+      "title": 1,
+      "price": 1,
+      "datetime": 1,
+      "seatsAvailable": 1
+    }
+  }
+]);
+
+// 12. Aggregation with conditional aggregation - revenue by month
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "tickets",
+      localField: "_id",
+      foreignField: "eventId",
+      as: "tickets"
+    }
+  },
+  {
+    $addFields: {
+      ticketCount: { $size: "$tickets" },
+      revenue: {
+        $multiply: [
+          { $size: "$tickets" },
+          { $ifNull: ["$price", 0] }
+        ]
+      }
+    }
+  },
+  {
+    $group: {
+      _id: {
+        year: { $year: "$datetime" },
+        month: { $month: "$datetime" }
+      },
+      totalRevenue: { $sum: "$revenue" },
+      totalTickets: { $sum: "$ticketCount" },
+      eventCount: { $sum: 1 }
+    }
+  },
+  {
+    $sort: { "_id.year": 1, "_id.month": 1 }
+  }
+]);
+
+// 13. Aggregation with array filtering - events with specific tags
+db.events.aggregate([
+  {
+    $match: {
+      "tags": { $in: ["music", "tech"] }
+    }
+  },
+  {
+    $addFields: {
+      matchingTags: {
+        $filter: {
+          input: "$tags",
+          cond: { $in: ["$$this", ["music", "tech"]] }
+        }
+      }
+    }
+  },
+  {
+    $project: {
+      "title": 1,
+      "tags": 1,
+      "matchingTags": 1,
+      "matchingTagCount": { $size: "$matchingTags" }
+    }
+  }
+]);
+
+// 14. Aggregation with geospatial - events near location
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $geoNear: {
+      near: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      },
+      distanceField: "distanceMeters",
+      spherical: true,
+      key: "venue.location",
+      maxDistance: 10000 // 10km
+    }
+  },
+  {
+    $group: {
+      _id: {
+        $floor: { $divide: ["$distanceMeters", 1000] }
+      },
+      count: { $sum: 1 },
+      avgPrice: { $avg: "$price" }
+    }
+  },
+  {
+    $sort: { "_id": 1 }
+  }
+]);
+
+// 15. Aggregation with window functions - running totals
+db.events.aggregate([
+  {
+    $match: {
+      "datetime": { $gte: new Date("2024-01-01") }
+    }
+  },
+  {
+    $sort: { "datetime": 1 }
+  },
+  {
+    $group: {
+      _id: {
+        year: { $year: "$datetime" },
+        month: { $month: "$datetime" }
+      },
+      count: { $sum: 1 },
+      totalSeats: { $sum: "$seatsAvailable" }
+    }
+  },
+  {
+    $sort: { "_id.year": 1, "_id.month": 1 }
+  },
+  {
+    $setWindowFields: {
+      partitionBy: "$_id.year",
+      sortBy: { "_id.month": 1 },
+      output: {
+        runningCount: {
+          $sum: "$count",
+          window: {
+            range: [-2, 0]
+          }
+        }
+      }
+    }
+  }
+]);
+
+// 16. Aggregation with text search and grouping
+db.events.aggregate([
+  {
+    $match: {
+      $text: { $search: "conference" }
+    }
+  },
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $group: {
+      _id: "$venue.name",
+      count: { $sum: 1 },
+      avgPrice: { $avg: "$price" },
+      totalSeats: { $sum: "$seatsAvailable" }
+    }
+  },
+  {
+    $sort: { "count": -1 }
+  }
+]);
+
+// 17. Aggregation with complex date operations
+db.events.aggregate([
+  {
+    $addFields: {
+      isWeekend: {
+        $in: [
+          { $dayOfWeek: "$datetime" },
+          [1, 7] // Sunday and Saturday
+        ]
+      },
+      isEvening: {
+        $gte: [{ $hour: "$datetime" }, 18]
+      }
+    }
+  },
+  {
+    $group: {
+      _id: {
+        isWeekend: "$isWeekend",
+        isEvening: "$isEvening"
+      },
+      count: { $sum: 1 },
+      avgPrice: { $avg: "$price" },
+      avgSeats: { $avg: "$seatsAvailable" }
+    }
+  }
+]);
+
+// 18. Aggregation with sample and statistics
+db.events.aggregate([
+  {
+    $sample: { size: 100 }
+  },
+  {
+    $group: {
+      _id: null,
+      count: { $sum: 1 },
+      avgPrice: { $avg: "$price" },
+      minPrice: { $min: "$price" },
+      maxPrice: { $max: "$price" },
+      stdDevPrice: { $stdDevPop: "$price" }
+    }
+  }
+]);
+
+// 19. Aggregation with multiple lookups
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $lookup: {
+      from: "tickets",
+      localField: "_id",
+      foreignField: "eventId",
+      as: "tickets"
+    }
+  },
+  {
+    $addFields: {
+      ticketCount: { $size: "$tickets" },
+      occupancyRate: {
+        $divide: [
+          { $size: "$tickets" },
+          "$seatsAvailable"
+        ]
+      }
+    }
+  },
+  {
+    $project: {
+      "title": 1,
+      "venue.name": 1,
+      "ticketCount": 1,
+      "seatsAvailable": 1,
+      "occupancyRate": 1
+    }
+  }
+]);
+
+// 20. Aggregation with complex grouping and sorting
+db.events.aggregate([
+  {
+    $lookup: {
+      from: "venues",
+      localField: "venueId",
+      foreignField: "_id",
+      as: "venue"
+    }
+  },
+  { $unwind: "$venue" },
+  {
+    $group: {
+      _id: {
+        venueName: "$venue.name",
+        year: { $year: "$datetime" },
+        month: { $month: "$datetime" }
+      },
+      eventCount: { $sum: 1 },
+      totalSeats: { $sum: "$seatsAvailable" },
+      avgPrice: { $avg: "$price" },
+      totalRevenue: {
+        $sum: {
+          $multiply: [
+            { $ifNull: ["$price", 0] },
+            "$seatsAvailable"
+          ]
+        }
+      }
+    }
+  },
+  {
+    $sort: {
+      "_id.venueName": 1,
+      "_id.year": 1,
+      "_id.month": 1
+    }
+  }
+]);
