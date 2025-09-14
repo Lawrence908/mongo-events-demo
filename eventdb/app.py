@@ -32,6 +32,11 @@ def create_app():
         """Home page with tabs for all demos"""
         return render_template("index.html")
     
+    @app.route("/events")
+    def events_list():
+        """Events list page"""
+        return render_template("events_list.html")
+    
     @app.route("/api/events/nearby")
     def api_events_nearby():
         """API: Get nearby events as GeoJSON"""

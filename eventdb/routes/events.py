@@ -153,7 +153,11 @@ def search_events():
 def get_nearby_events():
     """Get nearby events using geospatial query"""
     try:
-        query = EventsNearbyQuery(**request.args)
+        # Extract parameters with proper names
+        lng = float(request.args.get('lng', 0))
+        lat = float(request.args.get('lat', 0))
+        radius = float(request.args.get('radius', 10))
+        limit = int(request.args.get('limit', 50))
         
         db = get_db()
         
@@ -172,15 +176,15 @@ def get_nearby_events():
                 '$geoNear': {
                     'near': {
                         'type': 'Point',
-                        'coordinates': [query.lng, query.lat]
+                        'coordinates': [lng, lat]
                     },
                     'distanceField': 'distanceMeters',
                     'spherical': True,
                     'key': 'venue.location',
-                    'maxDistance': query.km * 1000
+                    'maxDistance': radius * 1000
                 }
             },
-            {'$limit': query.limit}
+            {'$limit': limit}
         ]
         
         events = list(db.events.aggregate(pipeline))
@@ -195,9 +199,9 @@ def get_nearby_events():
         return jsonify({
             'events': events,
             'query': {
-                'lng': query.lng,
-                'lat': query.lat,
-                'km': query.km
+                'lng': lng,
+                'lat': lat,
+                'radius': radius
             },
             'count': len(events)
         })
@@ -208,7 +212,11 @@ def get_nearby_events():
 def get_nearby_events_geojson():
     """Get nearby events as GeoJSON for map display"""
     try:
-        query = EventsNearbyQuery(**request.args)
+        # Extract parameters with proper names
+        lng = float(request.args.get('lng', 0))
+        lat = float(request.args.get('lat', 0))
+        radius = float(request.args.get('radius', 10))
+        limit = int(request.args.get('limit', 50))
         
         db = get_db()
         
@@ -227,15 +235,15 @@ def get_nearby_events_geojson():
                 '$geoNear': {
                     'near': {
                         'type': 'Point',
-                        'coordinates': [query.lng, query.lat]
+                        'coordinates': [lng, lat]
                     },
                     'distanceField': 'distanceMeters',
                     'spherical': True,
                     'key': 'venue.location',
-                    'maxDistance': query.km * 1000
+                    'maxDistance': radius * 1000
                 }
             },
-            {'$limit': query.limit}
+            {'$limit': limit}
         ]
         
         events = list(db.events.aggregate(pipeline))
