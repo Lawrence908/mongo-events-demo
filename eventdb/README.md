@@ -92,7 +92,7 @@ LOCAL_MONGODB_URI=mongodb://localhost:27017/
 LOCAL_DB_NAME=eventdb
 
 # Cloud MongoDB Atlas
-CLOUD_MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/
+CLOUD_MONGODB_URI= {mongo_db_URI}
 CLOUD_DB_NAME=eventdb
 
 # Flask Configuration
