@@ -26,10 +26,12 @@ class MongoDB:
         self.database = self.client[db_name]
         self.events = self.database.events
 
-        # Create geospatial index for location-based queries
+        # Create comprehensive indexes for optimal query performance
+        
+        # 1. Geospatial index for location-based queries
         self.events.create_index([("location", GEOSPHERE)])
-
-        # Create text index for search
+        
+        # 2. Text index for full-text search
         self.events.create_index(
             [
                 ("title", "text"),
@@ -38,6 +40,29 @@ class MongoDB:
                 ("tags", "text"),
             ]
         )
+        
+        # 3. Date-based queries and sorting
+        self.events.create_index([("start_date", 1)])
+        self.events.create_index([("created_at", 1)])
+        
+        # 4. Compound indexes for common query patterns
+        self.events.create_index([("category", 1), ("start_date", 1)])
+        self.events.create_index([("location", GEOSPHERE), ("start_date", 1)])
+        self.events.create_index([("organizer", 1), ("start_date", 1)])
+        
+        # 5. Cursor-based pagination support
+        self.events.create_index([("_id", 1), ("start_date", 1)])
+        
+        # 6. Analytics and aggregation support
+        self.events.create_index([("category", 1), ("created_at", 1)])
+        self.events.create_index([("start_date", 1), ("category", 1)])
+        
+        # 7. Tags array queries
+        self.events.create_index([("tags", 1)])
+        
+        # 8. Event status and filtering
+        self.events.create_index([("max_attendees", 1)])
+        self.events.create_index([("end_date", 1)])
 
         return self
 

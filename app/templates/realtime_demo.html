@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Events Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .event-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        .event-item.new {
+            border-left: 4px solid #4CAF50;
+            background: #e8f5e8;
+        }
+        .event-item.updated {
+            border-left: 4px solid #2196F3;
+            background: #e3f2fd;
+        }
+        .event-item.deleted {
+            border-left: 4px solid #f44336;
+            background: #ffebee;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .analytics {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .map-container {
+            height: 400px;
+            background: #e9ecef;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Real-time Events Demo</h1>
+    <p>This demo shows real-time event updates using MongoDB Change Streams and WebSockets.</p>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>📡 Connection Status</h2>
+            <div id="status" class="status disconnected">Disconnected</div>
+            
+            <div class="controls">
+                <button onclick="connectToEvents()">Connect to Events</button>
+                <button onclick="connectToAnalytics()">Connect to Analytics</button>
+                <button onclick="disconnect()">Disconnect</button>
+            </div>
+            
+            <h3>🎯 Location-based Updates</h3>
+            <div class="controls">
+                <input type="number" id="lng" placeholder="Longitude" value="-74.0060" step="0.0001">
+                <input type="number" id="lat" placeholder="Latitude" value="40.7128" step="0.0001">
+                <input type="number" id="radius" placeholder="Radius (km)" value="50" step="1">
+                <button onclick="joinLocation()">Join Location</button>
+                <button onclick="leaveLocation()">Leave Location</button>
+            </div>
+            
+            <h3>🏷️ Category-based Updates</h3>
+            <div class="controls">
+                <select id="category">
+                    <option value="Technology">Technology</option>
+                    <option value="Music">Music</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Food & Drink">Food & Drink</option>
+                    <option value="Arts & Culture">Arts & Culture</option>
+                </select>
+                <button onclick="joinCategory()">Join Category</button>
+                <button onclick="leaveCategory()">Leave Category</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>📊 Analytics</h2>
+            <div id="analytics" class="analytics">
+                <p>Connect to analytics to see real-time data...</p>
+            </div>
+            
+            <h2>🗺️ Map View</h2>
+            <div class="map-container">
+                <p>Map integration would go here</p>
+                <p>Events will appear as markers</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="panel">
+        <h2>📝 Recent Events</h2>
+        <div id="events-list">
+            <p>Connect to see real-time event updates...</p>
+        </div>
+    </div>
+
+    <script>
+        let eventsSocket = null;
+        let analyticsSocket = null;
+        
+        function connectToEvents() {
+            if (eventsSocket) {
+                eventsSocket.disconnect();
+            }
+            
+            eventsSocket = io('/events');
+            
+            eventsSocket.on('connect', function() {
+                updateStatus('Connected to Events', 'connected');
+            });
+            
+            eventsSocket.on('disconnect', function() {
+                updateStatus('Disconnected from Events', 'disconnected');
+            });
+            
+            eventsSocket.on('event_created', function(data) {
+                addEventToList(data.event, 'new', 'Event Created');
+            });
+            
+            eventsSocket.on('event_updated', function(data) {
+                addEventToList(data.event, 'updated', 'Event Updated');
+            });
+            
+            eventsSocket.on('event_deleted', function(data) {
+                addEventToList({title: 'Event Deleted', id: data.event_id}, 'deleted', 'Event Deleted');
+            });
+            
+            eventsSocket.on('joined_location', function(data) {
+                console.log('Joined location room:', data.room);
+            });
+            
+            eventsSocket.on('joined_category', function(data) {
+                console.log('Joined category room:', data.room);
+            });
+        }
+        
+        function connectToAnalytics() {
+            if (analyticsSocket) {
+                analyticsSocket.disconnect();
+            }
+            
+            analyticsSocket = io('/analytics');
+            
+            analyticsSocket.on('connect', function() {
+                console.log('Connected to Analytics');
+            });
+            
+            analyticsSocket.on('analytics_updated', function(data) {
+                updateAnalytics(data.analytics);
+            });
+        }
+        
+        function disconnect() {
+            if (eventsSocket) {
+                eventsSocket.disconnect();
+                eventsSocket = null;
+            }
+            if (analyticsSocket) {
+                analyticsSocket.disconnect();
+                analyticsSocket = null;
+            }
+            updateStatus('Disconnected', 'disconnected');
+        }
+        
+        function joinLocation() {
+            if (eventsSocket) {
+                const lng = document.getElementById('lng').value;
+                const lat = document.getElementById('lat').value;
+                const radius = document.getElementById('radius').value;
+                
+                eventsSocket.emit('join_location', {
+                    longitude: parseFloat(lng),
+                    latitude: parseFloat(lat),
+                    radius: parseFloat(radius)
+                });
+            }
+        }
+        
+        function leaveLocation() {
+            if (eventsSocket) {
+                const lng = document.getElementById('lng').value;
+                const lat = document.getElementById('lat').value;
+                const radius = document.getElementById('radius').value;
+                
+                eventsSocket.emit('leave_location', {
+                    longitude: parseFloat(lng),
+                    latitude: parseFloat(lat),
+                    radius: parseFloat(radius)
+                });
+            }
+        }
+        
+        function joinCategory() {
+            if (eventsSocket) {
+                const category = document.getElementById('category').value;
+                eventsSocket.emit('join_category', { category: category });
+            }
+        }
+        
+        function leaveCategory() {
+            if (eventsSocket) {
+                const category = document.getElementById('category').value;
+                eventsSocket.emit('leave_category', { category: category });
+            }
+        }
+        
+        function updateStatus(message, className) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + className;
+        }
+        
+        function addEventToList(event, type, action) {
+            const eventsList = document.getElementById('events-list');
+            const eventDiv = document.createElement('div');
+            eventDiv.className = 'event-item ' + type;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            eventDiv.innerHTML = `
+                <strong>${action}</strong> - ${timestamp}
+                <br>
+                <strong>Title:</strong> ${event.title || 'N/A'}
+                <br>
+                <strong>Category:</strong> ${event.category || 'N/A'}
+                <br>
+                <strong>ID:</strong> ${event.id || 'N/A'}
+            `;
+            
+            eventsList.insertBefore(eventDiv, eventsList.firstChild);
+            
+            // Keep only last 20 events
+            while (eventsList.children.length > 20) {
+                eventsList.removeChild(eventsList.lastChild);
+            }
+        }
+        
+        function updateAnalytics(analytics) {
+            const analyticsDiv = document.getElementById('analytics');
+            analyticsDiv.innerHTML = `
+                <h4>📈 Real-time Analytics</h4>
+                <p><strong>Total Events:</strong> ${analytics.total_events}</p>
+                <p><strong>Upcoming Events:</strong> ${analytics.upcoming_events}</p>
+                <p><strong>Last Updated:</strong> ${new Date().toLocaleTimeString()}</p>
+            `;
+        }
+        
+        // Auto-connect on page load
+        window.onload = function() {
+            connectToEvents();
+            connectToAnalytics();
+        };
+    </script>
+</body>
+</html>

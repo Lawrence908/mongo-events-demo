@@ -2,11 +2,13 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
+from flask_socketio import SocketIO
 from pydantic import ValidationError
 
 from .database import mongodb
 from .models import EventCreate, EventsNearbyQuery, EventUpdate
 from .services import get_event_service
+from .realtime import init_realtime
 
 load_dotenv()
 
@@ -20,6 +22,12 @@ def create_app():
     app.config["MONGODB_URI"] = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
     app.config["MONGODB_DB_NAME"] = os.getenv("MONGODB_DB_NAME", "events_demo")
 
+    # Initialize SocketIO for real-time features
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+    
+    # Initialize real-time features
+    init_realtime(socketio)
+
     # Initialize database connection (lazy)
     # Connection will be established when first needed
 
@@ -28,6 +36,11 @@ def create_app():
     def index():
         """Home page with event map"""
         return render_template("index.html")
+    
+    @app.route("/realtime")
+    def realtime_demo():
+        """Real-time events demo page"""
+        return render_template("realtime_demo.html")
 
     @app.route("/events")
     def events_list():
@@ -118,15 +131,17 @@ def create_app():
             category = request.args.get("category")
             search = request.args.get("search")
 
-            events = get_event_service().get_events(
+            result = get_event_service().get_events(
                 skip=skip, limit=per_page, category=category, search=search
             )
+            events = result["events"] if isinstance(result, dict) else result
 
             return jsonify(
                 {
-                    "events": [event.dict() for event in events],
+                    "events": [event.model_dump() for event in events],
                     "page": page,
                     "per_page": per_page,
+                    "pagination": result if isinstance(result, dict) else None
                 }
             )
 
@@ -214,6 +229,60 @@ def create_app():
         categories = get_event_service().get_categories()
         return jsonify({"categories": categories})
 
+    @app.route("/api/events/weekend", methods=["GET"])
+    def api_events_weekend():
+        """API: Get events this weekend near a location"""
+        try:
+            longitude = float(request.args.get("lng", -74.0060))  # Default to NYC
+            latitude = float(request.args.get("lat", 40.7128))
+            radius_km = float(request.args.get("radius", 50))
+            
+            weekend_events = get_event_service().get_events_this_weekend(
+                longitude, latitude, radius_km
+            )
+            return jsonify(weekend_events)
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/analytics", methods=["GET"])
+    def api_analytics():
+        """API: Get event analytics"""
+        try:
+            analytics = get_event_service().get_analytics()
+            return jsonify(analytics)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/events/date-range", methods=["GET"])
+    def api_events_date_range():
+        """API: Get events within a date range"""
+        try:
+            from datetime import datetime
+            
+            start_date = datetime.fromisoformat(request.args.get("start_date"))
+            end_date = datetime.fromisoformat(request.args.get("end_date"))
+            category = request.args.get("category")
+            longitude = request.args.get("lng", type=float)
+            latitude = request.args.get("lat", type=float)
+            radius_km = request.args.get("radius", type=float)
+            
+            events = get_event_service().get_events_by_date_range(
+                start_date, end_date, category, longitude, latitude, radius_km
+            )
+            
+            return jsonify({
+                "events": [event.model_dump() for event in events],
+                "count": len(events),
+                "date_range": {
+                    "start": start_date.isoformat(),
+                    "end": end_date.isoformat()
+                }
+            })
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
     # Error handlers
     @app.errorhandler(404)
     def not_found(error):
@@ -223,11 +292,11 @@ def create_app():
     def internal_error(error):
         return render_template("500.html"), 500
 
-    return app
+    return app, socketio
 
 
 # Create app instance
-app = create_app()
+app, socketio = create_app()
 
 
 if __name__ == "__main__":
@@ -235,4 +304,4 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("FLASK_ENV") == "development"
 
-    app.run(host=host, port=port, debug=debug)
+    socketio.run(app, host=host, port=port, debug=debug)
