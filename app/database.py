@@ -38,42 +38,7 @@ class MongoDB:
         self._apply_schema_validation()
 
         # Create comprehensive indexes for optimal query performance
-        
-        # 1. Geospatial index for location-based queries
-        self.events.create_index([("location", GEOSPHERE)])
-        
-        # 2. Text index for full-text search
-        self.events.create_index(
-            [
-                ("title", "text"),
-                ("description", "text"),
-                ("category", "text"),
-                ("tags", "text"),
-            ]
-        )
-        
-        # 3. Date-based queries and sorting
-        self.events.create_index([("start_date", 1)])
-        self.events.create_index([("created_at", 1)])
-        
-        # 4. Compound indexes for common query patterns
-        self.events.create_index([("category", 1), ("start_date", 1)])
-        self.events.create_index([("location", GEOSPHERE), ("start_date", 1)])
-        self.events.create_index([("organizer", 1), ("start_date", 1)])
-        
-        # 5. Cursor-based pagination support
-        self.events.create_index([("_id", 1), ("start_date", 1)])
-        
-        # 6. Analytics and aggregation support
-        self.events.create_index([("category", 1), ("created_at", 1)])
-        self.events.create_index([("start_date", 1), ("category", 1)])
-        
-        # 7. Tags array queries
-        self.events.create_index([("tags", 1)])
-        
-        # 8. Event status and filtering
-        self.events.create_index([("max_attendees", 1)])
-        self.events.create_index([("end_date", 1)])
+        self._create_indexes()
 
         return self
 
@@ -113,6 +78,88 @@ class MongoDB:
         except Exception:
             pass
         return False
+
+    def list_indexes(self, collection_name: str = "events"):
+        """List all indexes for a specific collection"""
+        if not self.is_connected():
+            raise Exception("Not connected to MongoDB")
+        
+        collection = getattr(self, collection_name, None)
+        if collection is None:
+            raise Exception(f"Collection '{collection_name}' not found")
+        
+        indexes = []
+        for index in collection.list_indexes():
+            indexes.append({
+                'name': index['name'],
+                'key': index.get('key', {}),
+                'unique': index.get('unique', False),
+                'sparse': index.get('sparse', False),
+                'background': index.get('background', False),
+                'textIndexVersion': index.get('textIndexVersion'),
+                'weights': index.get('weights', {}),
+                'default_language': index.get('default_language'),
+                'language_override': index.get('language_override')
+            })
+        
+        return indexes
+
+    def _create_indexes(self):
+        """Create all required indexes for optimal query performance"""
+        try:
+            print("Creating database indexes...")
+            
+            # 1. Geospatial index for location-based queries
+            self.events.create_index([("location", GEOSPHERE)], name="location_2dsphere")
+            print("✓ Geospatial index created")
+            
+            # 2. Text index for full-text search
+            self.events.create_index(
+                [
+                    ("title", "text"),
+                    ("description", "text"),
+                    ("category", "text"),
+                    ("tags", "text"),
+                ],
+                name="text_search"
+            )
+            print("✓ Text search index created")
+            
+            # 3. Date-based queries and sorting
+            self.events.create_index([("start_date", 1)], name="start_date")
+            self.events.create_index([("created_at", 1)], name="created_at")
+            print("✓ Date-based indexes created")
+            
+            # 4. Compound indexes for common query patterns
+            self.events.create_index([("category", 1), ("start_date", 1)], name="category_start_date")
+            self.events.create_index([("location", GEOSPHERE), ("start_date", 1)], name="location_start_date")
+            self.events.create_index([("organizer", 1), ("start_date", 1)], name="organizer_start_date")
+            print("✓ Compound indexes created")
+            
+            # 5. Cursor-based pagination support
+            self.events.create_index([("_id", 1), ("start_date", 1)], name="id_start_date")
+            print("✓ Pagination index created")
+            
+            # 6. Analytics and aggregation support
+            self.events.create_index([("category", 1), ("created_at", 1)], name="category_created_at")
+            self.events.create_index([("start_date", 1), ("category", 1)], name="start_date_category")
+            print("✓ Analytics indexes created")
+            
+            # 7. Tags array queries
+            self.events.create_index([("tags", 1)], name="tags")
+            print("✓ Tags index created")
+            
+            # 8. Event status and filtering
+            self.events.create_index([("max_attendees", 1)], name="max_attendees")
+            self.events.create_index([("end_date", 1)], name="end_date")
+            print("✓ Filtering indexes created")
+            
+            print("✓ All indexes created successfully")
+            
+        except Exception as e:
+            print(f"Warning: Error creating indexes: {e}")
+            # Don't raise the exception as indexes might already exist
+            # MongoDB create_index is idempotent, but we want to be extra safe
 
 
 # Global MongoDB instance

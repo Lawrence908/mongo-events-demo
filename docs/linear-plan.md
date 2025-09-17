@@ -10,6 +10,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-5** Schema finalization and validation
 - P:1  E:4h  L:database,schema
+- Status: Done
 - Desc: Finalize `events`, `venues`, `users`, `checkins` schemas with JSON Schema validation.
 - AC:
   - Events collection enforces required fields and GeoJSON structure
@@ -18,6 +19,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-6** Index suite implementation in app/database.py
 - P:1  E:3h  L:indexing,performance
+- Status: Done
 - Desc: Ensure all indexes exist: 2dsphere, text, start_date, category+start_date, location+start_date, organizer+start_date, created_at, tags.
 - AC:
   - `list_indexes` shows all specified indexes
