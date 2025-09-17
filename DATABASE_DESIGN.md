@@ -26,38 +26,38 @@ This document outlines the comprehensive database design for the MongoDB Events 
 ```javascript
 {
   "_id": ObjectId,           // Globally unique, timestamped identifier
-  "title": String,           // Event title (indexed for text search)
-  "description": String,     // Event description (indexed for text search)
-  "category": String,        // Event category (indexed)
-  "location": {              // GeoJSON Point for geospatial queries
-    "type": "Point",
-    "coordinates": [longitude, latitude]
+  "title": String,           // Event title (indexed for text search) - REQUIRED
+  "description": String,     // Event description (indexed for text search) - OPTIONAL
+  "category": String,        // Event category (indexed) - REQUIRED
+  "location": {              // GeoJSON Point for geospatial queries - REQUIRED
+    "type": "Point",         // Must be "Point"
+    "coordinates": [longitude, latitude]  // [lng, lat] with bounds validation
   },
-  "venue_id": ObjectId,      // Reference to venues collection
-  "start_date": Date,        // Event start time (indexed)
-  "end_date": Date,          // Event end time (optional)
-  "organizer": String,       // Event organizer (indexed)
-  "max_attendees": Number,   // Maximum attendees (indexed)
-  "tickets": [{              // Embedded subdocuments for performance
-    "tier": String,          // "General", "VIP", "Early Bird"
-    "price": Number,
-    "available": Number,
-    "sold": Number
+  "venue_id": ObjectId,      // Reference to venues collection - OPTIONAL
+  "start_date": Date,        // Event start time (indexed) - REQUIRED
+  "end_date": Date,          // Event end time - OPTIONAL
+  "organizer": String,       // Event organizer (indexed) - OPTIONAL
+  "max_attendees": Number,   // Maximum attendees (indexed) - OPTIONAL
+  "tickets": [{              // Embedded subdocuments for performance - OPTIONAL
+    "tier": String,          // "General", "VIP", "Early Bird" - REQUIRED
+    "price": Number,         // Price >= 0 - REQUIRED
+    "available": Number,     // Available tickets >= 0 - REQUIRED
+    "sold": Number           // Sold tickets >= 0 - REQUIRED
   }],
-  "attendees": [{            // Embedded for quick display
-    "user_id": ObjectId,
-    "checked_in": Boolean,
-    "check_in_time": Date
+  "attendees": [{            // Embedded for quick display - OPTIONAL
+    "user_id": ObjectId,     // Reference to user - REQUIRED
+    "checked_in": Boolean,   // Check-in status - REQUIRED
+    "check_in_time": Date    // Check-in timestamp - OPTIONAL
   }],
-  "tags": [String],          // Event tags (indexed for text search)
-  "metadata": {              // Flexible schema for custom attributes
+  "tags": [String],          // Event tags (indexed for text search) - OPTIONAL
+  "metadata": {              // Flexible schema for custom attributes - OPTIONAL
     "virtual": Boolean,
     "recurring": Boolean,
     "age_restriction": String,
     "dress_code": String
   },
-  "created_at": Date,        // Document creation time (indexed)
-  "updated_at": Date         // Last update time
+  "created_at": Date,        // Document creation time (indexed) - REQUIRED
+  "updated_at": Date         // Last update time - REQUIRED
 }
 ```
 
@@ -67,25 +67,26 @@ This document outlines the comprehensive database design for the MongoDB Events 
 ```javascript
 {
   "_id": ObjectId,
-  "name": String,
-  "address": {
-    "street": String,
-    "city": String,
-    "state": String,
-    "zip": String,
-    "country": String
+  "name": String,            // Venue name - REQUIRED
+  "address": {               // Complete address - REQUIRED
+    "street": String,        // Street address - REQUIRED
+    "city": String,          // City - REQUIRED
+    "state": String,         // State/Province - REQUIRED
+    "zip": String,           // ZIP/Postal code - REQUIRED
+    "country": String        // Country - REQUIRED
   },
-  "location": {              // GeoJSON Point
-    "type": "Point",
-    "coordinates": [longitude, latitude]
+  "location": {              // GeoJSON Point - REQUIRED
+    "type": "Point",         // Must be "Point"
+    "coordinates": [longitude, latitude]  // [lng, lat] with bounds validation
   },
-  "capacity": Number,
-  "amenities": [String],     // "WiFi", "Parking", "Accessible"
-  "contact": {
+  "capacity": Number,        // Venue capacity - OPTIONAL
+  "amenities": [String],     // "WiFi", "Parking", "Accessible" - OPTIONAL
+  "contact": {               // Contact information - OPTIONAL
     "phone": String,
     "email": String,
     "website": String
-  }
+  },
+  "created_at": Date         // Document creation time - REQUIRED
 }
 ```
 
@@ -93,14 +94,14 @@ This document outlines the comprehensive database design for the MongoDB Events 
 ```javascript
 {
   "_id": ObjectId,
-  "event_id": ObjectId,      // Reference to events
-  "user_id": ObjectId,       // Reference to users
-  "check_in_time": Date,
-  "qr_code": String,         // Unique QR code for check-in
-  "ticket_tier": String,
-  "location": {              // Check-in location (if different from event)
-    "type": "Point",
-    "coordinates": [longitude, latitude]
+  "event_id": ObjectId,      // Reference to events - REQUIRED
+  "user_id": ObjectId,       // Reference to users - REQUIRED
+  "check_in_time": Date,     // Check-in timestamp - REQUIRED
+  "qr_code": String,         // Unique QR code for check-in - REQUIRED
+  "ticket_tier": String,     // Ticket tier used - OPTIONAL
+  "location": {              // Check-in location (if different from event) - OPTIONAL
+    "type": "Point",         // Must be "Point"
+    "coordinates": [longitude, latitude]  // [lng, lat] with bounds validation
   }
 }
 ```
@@ -109,21 +110,21 @@ This document outlines the comprehensive database design for the MongoDB Events 
 ```javascript
 {
   "_id": ObjectId,
-  "email": String,           // Unique identifier
-  "profile": {
-    "first_name": String,
-    "last_name": String,
-    "preferences": {
-      "categories": [String],
-      "location": {
-        "type": "Point",
-        "coordinates": [longitude, latitude]
+  "email": String,           // Unique identifier - REQUIRED
+  "profile": {               // User profile - REQUIRED
+    "first_name": String,    // First name - REQUIRED
+    "last_name": String,     // Last name - REQUIRED
+    "preferences": {         // User preferences - OPTIONAL
+      "categories": [String], // Preferred event categories - OPTIONAL
+      "location": {          // User location for discovery - OPTIONAL
+        "type": "Point",     // Must be "Point"
+        "coordinates": [longitude, latitude]  // [lng, lat] with bounds validation
       },
-      "radius_km": Number
+      "radius_km": Number    // Search radius in kilometers - OPTIONAL
     }
   },
-  "created_at": Date,
-  "last_login": Date
+  "created_at": Date,        // Account creation time - REQUIRED
+  "last_login": Date         // Last login timestamp - OPTIONAL
 }
 ```
 
@@ -143,12 +144,34 @@ This document outlines the comprehensive database design for the MongoDB Events 
   - `event_id` in checkins - events referenced by many check-ins
 
 ### Schema Validation Rules
+
+All collections enforce comprehensive JSON Schema validation with the following key features:
+
+#### Coordinate Bounds Validation
+- **Longitude**: Must be between -180 and 180 degrees
+- **Latitude**: Must be between -90 and 90 degrees
+- **GeoJSON Structure**: All location fields must be valid GeoJSON Point objects
+- **Coordinate Arrays**: Must contain exactly 2 elements [longitude, latitude]
+
+#### Required Fields Enforcement
+- **Events**: `title`, `category`, `location`, `start_date`, `created_at`, `updated_at`
+- **Venues**: `name`, `location`, `address`, `created_at`
+- **Users**: `email`, `profile`, `created_at`
+- **Checkins**: `event_id`, `user_id`, `check_in_time`, `qr_code`
+
+#### Data Type and Range Validation
+- **String Lengths**: Enforced min/max lengths for all text fields
+- **Numeric Ranges**: Positive values for counts, prices, and capacities
+- **Email Format**: Valid email pattern for user accounts
+- **Date Logic**: End dates must be after start dates
+- **Array Constraints**: Proper array structures for coordinates and tags
+
+#### Example: Events Collection Validation
 ```javascript
-// MongoDB Schema Validation for events collection
 {
   $jsonSchema: {
     bsonType: "object",
-    required: ["title", "category", "location", "start_date"],
+    required: ["title", "category", "location", "start_date", "created_at", "updated_at"],
     properties: {
       title: {
         bsonType: "string",
@@ -174,6 +197,8 @@ This document outlines the comprehensive database design for the MongoDB Events 
   }
 }
 ```
+
+**Implementation**: Schema validation is automatically applied to all collections via `app/schema_validation.py` and enforced at the database level through MongoDB's native JSON Schema validation.
 
 ### ObjectId Usage Strategy
 - **Globally Unique**: No auto-increment IDs that don't scale across shards
