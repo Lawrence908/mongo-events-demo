@@ -10,6 +10,7 @@ from .models import (
     User, UserCreate, UserUpdate,
     Checkin, CheckinCreate, CheckinUpdate
 )
+from .utils import calculate_weekend_window
 
 
 class EventService:
@@ -225,14 +226,8 @@ class EventService:
         """Get events this weekend near a location - perfect for your use case!"""
         db = self._ensure_db()
         
-        # Calculate weekend date range
-        now = datetime.utcnow()
-        # Find this Friday
-        days_until_friday = (4 - now.weekday()) % 7
-        if days_until_friday == 0 and now.hour >= 18:  # If it's Friday evening, start from next Friday
-            days_until_friday = 7
-        friday = now.replace(hour=18, minute=0, second=0, microsecond=0) + timedelta(days=days_until_friday)
-        sunday = friday + timedelta(days=2, hours=23, minutes=59)
+        # Calculate weekend date range using the utility function
+        friday, sunday = calculate_weekend_window()
         
         pipeline = [
             {
