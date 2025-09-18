@@ -1,0 +1,2302 @@
+[
+  {
+    "title": "Gaming Event",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Gaming",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -81.71486827154388,
+        30.321234273406382
+      ]
+    },
+    "start_date": "2025-09-27T18:15:00",
+    "end_date": "2025-09-28T01:15:00",
+    "organizer": "Creative Events Co.",
+    "max_attendees": 477,
+    "tags": [
+      "gaming",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-01T18:15:00",
+    "updated_at": "2025-09-09T18:15:00"
+  },
+  {
+    "title": "Community Event 2024",
+    "description": "Join us for an engaging session that promises to be both informative and fun.",
+    "category": "Community",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -86.1027163833571,
+        39.784466839222496
+      ]
+    },
+    "start_date": "2025-10-10T18:30:00",
+    "end_date": "2025-10-10T19:30:00",
+    "organizer": "Food Network",
+    "max_attendees": 166,
+    "tags": [
+      "community",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-27T18:30:00",
+    "updated_at": "2025-10-09T18:30:00"
+  },
+  {
+    "title": "Community Event",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Community",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -105.08612638200738,
+        39.68649168521865
+      ]
+    },
+    "start_date": "2025-11-30T18:30:00",
+    "end_date": "2025-12-01T00:30:00",
+    "organizer": "Local Business Association",
+    "max_attendees": 625,
+    "tags": [
+      "community",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-26T18:30:00",
+    "updated_at": "2025-11-13T18:30:00"
+  },
+  {
+    "title": "Business Event",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Business",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -73.93683562656061,
+        40.713700710924805
+      ]
+    },
+    "start_date": "2025-10-27T19:15:00",
+    "end_date": "2025-10-27T20:15:00",
+    "organizer": "Art Collective",
+    "max_attendees": 638,
+    "tags": [
+      "business",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-23T19:15:00",
+    "updated_at": "2025-10-25T19:15:00"
+  },
+  {
+    "title": "Fashion Event",
+    "description": "Connect with professionals and enthusiasts while learning something new.",
+    "category": "Fashion",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -73.95549836681954,
+        40.65534394780393
+      ]
+    },
+    "start_date": "2025-11-25T15:00:00",
+    "end_date": "2025-11-25T16:00:00",
+    "organizer": "Cultural Center",
+    "max_attendees": 635,
+    "tags": [
+      "fashion",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-23T15:00:00",
+    "updated_at": "2025-11-23T15:00:00"
+  },
+  {
+    "title": "Networking Event 2025",
+    "description": "A collaborative event focused on sharing knowledge and building relationships.",
+    "category": "Networking",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -82.9358576026301,
+        39.95509377994486
+      ]
+    },
+    "start_date": "2025-12-06T11:45:00",
+    "end_date": "2025-12-06T18:45:00",
+    "organizer": "Music Group",
+    "max_attendees": null,
+    "tags": [
+      "networking",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-20T11:45:00",
+    "updated_at": "2025-11-10T11:45:00"
+  },
+  {
+    "title": "Networking Event 2025",
+    "description": "Experience the latest developments and connect with industry leaders.",
+    "category": "Networking",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -122.38898581079661,
+        47.53365785607144
+      ]
+    },
+    "start_date": "2025-10-22T12:15:00",
+    "end_date": "2025-10-22T16:15:00",
+    "organizer": "Creative Events Co.",
+    "max_attendees": 184,
+    "tags": [
+      "networking",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-20T12:15:00",
+    "updated_at": "2025-09-28T12:15:00"
+  },
+  {
+    "title": "Volleyball League 2024",
+    "description": "A hands-on workshop that combines learning with practical application.",
+    "category": "Sports",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -98.39846849766415,
+        29.329904433190883
+      ]
+    },
+    "start_date": "2025-11-17T14:15:00",
+    "end_date": "2025-11-17T18:15:00",
+    "organizer": "Music Group",
+    "max_attendees": 972,
+    "tags": [
+      "sports",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-12T14:15:00",
+    "updated_at": "2025-10-27T14:15:00"
+  },
+  {
+    "title": "Entertainment Event",
+    "description": "A hands-on workshop that combines learning with practical application.",
+    "category": "Entertainment",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -86.14165407839839,
+        39.8226065973772
+      ]
+    },
+    "start_date": "2025-09-25T10:30:00",
+    "end_date": "2025-09-25T14:30:00",
+    "organizer": "Creative Events Co.",
+    "max_attendees": 805,
+    "tags": [
+      "entertainment",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-11T10:30:00",
+    "updated_at": "2025-09-19T10:30:00"
+  },
+  {
+    "title": "Gaming Event",
+    "description": "A hands-on workshop that combines learning with practical application.",
+    "category": "Gaming",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -77.12541651953595,
+        38.91822463062352
+      ]
+    },
+    "start_date": "2025-11-24T13:45:00",
+    "end_date": "2025-11-24T18:45:00",
+    "organizer": "Professional Network",
+    "max_attendees": 30,
+    "tags": [
+      "gaming",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-13T13:45:00",
+    "updated_at": "2025-11-22T13:45:00"
+  },
+  {
+    "title": "Science Event",
+    "description": "Experience the latest developments and connect with industry leaders.",
+    "category": "Science",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -74.06921345575742,
+        40.74938187393111
+      ]
+    },
+    "start_date": "2025-10-06T20:30:00",
+    "end_date": "2025-10-07T02:30:00",
+    "organizer": "Community Hub",
+    "max_attendees": 387,
+    "tags": [
+      "science",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-27T20:30:00",
+    "updated_at": "2025-10-05T20:30:00"
+  },
+  {
+    "title": "Photography Event 2024",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Photography",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -117.15804247582274,
+        32.69293708310198
+      ]
+    },
+    "start_date": "2025-10-17T14:45:00",
+    "end_date": "2025-10-17T21:45:00",
+    "organizer": "Sports Club",
+    "max_attendees": 736,
+    "tags": [
+      "photography",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-30T14:45:00",
+    "updated_at": "2025-10-16T14:45:00"
+  },
+  {
+    "title": "Health & Wellness Event 2025",
+    "description": "A collaborative event focused on sharing knowledge and building relationships.",
+    "category": "Health & Wellness",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -83.02758841177352,
+        39.86608109471761
+      ]
+    },
+    "start_date": "2025-11-23T15:45:00",
+    "end_date": "2025-11-23T16:45:00",
+    "organizer": "Music Group",
+    "max_attendees": 350,
+    "tags": [
+      "health-&-wellness",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-01T15:45:00",
+    "updated_at": "2025-11-05T15:45:00"
+  },
+  {
+    "title": "Science Event 2025",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Science",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -122.2425443667796,
+        47.58994515190357
+      ]
+    },
+    "start_date": "2025-09-25T11:15:00",
+    "end_date": "2025-09-25T15:15:00",
+    "organizer": "Community Hub",
+    "max_attendees": 977,
+    "tags": [
+      "science",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-19T11:15:00",
+    "updated_at": "2025-09-10T11:15:00"
+  },
+  {
+    "title": "Education Event 2025",
+    "description": "A unique experience that brings together like-minded individuals from various backgrounds.",
+    "category": "Education",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -74.03214409159169,
+        40.804899568883094
+      ]
+    },
+    "start_date": "2025-09-15T08:00:00",
+    "end_date": "2025-09-15T14:00:00",
+    "organizer": "Sports Club",
+    "max_attendees": 259,
+    "tags": [
+      "education",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-10T08:00:00",
+    "updated_at": "2025-09-03T08:00:00"
+  },
+  {
+    "title": "Entertainment Event",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Entertainment",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -122.26729293160393,
+        47.51105131451335
+      ]
+    },
+    "start_date": "2025-12-08T12:30:00",
+    "end_date": "2025-12-08T15:30:00",
+    "organizer": "Professional Network",
+    "max_attendees": null,
+    "tags": [
+      "entertainment",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-24T12:30:00",
+    "updated_at": "2025-11-17T12:30:00"
+  },
+  {
+    "title": "Pottery Class",
+    "description": "Join us for an exciting event featuring industry experts and networking opportunities.",
+    "category": "Arts & Culture",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -117.26086680429559,
+        32.72282163047766
+      ]
+    },
+    "start_date": "2025-09-24T11:45:00",
+    "end_date": "2025-09-24T17:45:00",
+    "organizer": "Tech Innovators Inc.",
+    "max_attendees": 288,
+    "tags": [
+      "arts-&-culture",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-17T11:45:00",
+    "updated_at": "2025-09-15T11:45:00"
+  },
+  {
+    "title": "Wine Tasting",
+    "description": "Discover new trends and innovations in this dynamic field through interactive sessions.",
+    "category": "Food & Drink",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -81.55585195948288,
+        30.310949688486176
+      ]
+    },
+    "start_date": "2025-09-17T10:45:00",
+    "end_date": "2025-09-17T11:45:00",
+    "organizer": "Food Network",
+    "max_attendees": 742,
+    "tags": [
+      "food-&-drink",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-08-27T10:45:00",
+    "updated_at": "2025-09-16T10:45:00"
+  },
+  {
+    "title": "Business Event 2024",
+    "description": "Connect with professionals and enthusiasts while learning something new.",
+    "category": "Business",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -97.27891030167751,
+        32.84395901078668
+      ]
+    },
+    "start_date": "2025-09-20T15:15:00",
+    "end_date": "2025-09-20T23:15:00",
+    "organizer": "Sports Club",
+    "max_attendees": 254,
+    "tags": [
+      "business",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-15T15:15:00",
+    "updated_at": "2025-08-21T15:15:00"
+  },
+  {
+    "title": "Science Event 2025",
+    "description": "Connect with professionals and enthusiasts while learning something new.",
+    "category": "Science",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -80.81552044264532,
+        35.206902940915036
+      ]
+    },
+    "start_date": "2025-10-30T18:30:00",
+    "end_date": "2025-10-31T00:30:00",
+    "organizer": "Food Network",
+    "max_attendees": 438,
+    "tags": [
+      "science",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-09T18:30:00",
+    "updated_at": "2025-10-22T18:30:00"
+  },
+  {
+    "title": "Jazz Night",
+    "description": "A collaborative event focused on sharing knowledge and building relationships.",
+    "category": "Music",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -118.2034862758577,
+        34.000185183506396
+      ]
+    },
+    "start_date": "2025-10-17T18:00:00",
+    "end_date": "2025-10-17T23:00:00",
+    "organizer": "Science Society",
+    "max_attendees": 981,
+    "tags": [
+      "music",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-07T18:00:00",
+    "updated_at": "2025-10-08T18:00:00"
+  },
+  {
+    "title": "Science Event",
+    "description": "A collaborative event focused on sharing knowledge and building relationships.",
+    "category": "Science",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -112.1418811199903,
+        33.43522503867653
+      ]
+    },
+    "start_date": "2025-11-15T08:45:00",
+    "end_date": "2025-11-15T14:45:00",
+    "organizer": "Music Group",
+    "max_attendees": 392,
+    "tags": [
+      "science",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-17T08:45:00",
+    "updated_at": "2025-10-29T08:45:00"
+  },
+  {
+    "title": "Gaming Event",
+    "description": "Discover new trends and innovations in this dynamic field through interactive sessions.",
+    "category": "Gaming",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -112.0536015988186,
+        33.53513356960958
+      ]
+    },
+    "start_date": "2025-09-19T15:15:00",
+    "end_date": "2025-09-19T19:15:00",
+    "organizer": "Cultural Center",
+    "max_attendees": 207,
+    "tags": [
+      "gaming",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-16T15:15:00",
+    "updated_at": "2025-09-15T15:15:00"
+  },
+  {
+    "title": "Blockchain Conference",
+    "description": "A hands-on workshop that combines learning with practical application.",
+    "category": "Technology",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -74.02449567719542,
+        40.72107696277039
+      ]
+    },
+    "start_date": "2025-11-27T09:45:00",
+    "end_date": "2025-11-27T11:45:00",
+    "organizer": "Creative Events Co.",
+    "max_attendees": 156,
+    "tags": [
+      "technology",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-18T09:45:00",
+    "updated_at": "2025-11-21T09:45:00"
+  },
+  {
+    "title": "Gaming Event",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Gaming",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -75.19260765295043,
+        40.02969061892519
+      ]
+    },
+    "start_date": "2025-10-27T13:45:00",
+    "end_date": "2025-10-27T17:45:00",
+    "organizer": "Local Business Association",
+    "max_attendees": 680,
+    "tags": [
+      "gaming",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-13T13:45:00",
+    "updated_at": "2025-09-29T13:45:00"
+  },
+  {
+    "title": "Fashion Event 2025",
+    "description": "Experience the latest developments and connect with industry leaders.",
+    "category": "Fashion",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -86.07074493263788,
+        39.776060620099145
+      ]
+    },
+    "start_date": "2025-10-02T09:45:00",
+    "end_date": "2025-10-02T13:45:00",
+    "organizer": "Music Group",
+    "max_attendees": 909,
+    "tags": [
+      "fashion",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-19T09:45:00",
+    "updated_at": "2025-09-30T09:45:00"
+  },
+  {
+    "title": "Community Event",
+    "description": "A hands-on workshop that combines learning with practical application.",
+    "category": "Community",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -98.48082907541087,
+        29.493147095871066
+      ]
+    },
+    "start_date": "2025-11-08T18:45:00",
+    "end_date": "2025-11-09T02:45:00",
+    "organizer": "Science Society",
+    "max_attendees": 554,
+    "tags": [
+      "community",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-21T18:45:00",
+    "updated_at": "2025-10-28T18:45:00"
+  },
+  {
+    "title": "Science Event",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Science",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -81.62365103365381,
+        30.27634831665162
+      ]
+    },
+    "start_date": "2025-10-30T11:00:00",
+    "end_date": "2025-10-30T16:00:00",
+    "organizer": "Local Business Association",
+    "max_attendees": 417,
+    "tags": [
+      "science",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-15T11:00:00",
+    "updated_at": "2025-10-24T11:00:00"
+  },
+  {
+    "title": "Education Event",
+    "description": "Discover new trends and innovations in this dynamic field through interactive sessions.",
+    "category": "Education",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -95.36953865281944,
+        29.786922630117136
+      ]
+    },
+    "start_date": "2025-10-23T11:15:00",
+    "end_date": "2025-10-23T13:15:00",
+    "organizer": "Food Network",
+    "max_attendees": 834,
+    "tags": [
+      "education",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-15T11:15:00",
+    "updated_at": "2025-10-04T11:15:00"
+  },
+  {
+    "title": "Photography Event 2024",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Photography",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -97.65572101109032,
+        30.184963408134582
+      ]
+    },
+    "start_date": "2025-11-14T08:45:00",
+    "end_date": "2025-11-14T11:45:00",
+    "organizer": "Community Hub",
+    "max_attendees": null,
+    "tags": [
+      "photography",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-05T08:45:00",
+    "updated_at": "2025-11-10T08:45:00"
+  },
+  {
+    "title": "Travel Event",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Travel",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -118.17550571676088,
+        33.99290099579617
+      ]
+    },
+    "start_date": "2025-09-23T12:30:00",
+    "end_date": "2025-09-23T19:30:00",
+    "organizer": "Creative Events Co.",
+    "max_attendees": null,
+    "tags": [
+      "travel",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-08-26T12:30:00",
+    "updated_at": "2025-09-07T12:30:00"
+  },
+  {
+    "title": "Museum Tour",
+    "description": "A collaborative event focused on sharing knowledge and building relationships.",
+    "category": "Arts & Culture",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -74.02960835880944,
+        40.66542730534218
+      ]
+    },
+    "start_date": "2025-10-22T19:00:00",
+    "end_date": "2025-10-23T03:00:00",
+    "organizer": "Tech Innovators Inc.",
+    "max_attendees": 924,
+    "tags": [
+      "arts-&-culture",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-02T19:00:00",
+    "updated_at": "2025-10-04T19:00:00"
+  },
+  {
+    "title": "Entertainment Event 2025",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Entertainment",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -122.31950074733963,
+        37.78323609190383
+      ]
+    },
+    "start_date": "2025-12-13T12:15:00",
+    "end_date": "2025-12-13T17:15:00",
+    "organizer": "Professional Network",
+    "max_attendees": 904,
+    "tags": [
+      "entertainment",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-12-08T12:15:00",
+    "updated_at": "2025-12-01T12:15:00"
+  },
+  {
+    "title": "Education Event 2024",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Education",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -117.17387688637315,
+        32.77071024382914
+      ]
+    },
+    "start_date": "2025-11-05T14:45:00",
+    "end_date": "2025-11-05T18:45:00",
+    "organizer": "Local Business Association",
+    "max_attendees": null,
+    "tags": [
+      "education",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-17T14:45:00",
+    "updated_at": "2025-10-25T14:45:00"
+  },
+  {
+    "title": "Community Event",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Community",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -122.2413785652008,
+        47.67664693027761
+      ]
+    },
+    "start_date": "2025-12-15T12:30:00",
+    "end_date": "2025-12-15T13:30:00",
+    "organizer": "Sports Club",
+    "max_attendees": 559,
+    "tags": [
+      "community",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-12-04T12:30:00",
+    "updated_at": "2025-12-01T12:30:00"
+  },
+  {
+    "title": "Health & Wellness Event",
+    "description": "Join us for an exciting event featuring industry experts and networking opportunities.",
+    "category": "Health & Wellness",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -96.77684824810034,
+        32.73061450713146
+      ]
+    },
+    "start_date": "2025-11-27T14:45:00",
+    "end_date": "2025-11-27T20:45:00",
+    "organizer": "Tech Innovators Inc.",
+    "max_attendees": 535,
+    "tags": [
+      "health-&-wellness",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-06T14:45:00",
+    "updated_at": "2025-11-15T14:45:00"
+  },
+  {
+    "title": "Mobile App Development 2024",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Technology",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -118.1568923023898,
+        34.05379906428707
+      ]
+    },
+    "start_date": "2025-12-11T08:00:00",
+    "end_date": "2025-12-11T13:00:00",
+    "organizer": "Science Society",
+    "max_attendees": 753,
+    "tags": [
+      "technology",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-17T08:00:00",
+    "updated_at": "2025-12-06T08:00:00"
+  },
+  {
+    "title": "Fashion Event",
+    "description": "Discover new trends and innovations in this dynamic field through interactive sessions.",
+    "category": "Fashion",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -122.3368040356514,
+        47.68970340273309
+      ]
+    },
+    "start_date": "2025-11-11T10:00:00",
+    "end_date": "2025-11-11T13:00:00",
+    "organizer": "Cultural Center",
+    "max_attendees": 904,
+    "tags": [
+      "fashion",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-25T10:00:00",
+    "updated_at": "2025-10-20T10:00:00"
+  },
+  {
+    "title": "Science Event 2024",
+    "description": "Join us for an exciting event featuring industry experts and networking opportunities.",
+    "category": "Science",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -80.8946956928704,
+        35.22075283449275
+      ]
+    },
+    "start_date": "2025-10-31T09:30:00",
+    "end_date": "2025-10-31T14:30:00",
+    "organizer": "Cultural Center",
+    "max_attendees": 593,
+    "tags": [
+      "science",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-02T09:30:00",
+    "updated_at": "2025-10-14T09:30:00"
+  },
+  {
+    "title": "Fashion Event 2024",
+    "description": "Connect with professionals and enthusiasts while learning something new.",
+    "category": "Fashion",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -87.61525980054029,
+        41.79868153257413
+      ]
+    },
+    "start_date": "2025-09-27T14:30:00",
+    "end_date": "2025-09-27T20:30:00",
+    "organizer": "Professional Network",
+    "max_attendees": 535,
+    "tags": [
+      "fashion",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-13T14:30:00",
+    "updated_at": "2025-09-13T14:30:00"
+  },
+  {
+    "title": "Gaming Event",
+    "description": "A unique experience that brings together like-minded individuals from various backgrounds.",
+    "category": "Gaming",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -97.43052698426719,
+        32.843333581603424
+      ]
+    },
+    "start_date": "2025-10-03T19:45:00",
+    "end_date": "2025-10-04T00:45:00",
+    "organizer": "Professional Network",
+    "max_attendees": 952,
+    "tags": [
+      "gaming",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-30T19:45:00",
+    "updated_at": "2025-09-12T19:45:00"
+  },
+  {
+    "title": "Photography Event",
+    "description": "A hands-on workshop that combines learning with practical application.",
+    "category": "Photography",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -98.47046209038125,
+        29.48889354008169
+      ]
+    },
+    "start_date": "2025-11-30T14:45:00",
+    "end_date": "2025-11-30T22:45:00",
+    "organizer": "Science Society",
+    "max_attendees": 944,
+    "tags": [
+      "photography",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-22T14:45:00",
+    "updated_at": "2025-11-16T14:45:00"
+  },
+  {
+    "title": "Travel Event 2025",
+    "description": "Experience the latest developments and connect with industry leaders.",
+    "category": "Travel",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -87.64244768164846,
+        41.89408468536854
+      ]
+    },
+    "start_date": "2025-11-30T12:30:00",
+    "end_date": "2025-11-30T16:30:00",
+    "organizer": "Cultural Center",
+    "max_attendees": 514,
+    "tags": [
+      "travel",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-11T12:30:00",
+    "updated_at": "2025-11-18T12:30:00"
+  },
+  {
+    "title": "Education Event 2025",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Education",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -121.94953468346138,
+        37.431119645602834
+      ]
+    },
+    "start_date": "2025-10-27T14:15:00",
+    "end_date": "2025-10-27T22:15:00",
+    "organizer": "Community Hub",
+    "max_attendees": 28,
+    "tags": [
+      "education",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-15T14:15:00",
+    "updated_at": "2025-10-24T14:15:00"
+  },
+  {
+    "title": "Rock Concert",
+    "description": "A collaborative event focused on sharing knowledge and building relationships.",
+    "category": "Music",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -80.76200122547293,
+        35.18975620406937
+      ]
+    },
+    "start_date": "2025-10-24T18:45:00",
+    "end_date": "2025-10-25T02:45:00",
+    "organizer": "Creative Events Co.",
+    "max_attendees": 556,
+    "tags": [
+      "music",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-23T18:45:00",
+    "updated_at": "2025-10-14T18:45:00"
+  },
+  {
+    "title": "Web Development Course",
+    "description": "Connect with professionals and enthusiasts while learning something new.",
+    "category": "Technology",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -74.0886782210464,
+        40.78522564486982
+      ]
+    },
+    "start_date": "2025-10-02T16:00:00",
+    "end_date": "2025-10-02T20:00:00",
+    "organizer": "Science Society",
+    "max_attendees": 644,
+    "tags": [
+      "technology",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-15T16:00:00",
+    "updated_at": "2025-09-25T16:00:00"
+  },
+  {
+    "title": "Education Event",
+    "description": "Discover new trends and innovations in this dynamic field through interactive sessions.",
+    "category": "Education",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -105.05191034305619,
+        39.672963394352266
+      ]
+    },
+    "start_date": "2025-09-24T20:30:00",
+    "end_date": "2025-09-25T02:30:00",
+    "organizer": "Art Collective",
+    "max_attendees": 65,
+    "tags": [
+      "education",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-06T20:30:00",
+    "updated_at": "2025-08-26T20:30:00"
+  },
+  {
+    "title": "Business Event",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Business",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -98.46843585939189,
+        29.357536392202274
+      ]
+    },
+    "start_date": "2025-09-29T20:30:00",
+    "end_date": "2025-09-30T04:30:00",
+    "organizer": "Art Collective",
+    "max_attendees": 645,
+    "tags": [
+      "business",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-09T20:30:00",
+    "updated_at": "2025-09-23T20:30:00"
+  },
+  {
+    "title": "Basketball Tournament",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Sports",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -122.49079638969592,
+        37.79927752458541
+      ]
+    },
+    "start_date": "2025-09-26T18:00:00",
+    "end_date": "2025-09-27T00:00:00",
+    "organizer": "Cultural Center",
+    "max_attendees": 392,
+    "tags": [
+      "sports",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-14T18:00:00",
+    "updated_at": "2025-09-14T18:00:00"
+  },
+  {
+    "title": "Travel Event",
+    "description": "Discover new trends and innovations in this dynamic field through interactive sessions.",
+    "category": "Travel",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -112.13383409575691,
+        33.37830265761064
+      ]
+    },
+    "start_date": "2025-11-29T18:00:00",
+    "end_date": "2025-11-29T20:00:00",
+    "organizer": "Tech Innovators Inc.",
+    "max_attendees": 883,
+    "tags": [
+      "travel",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-04T18:00:00",
+    "updated_at": "2025-11-04T18:00:00"
+  },
+  {
+    "title": "Business Event",
+    "description": "Experience the latest developments and connect with industry leaders.",
+    "category": "Business",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -105.04967769889413,
+        39.71960969093518
+      ]
+    },
+    "start_date": "2025-11-27T13:45:00",
+    "end_date": "2025-11-27T18:45:00",
+    "organizer": "Sports Club",
+    "max_attendees": 134,
+    "tags": [
+      "business",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-19T13:45:00",
+    "updated_at": "2025-10-28T13:45:00"
+  },
+  {
+    "title": "Business Event 2025",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Business",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -121.81994522585649,
+        37.32526814113747
+      ]
+    },
+    "start_date": "2025-12-08T09:15:00",
+    "end_date": "2025-12-08T16:15:00",
+    "organizer": "Local Business Association",
+    "max_attendees": 494,
+    "tags": [
+      "business",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-10T09:15:00",
+    "updated_at": "2025-12-04T09:15:00"
+  },
+  {
+    "title": "Business Event 2025",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Business",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -80.87528577601675,
+        35.163994190177014
+      ]
+    },
+    "start_date": "2025-11-10T12:15:00",
+    "end_date": "2025-11-10T20:15:00",
+    "organizer": "Art Collective",
+    "max_attendees": 656,
+    "tags": [
+      "business",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-26T12:15:00",
+    "updated_at": "2025-11-08T12:15:00"
+  },
+  {
+    "title": "Photography Event",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Photography",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -95.3175506328457,
+        29.70349184221842
+      ]
+    },
+    "start_date": "2025-10-25T16:00:00",
+    "end_date": "2025-10-25T20:00:00",
+    "organizer": "Art Collective",
+    "max_attendees": 890,
+    "tags": [
+      "photography",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-10T16:00:00",
+    "updated_at": "2025-10-03T16:00:00"
+  },
+  {
+    "title": "Health & Wellness Event",
+    "description": "Experience the latest developments and connect with industry leaders.",
+    "category": "Health & Wellness",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -95.29386863049359,
+        29.79644117761003
+      ]
+    },
+    "start_date": "2025-10-11T08:15:00",
+    "end_date": "2025-10-11T11:15:00",
+    "organizer": "Community Hub",
+    "max_attendees": null,
+    "tags": [
+      "health-&-wellness",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-23T08:15:00",
+    "updated_at": "2025-09-22T08:15:00"
+  },
+  {
+    "title": "Blockchain Conference",
+    "description": "A hands-on workshop that combines learning with practical application.",
+    "category": "Technology",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -98.59073172725105,
+        29.3953058152791
+      ]
+    },
+    "start_date": "2025-10-30T20:15:00",
+    "end_date": "2025-10-31T04:15:00",
+    "organizer": "Professional Network",
+    "max_attendees": 536,
+    "tags": [
+      "technology",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-04T20:15:00",
+    "updated_at": "2025-10-14T20:15:00"
+  },
+  {
+    "title": "Fashion Event 2024",
+    "description": "A collaborative event focused on sharing knowledge and building relationships.",
+    "category": "Fashion",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -98.39589866185808,
+        29.415638801480387
+      ]
+    },
+    "start_date": "2025-09-11T12:45:00",
+    "end_date": "2025-09-11T17:45:00",
+    "organizer": "Professional Network",
+    "max_attendees": 335,
+    "tags": [
+      "fashion",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-08-28T12:45:00",
+    "updated_at": "2025-08-24T12:45:00"
+  },
+  {
+    "title": "Fashion Event 2024",
+    "description": "Join us for an exciting event featuring industry experts and networking opportunities.",
+    "category": "Fashion",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -95.45686751301575,
+        29.807011196519493
+      ]
+    },
+    "start_date": "2025-09-15T18:30:00",
+    "end_date": "2025-09-15T23:30:00",
+    "organizer": "Science Society",
+    "max_attendees": 666,
+    "tags": [
+      "fashion",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-08-21T18:30:00",
+    "updated_at": "2025-09-02T18:30:00"
+  },
+  {
+    "title": "Gaming Event",
+    "description": "Join us for an engaging session that promises to be both informative and fun.",
+    "category": "Gaming",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -96.81663753072024,
+        32.795432231724476
+      ]
+    },
+    "start_date": "2025-11-15T14:45:00",
+    "end_date": "2025-11-15T18:45:00",
+    "organizer": "Art Collective",
+    "max_attendees": 328,
+    "tags": [
+      "gaming",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-24T14:45:00",
+    "updated_at": "2025-10-27T14:45:00"
+  },
+  {
+    "title": "Science Event",
+    "description": "A hands-on workshop that combines learning with practical application.",
+    "category": "Science",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -122.35400900963766,
+        47.53727997038857
+      ]
+    },
+    "start_date": "2025-10-12T09:45:00",
+    "end_date": "2025-10-12T10:45:00",
+    "organizer": "Creative Events Co.",
+    "max_attendees": 557,
+    "tags": [
+      "science",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-20T09:45:00",
+    "updated_at": "2025-09-19T09:45:00"
+  },
+  {
+    "title": "Museum Tour",
+    "description": "Join us for an engaging session that promises to be both informative and fun.",
+    "category": "Arts & Culture",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -98.55472836206353,
+        29.399867461430613
+      ]
+    },
+    "start_date": "2025-10-06T14:30:00",
+    "end_date": "2025-10-06T20:30:00",
+    "organizer": "Community Hub",
+    "max_attendees": 378,
+    "tags": [
+      "arts-&-culture",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-10T14:30:00",
+    "updated_at": "2025-09-16T14:30:00"
+  },
+  {
+    "title": "Indie Music Show",
+    "description": "Discover new trends and innovations in this dynamic field through interactive sessions.",
+    "category": "Music",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -96.86034089098263,
+        32.79455888480834
+      ]
+    },
+    "start_date": "2025-11-27T09:45:00",
+    "end_date": "2025-11-27T10:45:00",
+    "organizer": "Music Group",
+    "max_attendees": 27,
+    "tags": [
+      "music",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-12T09:45:00",
+    "updated_at": "2025-11-23T09:45:00"
+  },
+  {
+    "title": "Entertainment Event",
+    "description": "Experience the latest developments and connect with industry leaders.",
+    "category": "Entertainment",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -81.65361820756787,
+        30.331652536444167
+      ]
+    },
+    "start_date": "2025-09-20T17:30:00",
+    "end_date": "2025-09-21T00:30:00",
+    "organizer": "Tech Innovators Inc.",
+    "max_attendees": 699,
+    "tags": [
+      "entertainment",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-15T17:30:00",
+    "updated_at": "2025-08-30T17:30:00"
+  },
+  {
+    "title": "Fashion Event",
+    "description": "A hands-on workshop that combines learning with practical application.",
+    "category": "Fashion",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -86.19162858297697,
+        39.838278741034365
+      ]
+    },
+    "start_date": "2025-12-03T17:30:00",
+    "end_date": "2025-12-03T22:30:00",
+    "organizer": "Educational Foundation",
+    "max_attendees": 947,
+    "tags": [
+      "fashion",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-17T17:30:00",
+    "updated_at": "2025-11-08T17:30:00"
+  },
+  {
+    "title": "Fashion Event",
+    "description": "Connect with professionals and enthusiasts while learning something new.",
+    "category": "Fashion",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -96.88692149890531,
+        32.805784985995636
+      ]
+    },
+    "start_date": "2025-10-20T09:15:00",
+    "end_date": "2025-10-20T15:15:00",
+    "organizer": "Tech Innovators Inc.",
+    "max_attendees": 898,
+    "tags": [
+      "fashion",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-03T09:15:00",
+    "updated_at": "2025-10-07T09:15:00"
+  },
+  {
+    "title": "Entertainment Event",
+    "description": "Connect with professionals and enthusiasts while learning something new.",
+    "category": "Entertainment",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -80.76868882125929,
+        35.29083253982068
+      ]
+    },
+    "start_date": "2025-09-26T13:15:00",
+    "end_date": "2025-09-26T16:15:00",
+    "organizer": "Tech Innovators Inc.",
+    "max_attendees": 863,
+    "tags": [
+      "entertainment",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-10T13:15:00",
+    "updated_at": "2025-08-29T13:15:00"
+  },
+  {
+    "title": "Chocolate Making",
+    "description": "Connect with professionals and enthusiasts while learning something new.",
+    "category": "Food & Drink",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -117.14419266499294,
+        32.63825926294893
+      ]
+    },
+    "start_date": "2025-10-22T16:00:00",
+    "end_date": "2025-10-22T17:00:00",
+    "organizer": "Local Business Association",
+    "max_attendees": 230,
+    "tags": [
+      "food-&-drink",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-10T16:00:00",
+    "updated_at": "2025-09-29T16:00:00"
+  },
+  {
+    "title": "Electronic Music Festival",
+    "description": "Discover new trends and innovations in this dynamic field through interactive sessions.",
+    "category": "Music",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -121.9238690980081,
+        37.402715113222186
+      ]
+    },
+    "start_date": "2025-10-10T09:30:00",
+    "end_date": "2025-10-10T13:30:00",
+    "organizer": "Music Group",
+    "max_attendees": 192,
+    "tags": [
+      "music",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-10T09:30:00",
+    "updated_at": "2025-09-22T09:30:00"
+  },
+  {
+    "title": "Pottery Class 2024",
+    "description": "A unique experience that brings together like-minded individuals from various backgrounds.",
+    "category": "Arts & Culture",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -95.44688710001559,
+        29.695151966045135
+      ]
+    },
+    "start_date": "2025-10-24T12:00:00",
+    "end_date": "2025-10-24T16:00:00",
+    "organizer": "Science Society",
+    "max_attendees": 212,
+    "tags": [
+      "arts-&-culture",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-22T12:00:00",
+    "updated_at": "2025-10-09T12:00:00"
+  },
+  {
+    "title": "Entertainment Event",
+    "description": "Join us for an exciting event featuring industry experts and networking opportunities.",
+    "category": "Entertainment",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -121.93962351645135,
+        37.419493393229786
+      ]
+    },
+    "start_date": "2025-12-04T20:30:00",
+    "end_date": "2025-12-04T22:30:00",
+    "organizer": "Cultural Center",
+    "max_attendees": 794,
+    "tags": [
+      "entertainment",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-28T20:30:00",
+    "updated_at": "2025-11-25T20:30:00"
+  },
+  {
+    "title": "Science Event",
+    "description": "A hands-on workshop that combines learning with practical application.",
+    "category": "Science",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -105.00854851352045,
+        39.65557925747601
+      ]
+    },
+    "start_date": "2025-10-03T16:15:00",
+    "end_date": "2025-10-03T22:15:00",
+    "organizer": "Professional Network",
+    "max_attendees": 693,
+    "tags": [
+      "science",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-14T16:15:00",
+    "updated_at": "2025-09-30T16:15:00"
+  },
+  {
+    "title": "Fashion Event",
+    "description": "Join us for an engaging session that promises to be both informative and fun.",
+    "category": "Fashion",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -104.94046917607163,
+        39.76387078384624
+      ]
+    },
+    "start_date": "2025-10-01T15:45:00",
+    "end_date": "2025-10-01T17:45:00",
+    "organizer": "Educational Foundation",
+    "max_attendees": 708,
+    "tags": [
+      "fashion",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-02T15:45:00",
+    "updated_at": "2025-09-09T15:45:00"
+  },
+  {
+    "title": "Science Event",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Science",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -83.07922642918476,
+        39.97759486715032
+      ]
+    },
+    "start_date": "2025-09-11T10:15:00",
+    "end_date": "2025-09-11T17:15:00",
+    "organizer": "Cultural Center",
+    "max_attendees": 350,
+    "tags": [
+      "science",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-08-21T10:15:00",
+    "updated_at": "2025-08-12T10:15:00"
+  },
+  {
+    "title": "Fashion Event 2024",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Fashion",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -75.10764987387864,
+        40.00491641330623
+      ]
+    },
+    "start_date": "2025-12-10T08:30:00",
+    "end_date": "2025-12-10T10:30:00",
+    "organizer": "Music Group",
+    "max_attendees": 648,
+    "tags": [
+      "fashion",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-15T08:30:00",
+    "updated_at": "2025-11-21T08:30:00"
+  },
+  {
+    "title": "Science Event",
+    "description": "A hands-on workshop that combines learning with practical application.",
+    "category": "Science",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -97.42894006225112,
+        32.79132132458031
+      ]
+    },
+    "start_date": "2025-11-09T15:30:00",
+    "end_date": "2025-11-09T18:30:00",
+    "organizer": "Tech Innovators Inc.",
+    "max_attendees": 945,
+    "tags": [
+      "science",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-18T15:30:00",
+    "updated_at": "2025-11-04T15:30:00"
+  },
+  {
+    "title": "Gaming Event",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Gaming",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -118.16719391446662,
+        33.96405480982025
+      ]
+    },
+    "start_date": "2025-12-05T12:45:00",
+    "end_date": "2025-12-05T15:45:00",
+    "organizer": "Sports Club",
+    "max_attendees": 673,
+    "tags": [
+      "gaming",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-23T12:45:00",
+    "updated_at": "2025-11-07T12:45:00"
+  },
+  {
+    "title": "Entertainment Event",
+    "description": "Connect with professionals and enthusiasts while learning something new.",
+    "category": "Entertainment",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -74.03879608297082,
+        40.64924417541281
+      ]
+    },
+    "start_date": "2025-10-15T10:15:00",
+    "end_date": "2025-10-15T15:15:00",
+    "organizer": "Food Network",
+    "max_attendees": 546,
+    "tags": [
+      "entertainment",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-23T10:15:00",
+    "updated_at": "2025-09-27T10:15:00"
+  },
+  {
+    "title": "Jazz Night 2024",
+    "description": "Join us for an engaging session that promises to be both informative and fun.",
+    "category": "Music",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -73.98149419087379,
+        40.7462113084787
+      ]
+    },
+    "start_date": "2025-12-06T08:00:00",
+    "end_date": "2025-12-06T14:00:00",
+    "organizer": "Creative Events Co.",
+    "max_attendees": 716,
+    "tags": [
+      "music",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-16T08:00:00",
+    "updated_at": "2025-11-27T08:00:00"
+  },
+  {
+    "title": "Data Science Workshop",
+    "description": "Discover new trends and innovations in this dynamic field through interactive sessions.",
+    "category": "Technology",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -80.75955609357582,
+        35.202584646559224
+      ]
+    },
+    "start_date": "2025-12-01T09:15:00",
+    "end_date": "2025-12-01T16:15:00",
+    "organizer": "Music Group",
+    "max_attendees": 450,
+    "tags": [
+      "technology",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-14T09:15:00",
+    "updated_at": "2025-11-28T09:15:00"
+  },
+  {
+    "title": "Photography Event",
+    "description": "Join us for an engaging session that promises to be both informative and fun.",
+    "category": "Photography",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -95.42206051523428,
+        29.726911394658195
+      ]
+    },
+    "start_date": "2025-10-02T10:00:00",
+    "end_date": "2025-10-02T18:00:00",
+    "organizer": "Sports Club",
+    "max_attendees": 292,
+    "tags": [
+      "photography",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-29T10:00:00",
+    "updated_at": "2025-09-04T10:00:00"
+  },
+  {
+    "title": "CrossFit Challenge",
+    "description": "Join us for an engaging session that promises to be both informative and fun.",
+    "category": "Sports",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -87.61296295978163,
+        41.83562721869501
+      ]
+    },
+    "start_date": "2025-10-05T08:15:00",
+    "end_date": "2025-10-05T16:15:00",
+    "organizer": "Science Society",
+    "max_attendees": 224,
+    "tags": [
+      "sports",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-22T08:15:00",
+    "updated_at": "2025-09-15T08:15:00"
+  },
+  {
+    "title": "Health & Wellness Event",
+    "description": "Connect with professionals and enthusiasts while learning something new.",
+    "category": "Health & Wellness",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -75.1287243721147,
+        39.98538983949354
+      ]
+    },
+    "start_date": "2025-10-29T13:45:00",
+    "end_date": "2025-10-29T17:45:00",
+    "organizer": "Community Hub",
+    "max_attendees": 687,
+    "tags": [
+      "health-&-wellness",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-11T13:45:00",
+    "updated_at": "2025-10-04T13:45:00"
+  },
+  {
+    "title": "Travel Event",
+    "description": "Join us for an exciting event featuring industry experts and networking opportunities.",
+    "category": "Travel",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -122.34265090401763,
+        47.572048679170265
+      ]
+    },
+    "start_date": "2025-12-05T11:00:00",
+    "end_date": "2025-12-05T14:00:00",
+    "organizer": "Professional Network",
+    "max_attendees": null,
+    "tags": [
+      "travel",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-23T11:00:00",
+    "updated_at": "2025-11-23T11:00:00"
+  },
+  {
+    "title": "Gaming Event 2025",
+    "description": "Connect with professionals and enthusiasts while learning something new.",
+    "category": "Gaming",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -105.0048890190333,
+        39.773706464882004
+      ]
+    },
+    "start_date": "2025-12-11T11:00:00",
+    "end_date": "2025-12-11T14:00:00",
+    "organizer": "Local Business Association",
+    "max_attendees": 361,
+    "tags": [
+      "gaming",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-13T11:00:00",
+    "updated_at": "2025-11-15T11:00:00"
+  },
+  {
+    "title": "Business Event",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Business",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -122.44100055582602,
+        37.81068738055068
+      ]
+    },
+    "start_date": "2025-10-16T08:30:00",
+    "end_date": "2025-10-16T10:30:00",
+    "organizer": "Music Group",
+    "max_attendees": null,
+    "tags": [
+      "business",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-27T08:30:00",
+    "updated_at": "2025-10-15T08:30:00"
+  },
+  {
+    "title": "Folk Music Gathering",
+    "description": "Experience the latest developments and connect with industry leaders.",
+    "category": "Music",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -81.61501561823563,
+        30.42183926868756
+      ]
+    },
+    "start_date": "2025-10-26T09:45:00",
+    "end_date": "2025-10-26T16:45:00",
+    "organizer": "Art Collective",
+    "max_attendees": 609,
+    "tags": [
+      "music",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-17T09:45:00",
+    "updated_at": "2025-10-25T09:45:00"
+  },
+  {
+    "title": "Cloud Computing Seminar",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Technology",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -97.67918754214818,
+        30.293870717426955
+      ]
+    },
+    "start_date": "2025-09-13T19:45:00",
+    "end_date": "2025-09-13T22:45:00",
+    "organizer": "Tech Innovators Inc.",
+    "max_attendees": 226,
+    "tags": [
+      "technology",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-06T19:45:00",
+    "updated_at": "2025-08-16T19:45:00"
+  },
+  {
+    "title": "Networking Event",
+    "description": "Experience the latest developments and connect with industry leaders.",
+    "category": "Networking",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -80.75530215766302,
+        35.24516402322182
+      ]
+    },
+    "start_date": "2025-10-21T09:30:00",
+    "end_date": "2025-10-21T17:30:00",
+    "organizer": "Educational Foundation",
+    "max_attendees": 843,
+    "tags": [
+      "networking",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-04T09:30:00",
+    "updated_at": "2025-10-05T09:30:00"
+  },
+  {
+    "title": "Entertainment Event 2024",
+    "description": "Discover new trends and innovations in this dynamic field through interactive sessions.",
+    "category": "Entertainment",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -105.08183484754262,
+        39.76367432254927
+      ]
+    },
+    "start_date": "2025-12-13T19:30:00",
+    "end_date": "2025-12-13T20:30:00",
+    "organizer": "Tech Innovators Inc.",
+    "max_attendees": 522,
+    "tags": [
+      "entertainment",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-12-01T19:30:00",
+    "updated_at": "2025-12-04T19:30:00"
+  },
+  {
+    "title": "Entertainment Event",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Entertainment",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -86.21912519859418,
+        39.85403867222177
+      ]
+    },
+    "start_date": "2025-12-05T19:30:00",
+    "end_date": "2025-12-05T20:30:00",
+    "organizer": "Art Collective",
+    "max_attendees": 461,
+    "tags": [
+      "entertainment",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-21T19:30:00",
+    "updated_at": "2025-11-13T19:30:00"
+  },
+  {
+    "title": "Gaming Event",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Gaming",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -98.51742675622003,
+        29.41638223562587
+      ]
+    },
+    "start_date": "2025-11-30T15:45:00",
+    "end_date": "2025-11-30T22:45:00",
+    "organizer": "Food Network",
+    "max_attendees": 770,
+    "tags": [
+      "gaming",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-16T15:45:00",
+    "updated_at": "2025-11-19T15:45:00"
+  },
+  {
+    "title": "Networking Event 2024",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Networking",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -75.19322095517805,
+        40.04315695362723
+      ]
+    },
+    "start_date": "2025-11-16T20:15:00",
+    "end_date": "2025-11-16T21:15:00",
+    "organizer": "Community Hub",
+    "max_attendees": 852,
+    "tags": [
+      "networking",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-12T20:15:00",
+    "updated_at": "2025-11-10T20:15:00"
+  },
+  {
+    "title": "Fashion Event",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Fashion",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -87.64029825281624,
+        41.95572532455597
+      ]
+    },
+    "start_date": "2025-12-08T17:15:00",
+    "end_date": "2025-12-08T20:15:00",
+    "organizer": "Cultural Center",
+    "max_attendees": 182,
+    "tags": [
+      "fashion",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-24T17:15:00",
+    "updated_at": "2025-12-02T17:15:00"
+  },
+  {
+    "title": "Health & Wellness Event",
+    "description": "Join us for an engaging session that promises to be both informative and fun.",
+    "category": "Health & Wellness",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -86.14313050368659,
+        39.80325923455002
+      ]
+    },
+    "start_date": "2025-12-11T19:00:00",
+    "end_date": "2025-12-12T02:00:00",
+    "organizer": "Tech Innovators Inc.",
+    "max_attendees": 862,
+    "tags": [
+      "health-&-wellness",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-24T19:00:00",
+    "updated_at": "2025-11-17T19:00:00"
+  },
+  {
+    "title": "Boxing Training",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Sports",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -118.15447059779116,
+        34.103012261817305
+      ]
+    },
+    "start_date": "2025-09-18T16:45:00",
+    "end_date": "2025-09-19T00:45:00",
+    "organizer": "Science Society",
+    "max_attendees": 35,
+    "tags": [
+      "sports",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-06T16:45:00",
+    "updated_at": "2025-09-03T16:45:00"
+  },
+  {
+    "title": "Travel Event 2025",
+    "description": "Join us for an exciting event featuring industry experts and networking opportunities.",
+    "category": "Travel",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -86.20387975921248,
+        39.77125871342998
+      ]
+    },
+    "start_date": "2025-11-27T16:15:00",
+    "end_date": "2025-11-27T19:15:00",
+    "organizer": "Creative Events Co.",
+    "max_attendees": 482,
+    "tags": [
+      "travel",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-13T16:15:00",
+    "updated_at": "2025-11-23T16:15:00"
+  },
+  {
+    "title": "Entertainment Event",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Entertainment",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -73.95819891237315,
+        40.62119937161728
+      ]
+    },
+    "start_date": "2025-11-18T10:00:00",
+    "end_date": "2025-11-18T16:00:00",
+    "organizer": "Educational Foundation",
+    "max_attendees": null,
+    "tags": [
+      "entertainment",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-25T10:00:00",
+    "updated_at": "2025-10-29T10:00:00"
+  },
+  {
+    "title": "Museum Tour 2024",
+    "description": "An immersive experience designed to inspire and educate participants.",
+    "category": "Arts & Culture",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -95.37514424986394,
+        29.74161835773275
+      ]
+    },
+    "start_date": "2025-12-14T19:15:00",
+    "end_date": "2025-12-14T23:15:00",
+    "organizer": "Cultural Center",
+    "max_attendees": null,
+    "tags": [
+      "arts-&-culture",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-11-18T19:15:00",
+    "updated_at": "2025-11-23T19:15:00"
+  },
+  {
+    "title": "Poetry Reading",
+    "description": "Join us for an engaging session that promises to be both informative and fun.",
+    "category": "Arts & Culture",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -112.12987226360092,
+        33.505029417138154
+      ]
+    },
+    "start_date": "2025-10-07T18:15:00",
+    "end_date": "2025-10-07T20:15:00",
+    "organizer": "Tech Innovators Inc.",
+    "max_attendees": 276,
+    "tags": [
+      "arts-&-culture",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-09-13T18:15:00",
+    "updated_at": "2025-09-15T18:15:00"
+  },
+  {
+    "title": "Fashion Event",
+    "description": "Come together to celebrate creativity, innovation, and community spirit.",
+    "category": "Fashion",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -122.32277623478207,
+        47.6905785813445
+      ]
+    },
+    "start_date": "2025-10-31T17:00:00",
+    "end_date": "2025-10-31T18:00:00",
+    "organizer": "Creative Events Co.",
+    "max_attendees": 346,
+    "tags": [
+      "fashion",
+      "event",
+      "local"
+    ],
+    "created_at": "2025-10-02T17:00:00",
+    "updated_at": "2025-10-24T17:00:00"
+  }
+]

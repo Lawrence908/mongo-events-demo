@@ -42,6 +42,63 @@ body {
 
 #map {
     border-radius: 0.375rem;
+    height: 500px;
+    width: 100%;
+}
+
+.map-container {
+    height: 500px;
+    width: 100%;
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+/* Custom marker styles */
+.custom-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+.custom-marker div {
+    transition: transform 0.2s ease;
+}
+
+.custom-marker div:hover {
+    transform: scale(1.1);
+}
+
+/* Event card improvements */
+.event-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.event-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.category-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Map controls styling */
+.map-controls {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Search area circle styling */
+.search-area-circle {
+    fill: none;
+    stroke: #007bff;
+    stroke-width: 2;
+    stroke-dasharray: 5, 5;
+    opacity: 0.8;
 }
 
 .event-item {

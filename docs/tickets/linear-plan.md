@@ -92,6 +92,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-14** Map-ready sample page
 - P:3  E:3h  L:frontend,ux
+- Status: ✅ COMPLETED
 - Desc: Simple page integrating map placeholder and fetch from nearby API.
 - AC:
   - Visual markers for events (can be mocked initially)

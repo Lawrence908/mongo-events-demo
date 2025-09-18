@@ -80,7 +80,7 @@ def generate_users(count=200):
     return users
 
 
-def generate_events(count=1000, venues, users):
+def generate_events(venues, users, count=1000):
     """Generate event data"""
     events = []
     
