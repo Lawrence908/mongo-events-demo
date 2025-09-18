@@ -10,7 +10,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-5** Schema finalization and validation
 - P:1  E:4h  L:database,schema
-- Status: Done
+- Status: ✅ COMPLETED
 - Desc: Finalize `events`, `venues`, `users`, `checkins` schemas with JSON Schema validation.
 - AC:
   - Events collection enforces required fields and GeoJSON structure
@@ -19,7 +19,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-6** Index suite implementation in app/database.py
 - P:1  E:3h  L:indexing,performance
-- Status: Done
+- Status: ✅ COMPLETED
 - Desc: Ensure all indexes exist: 2dsphere, text, start_date, category+start_date, location+start_date, organizer+start_date, created_at, tags.
 - AC:
   - `list_indexes` shows all specified indexes
@@ -28,6 +28,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-7** CRUD services parity and unit tests
 - P:1  E:4h  L:backend,testing
+- Status: ✅ COMPLETED
 - Desc: Verify create/get/update/delete paths and add unit tests.
 - AC:
   - Tests cover happy-path and invalid ObjectId
@@ -36,6 +37,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-8** Text search endpoint and scoring
 - P:2  E:3h  L:search,backend
+- Status: ✅ COMPLETED
 - Desc: Support `$text` search with `$meta: "textScore"` sorting and projection.
 - AC:
   - `/api/events?q=...` returns results sorted by relevance
@@ -44,6 +46,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-9** Cursor-based pagination for events list
 - P:1  E:3h  L:performance,backend
+- Status: ✅ COMPLETED
 - Desc: Implement `_id` cursor pagination in service and API responses.
 - AC:
   - Response contains `next_cursor`, `has_more`
@@ -52,6 +55,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-10** Weekend window calculation util
 - P:3  E:2h  L:utils,backend
+- Status: ✅ COMPLETED
 - Desc: Utility to compute Friday 6pm → Sunday 11:59pm in UTC.
 - AC:
   - Covered by unit tests for boundary conditions
@@ -248,10 +252,20 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
   - `docs/course-report.md` updated; final metrics and reflections included
 - Deps: EVE-26,EVE-29,EVE-30–EVE-33
 
+**EVE-35** Timezone modernization and datetime.utcnow() deprecation
+- P:2  E:3h  L:quality,security,backend,refactoring
+- Desc: Systematically replace all instances of deprecated `datetime.utcnow()` with timezone-aware `datetime.now(timezone.utc)` throughout the codebase.
+- AC:
+  - All `datetime.utcnow()` calls replaced with `datetime.now(timezone.utc)`
+  - All files import `timezone` from datetime module where needed
+  - All tests pass without deprecation warnings
+  - No functionality changes - only timezone awareness improvements
+- Deps: None
+
 ---
 
 ## Backlog Labels
-- database, schema, indexing, performance, backend, api, geo, analytics, realtime, transactions, testing, docs, security, devx, tooling, frontend
+- database, schema, indexing, performance, backend, api, geo, analytics, realtime, transactions, testing, docs, security, devx, tooling, frontend, quality, refactoring
 
 ## Notes
 - This plan assumes a single-developer cadence over ~6–8 weeks. Adjust estimates as data emerges.
