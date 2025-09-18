@@ -12,7 +12,7 @@ from app import app
 
 if __name__ == "__main__":
     host = os.getenv("HOST", "127.0.0.1")
-    port = int(os.getenv("PORT", 5000))
+    port = int(os.getenv("PORT", 5001))
     debug = os.getenv("FLASK_ENV") == "development"
 
     app.run(host=host, port=port, debug=debug)
