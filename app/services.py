@@ -240,6 +240,7 @@ class EventService:
                     "distanceField": "distance",
                     "maxDistance": radius_km * 1000,  # Convert to meters
                     "spherical": True,
+                    "key": "location"  # Specify which 2dsphere index to use
                 }
             },
             {
