@@ -135,6 +135,7 @@ class Event(EventBase):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    score: Optional[float] = Field(None, description="Text search relevance score")
 
     model_config = ConfigDict(
         populate_by_name=True,

@@ -4,7 +4,12 @@ from typing import Any, Optional
 from bson import ObjectId
 
 from .database import get_mongodb
-from .models import Event, EventCreate, EventsNearbyQuery, EventUpdate
+from .models import (
+    Event, EventCreate, EventsNearbyQuery, EventUpdate,
+    Venue, VenueCreate, VenueUpdate,
+    User, UserCreate, UserUpdate,
+    Checkin, CheckinCreate, CheckinUpdate
+)
 
 
 class EventService:
@@ -66,39 +71,72 @@ class EventService:
         """
         db = self._ensure_db()
         query = {}
+        projection = {}
+        sort_criteria = []
 
         if category:
             query["category"] = category
 
         if search:
             query["$text"] = {"$search": search}
+            # Add textScore projection for debugging
+            projection["score"] = {"$meta": "textScore"}
+            # Sort by textScore for relevance
+            sort_criteria = [("score", {"$meta": "textScore"})]
 
         if upcoming_only:
             query["start_date"] = {"$gte": datetime.utcnow()}
 
         # Cursor-based pagination (preferred)
-        if cursor_id and ObjectId.is_valid(cursor_id):
-            query["_id"] = {"$gt": ObjectId(cursor_id)}
-            cursor = db.events.find(query).sort("_id", 1).limit(limit)
+        if cursor_id is None or (cursor_id and ObjectId.is_valid(cursor_id)):
+            # Add cursor condition if cursor_id is provided
+            if cursor_id and ObjectId.is_valid(cursor_id):
+                query["_id"] = {"$gt": ObjectId(cursor_id)}
+            
+            # Use textScore sorting if search is provided, otherwise use _id
+            if not sort_criteria:
+                sort_criteria = [("_id", 1)]
+            
+            cursor = db.events.find(query, projection).sort(sort_criteria).limit(limit)
             events = list(cursor)
             
             # Get next cursor
             next_cursor = str(events[-1]["_id"]) if events and len(events) == limit else None
             
+            # Convert MongoDB documents to Event objects
+            event_objects = []
+            for event in events:
+                # Ensure _id is properly mapped to id field
+                if "_id" in event:
+                    event["id"] = event["_id"]
+                event_objects.append(Event(**event))
+            
             return {
-                "events": [Event(**event) for event in events],
+                "events": event_objects,
                 "next_cursor": next_cursor,
                 "has_more": len(events) == limit,
                 "pagination_type": "cursor"
             }
         
-        # Fallback to offset-based pagination
+        # Fallback to offset-based pagination for invalid cursor_id
         else:
-            cursor = db.events.find(query).skip(skip).limit(limit).sort("start_date", 1)
-            events = [Event(**event) for event in cursor]
+            # Use textScore sorting if search is provided, otherwise use start_date
+            if not sort_criteria:
+                sort_criteria = [("start_date", 1)]
+            
+            cursor = db.events.find(query, projection).skip(skip).limit(limit).sort(sort_criteria)
+            events = list(cursor)
+            
+            # Convert MongoDB documents to Event objects
+            event_objects = []
+            for event in events:
+                # Ensure _id is properly mapped to id field
+                if "_id" in event:
+                    event["id"] = event["_id"]
+                event_objects.append(Event(**event))
             
             return {
-                "events": events,
+                "events": event_objects,
                 "next_cursor": None,
                 "has_more": len(events) == limit,
                 "pagination_type": "offset",
@@ -380,8 +418,275 @@ class EventService:
             return [Event(**event) for event in cursor]
 
 
-# Global event service instance - lazy loaded
+class VenueService:
+    """Service class for venue operations"""
+
+    def __init__(self):
+        self.db = None
+
+    def _ensure_db(self):
+        """Ensure database connection is established"""
+        if self.db is None:
+            self.db = get_mongodb()
+        return self.db
+
+    def create_venue(self, venue_data: VenueCreate) -> Venue:
+        """Create a new venue"""
+        db = self._ensure_db()
+        venue_dict = venue_data.model_dump()
+        venue_dict["created_at"] = datetime.utcnow()
+
+        result = db.venues.insert_one(venue_dict)
+        venue_dict["_id"] = result.inserted_id
+
+        return Venue(**venue_dict)
+
+    def get_venue(self, venue_id: str) -> Optional[Venue]:
+        """Get venue by ID"""
+        if not ObjectId.is_valid(venue_id):
+            return None
+
+        db = self._ensure_db()
+        venue_data = db.venues.find_one({"_id": ObjectId(venue_id)})
+        if venue_data:
+            return Venue(**venue_data)
+        return None
+
+    def get_venues(self, skip: int = 0, limit: int = 50) -> dict[str, Any]:
+        """Get venues with pagination"""
+        db = self._ensure_db()
+        cursor = db.venues.find().skip(skip).limit(limit).sort("created_at", -1)
+        venues = [Venue(**venue) for venue in cursor]
+
+        return {
+            "venues": venues,
+            "has_more": len(venues) == limit,
+            "offset": skip + len(venues)
+        }
+
+    def update_venue(self, venue_id: str, venue_data: VenueUpdate) -> Optional[Venue]:
+        """Update a venue"""
+        if not ObjectId.is_valid(venue_id):
+            return None
+
+        db = self._ensure_db()
+        update_dict = {
+            k: v
+            for k, v in venue_data.model_dump(exclude_unset=True).items()
+            if v is not None
+        }
+        if not update_dict:
+            return self.get_venue(venue_id)
+
+        result = db.venues.update_one(
+            {"_id": ObjectId(venue_id)}, {"$set": update_dict}
+        )
+
+        if result.matched_count:
+            return self.get_venue(venue_id)
+        return None
+
+    def delete_venue(self, venue_id: str) -> bool:
+        """Delete a venue"""
+        if not ObjectId.is_valid(venue_id):
+            return False
+
+        db = self._ensure_db()
+        result = db.venues.delete_one({"_id": ObjectId(venue_id)})
+        return result.deleted_count > 0
+
+
+class UserService:
+    """Service class for user operations"""
+
+    def __init__(self):
+        self.db = None
+
+    def _ensure_db(self):
+        """Ensure database connection is established"""
+        if self.db is None:
+            self.db = get_mongodb()
+        return self.db
+
+    def create_user(self, user_data: UserCreate) -> User:
+        """Create a new user"""
+        db = self._ensure_db()
+        user_dict = user_data.model_dump()
+        user_dict["created_at"] = datetime.utcnow()
+
+        result = db.users.insert_one(user_dict)
+        user_dict["_id"] = result.inserted_id
+
+        return User(**user_dict)
+
+    def get_user(self, user_id: str) -> Optional[User]:
+        """Get user by ID"""
+        if not ObjectId.is_valid(user_id):
+            return None
+
+        db = self._ensure_db()
+        user_data = db.users.find_one({"_id": ObjectId(user_id)})
+        if user_data:
+            return User(**user_data)
+        return None
+
+    def get_user_by_email(self, email: str) -> Optional[User]:
+        """Get user by email"""
+        db = self._ensure_db()
+        user_data = db.users.find_one({"email": email})
+        if user_data:
+            return User(**user_data)
+        return None
+
+    def get_users(self, skip: int = 0, limit: int = 50) -> dict[str, Any]:
+        """Get users with pagination"""
+        db = self._ensure_db()
+        cursor = db.users.find().skip(skip).limit(limit).sort("created_at", -1)
+        users = [User(**user) for user in cursor]
+
+        return {
+            "users": users,
+            "has_more": len(users) == limit,
+            "offset": skip + len(users)
+        }
+
+    def update_user(self, user_id: str, user_data: UserUpdate) -> Optional[User]:
+        """Update a user"""
+        if not ObjectId.is_valid(user_id):
+            return None
+
+        db = self._ensure_db()
+        update_dict = {
+            k: v
+            for k, v in user_data.model_dump(exclude_unset=True).items()
+            if v is not None
+        }
+        if not update_dict:
+            return self.get_user(user_id)
+
+        result = db.users.update_one(
+            {"_id": ObjectId(user_id)}, {"$set": update_dict}
+        )
+
+        if result.matched_count:
+            return self.get_user(user_id)
+        return None
+
+    def delete_user(self, user_id: str) -> bool:
+        """Delete a user"""
+        if not ObjectId.is_valid(user_id):
+            return False
+
+        db = self._ensure_db()
+        result = db.users.delete_one({"_id": ObjectId(user_id)})
+        return result.deleted_count > 0
+
+
+class CheckinService:
+    """Service class for checkin operations"""
+
+    def __init__(self):
+        self.db = None
+
+    def _ensure_db(self):
+        """Ensure database connection is established"""
+        if self.db is None:
+            self.db = get_mongodb()
+        return self.db
+
+    def create_checkin(self, checkin_data: CheckinCreate) -> Checkin:
+        """Create a new checkin"""
+        db = self._ensure_db()
+        checkin_dict = checkin_data.model_dump()
+        checkin_dict["check_in_time"] = datetime.utcnow()
+        
+        # Convert string IDs to ObjectId instances for MongoDB
+        checkin_dict["event_id"] = ObjectId(checkin_dict["event_id"])
+        checkin_dict["user_id"] = ObjectId(checkin_dict["user_id"])
+
+        result = db.checkins.insert_one(checkin_dict)
+        checkin_dict["_id"] = result.inserted_id
+
+        return Checkin(**checkin_dict)
+
+    def get_checkin(self, checkin_id: str) -> Optional[Checkin]:
+        """Get checkin by ID"""
+        if not ObjectId.is_valid(checkin_id):
+            return None
+
+        db = self._ensure_db()
+        checkin_data = db.checkins.find_one({"_id": ObjectId(checkin_id)})
+        if checkin_data:
+            return Checkin(**checkin_data)
+        return None
+
+    def get_checkins_by_event(self, event_id: str, skip: int = 0, limit: int = 50) -> dict[str, Any]:
+        """Get checkins for a specific event"""
+        if not ObjectId.is_valid(event_id):
+            return {"checkins": [], "has_more": False, "offset": 0}
+
+        db = self._ensure_db()
+        cursor = db.checkins.find({"event_id": ObjectId(event_id)}).skip(skip).limit(limit).sort("check_in_time", -1)
+        checkins = [Checkin(**checkin) for checkin in cursor]
+
+        return {
+            "checkins": checkins,
+            "has_more": len(checkins) == limit,
+            "offset": skip + len(checkins)
+        }
+
+    def get_checkins_by_user(self, user_id: str, skip: int = 0, limit: int = 50) -> dict[str, Any]:
+        """Get checkins for a specific user"""
+        if not ObjectId.is_valid(user_id):
+            return {"checkins": [], "has_more": False, "offset": 0}
+
+        db = self._ensure_db()
+        cursor = db.checkins.find({"user_id": ObjectId(user_id)}).skip(skip).limit(limit).sort("check_in_time", -1)
+        checkins = [Checkin(**checkin) for checkin in cursor]
+
+        return {
+            "checkins": checkins,
+            "has_more": len(checkins) == limit,
+            "offset": skip + len(checkins)
+        }
+
+    def update_checkin(self, checkin_id: str, checkin_data: CheckinUpdate) -> Optional[Checkin]:
+        """Update a checkin"""
+        if not ObjectId.is_valid(checkin_id):
+            return None
+
+        db = self._ensure_db()
+        update_dict = {
+            k: v
+            for k, v in checkin_data.model_dump(exclude_unset=True).items()
+            if v is not None
+        }
+        if not update_dict:
+            return self.get_checkin(checkin_id)
+
+        result = db.checkins.update_one(
+            {"_id": ObjectId(checkin_id)}, {"$set": update_dict}
+        )
+
+        if result.matched_count:
+            return self.get_checkin(checkin_id)
+        return None
+
+    def delete_checkin(self, checkin_id: str) -> bool:
+        """Delete a checkin"""
+        if not ObjectId.is_valid(checkin_id):
+            return False
+
+        db = self._ensure_db()
+        result = db.checkins.delete_one({"_id": ObjectId(checkin_id)})
+        return result.deleted_count > 0
+
+
+# Global service instances - lazy loaded
 _event_service = None
+_venue_service = None
+_user_service = None
+_checkin_service = None
 
 
 def get_event_service():
@@ -390,3 +695,27 @@ def get_event_service():
     if _event_service is None:
         _event_service = EventService()
     return _event_service
+
+
+def get_venue_service():
+    """Get venue service instance (lazy loaded)"""
+    global _venue_service
+    if _venue_service is None:
+        _venue_service = VenueService()
+    return _venue_service
+
+
+def get_user_service():
+    """Get user service instance (lazy loaded)"""
+    global _user_service
+    if _user_service is None:
+        _user_service = UserService()
+    return _user_service
+
+
+def get_checkin_service():
+    """Get checkin service instance (lazy loaded)"""
+    global _checkin_service
+    if _checkin_service is None:
+        _checkin_service = CheckinService()
+    return _checkin_service

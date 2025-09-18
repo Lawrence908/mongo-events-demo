@@ -149,7 +149,13 @@ def get_events_schema() -> Dict[str, Any]:
                     "description": "Last update timestamp"
                 }
             },
-            "additionalProperties": False
+            "additionalProperties": False,
+            "patternProperties": {
+                "^_id$": {
+                    "bsonType": "objectId",
+                    "description": "MongoDB ObjectId"
+                }
+            }
         }
     }
 
@@ -257,7 +263,13 @@ def get_venues_schema() -> Dict[str, Any]:
                     "description": "Document creation timestamp"
                 }
             },
-            "additionalProperties": False
+            "additionalProperties": False,
+            "patternProperties": {
+                "^_id$": {
+                    "bsonType": "objectId",
+                    "description": "MongoDB ObjectId"
+                }
+            }
         }
     }
 
@@ -338,7 +350,13 @@ def get_users_schema() -> Dict[str, Any]:
                     "description": "Last login timestamp"
                 }
             },
-            "additionalProperties": False
+            "additionalProperties": False,
+            "patternProperties": {
+                "^_id$": {
+                    "bsonType": "objectId",
+                    "description": "MongoDB ObjectId"
+                }
+            }
         }
     }
 
@@ -393,7 +411,13 @@ def get_checkins_schema() -> Dict[str, Any]:
                     "description": "Check-in location (if different from event)"
                 }
             },
-            "additionalProperties": False
+            "additionalProperties": False,
+            "patternProperties": {
+                "^_id$": {
+                    "bsonType": "objectId",
+                    "description": "MongoDB ObjectId"
+                }
+            }
         }
     }
 

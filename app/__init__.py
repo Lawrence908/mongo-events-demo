@@ -122,30 +122,88 @@ def create_app():
     # API Routes
     @app.route("/api/events", methods=["GET"])
     def api_get_events():
-        """API: Get events"""
+        """API: Get events with cursor-based pagination and text search
+        
+        Supports:
+        - /api/events?q=search_term (text search with relevance scoring)
+        - /api/events?search=search_term (alternative parameter name)
+        - /api/events?category=music (category filtering)
+        - /api/events?cursor_id=... (cursor-based pagination)
+        """
         try:
+            # Support both cursor-based and offset-based pagination
+            cursor_id = request.args.get("cursor_id")
             page = int(request.args.get("page", 1))
             per_page = min(int(request.args.get("per_page", 50)), 100)
             skip = (page - 1) * per_page
 
             category = request.args.get("category")
-            search = request.args.get("search")
+            # Support both 'q' and 'search' parameters for text search
+            search = request.args.get("q") or request.args.get("search")
 
             result = get_event_service().get_events(
-                skip=skip, limit=per_page, category=category, search=search
+                skip=skip, 
+                limit=per_page, 
+                category=category, 
+                search=search,
+                cursor_id=cursor_id
             )
             events = result["events"] if isinstance(result, dict) else result
 
-            return jsonify(
-                {
-                    "events": [event.model_dump() for event in events],
-                    "page": page,
-                    "per_page": per_page,
-                    "pagination": result if isinstance(result, dict) else None
+            # Convert events to dictionaries for JSON serialization
+            events_data = []
+            for event in events:
+                try:
+                    event_dict = event.model_dump()
+                    events_data.append(event_dict)
+                except Exception as e:
+                    print(f"Error serializing event {event.title}: {e}")
+                    # Fallback to manual conversion
+                    event_dict = {
+                        "id": str(event.id) if event.id else None,
+                        "title": event.title,
+                        "description": event.description,
+                        "category": event.category,
+                        "location": event.location.model_dump() if event.location else None,
+                        "start_date": event.start_date.isoformat() if event.start_date else None,
+                        "end_date": event.end_date.isoformat() if event.end_date else None,
+                        "organizer": event.organizer,
+                        "max_attendees": event.max_attendees,
+                        "tags": event.tags,
+                        "created_at": event.created_at.isoformat() if event.created_at else None,
+                        "updated_at": event.updated_at.isoformat() if event.updated_at else None,
+                        "score": getattr(event, 'score', None)
+                    }
+                    events_data.append(event_dict)
+            
+            # Ensure pagination data is also JSON serializable
+            pagination_data = None
+            if isinstance(result, dict):
+                pagination_data = {
+                    "next_cursor": result.get("next_cursor"),
+                    "has_more": result.get("has_more"),
+                    "pagination_type": result.get("pagination_type"),
+                    "offset": result.get("offset")
                 }
-            )
+            
+            response_data = {
+                "events": events_data,
+                "page": page,
+                "per_page": per_page,
+                "pagination": pagination_data
+            }
+            
+            # Include search query in response for debugging
+            if search:
+                response_data["search_query"] = search
+                response_data["search_type"] = "text_search_with_relevance_scoring"
+
+            return jsonify(response_data)
 
         except Exception as e:
+            import traceback
+            print(f"Error in API endpoint: {e}")
+            traceback.print_exc()
             return jsonify({"error": str(e)}), 500
 
     @app.route("/api/events/nearby", methods=["GET"])

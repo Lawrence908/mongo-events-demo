@@ -5,8 +5,8 @@ Test script to validate EVE-6 index implementation
 import sys
 import os
 
-# Add the current directory to the path
-sys.path.insert(0, os.path.dirname(__file__))
+# Add the parent directory to the path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import the app module
 from app.database import get_mongodb
