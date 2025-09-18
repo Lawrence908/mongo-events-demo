@@ -177,8 +177,8 @@ class EventService:
         result = db.events.delete_one({"_id": ObjectId(event_id)})
         return result.deleted_count > 0
 
-    def get_events_nearby(self, query: EventsNearbyQuery) -> dict[str, Any]:
-        """Get events near a location as GeoJSON"""
+    def get_events_nearby(self, query: EventsNearbyQuery, category: Optional[str] = None) -> dict[str, Any]:
+        """Get events near a location as GeoJSON with optional category filtering"""
         db = self._ensure_db()
         pipeline = [
             {
@@ -193,8 +193,17 @@ class EventService:
                     "key": "location"  # Specify which 2dsphere index to use
                 }
             },
-            {"$limit": query.limit},
         ]
+        
+        # Add category filter if provided
+        if category:
+            pipeline.append({
+                "$match": {
+                    "category": category
+                }
+            })
+        
+        pipeline.append({"$limit": query.limit})
 
         events = list(db.events.aggregate(pipeline))
 
@@ -223,8 +232,8 @@ class EventService:
         db = self._ensure_db()
         return db.events.distinct("category")
 
-    def get_events_this_weekend(self, longitude: float, latitude: float, radius_km: float = 50) -> dict[str, Any]:
-        """Get events this weekend near a location - perfect for your use case!"""
+    def get_events_this_weekend(self, longitude: float, latitude: float, radius_km: float = 50, category: Optional[str] = None) -> dict[str, Any]:
+        """Get events this weekend near a location with optional category filtering"""
         db = self._ensure_db()
         
         # Calculate weekend date range using the utility function
@@ -251,13 +260,20 @@ class EventService:
                     }
                 }
             },
+        ]
+        
+        # Add category filter if provided
+        if category:
+            pipeline[1]["$match"]["category"] = category
+        
+        pipeline.extend([
             {
                 "$sort": {"start_date": 1}
             },
             {
                 "$limit": 100
             }
-        ]
+        ])
         
         events = list(db.events.aggregate(pipeline))
         

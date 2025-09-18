@@ -67,6 +67,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-11** Nearby events GeoJSON API
 - P:1  E:3h  L:geo,api
+- Status: ✅ COMPLETED
 - Desc: `$geoNear` aggregation with radius and limit returning GeoJSON FeatureCollection.
 - AC:
   - `/api/events/nearby` returns valid GeoJSON
@@ -75,6 +76,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-12** Weekend near-me discovery API
 - P:2  E:3h  L:geo,api
+- Status: ✅ COMPLETED
 - Desc: Combine `$geoNear` with weekend date-range filter.
 - AC:
   - `/api/events/weekend` responds within target latency on 10k docs
@@ -82,6 +84,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-13** Category filter + geo + date compound query
 - P:2  E:3h  L:geo,search
+- Status: ✅ COMPLETED
 - Desc: Add optional `category` to geospatial/date queries; verify compound index usage.
 - AC:
   - Explain shows index usage without collection scan

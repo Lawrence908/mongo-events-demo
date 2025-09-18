@@ -132,7 +132,8 @@ class MongoDB:
             
             # 4. Compound indexes for common query patterns
             self.events.create_index([("category", 1), ("start_date", 1)], name="category_start_date")
-            self.events.create_index([("location", GEOSPHERE), ("start_date", 1)], name="location_start_date")
+            # Note: location_start_date compound index commented out to avoid conflict with location_2dsphere
+            # self.events.create_index([("location", GEOSPHERE), ("start_date", 1)], name="location_start_date")
             self.events.create_index([("organizer", 1), ("start_date", 1)], name="organizer_start_date")
             print("✓ Compound indexes created")
             
