@@ -8,7 +8,8 @@ from .models import (
     Event, EventCreate, EventsNearbyQuery, EventUpdate,
     Venue, VenueCreate, VenueUpdate,
     User, UserCreate, UserUpdate,
-    Checkin, CheckinCreate, CheckinUpdate
+    Checkin, CheckinCreate, CheckinUpdate,
+    Review, ReviewCreate, ReviewUpdate
 )
 from .utils import calculate_weekend_window
 
@@ -596,7 +597,7 @@ class UserService:
 
 
 class CheckinService:
-    """Service class for checkin operations"""
+    """Service class for checkin operations with enhanced bridge table functionality"""
 
     def __init__(self):
         self.db = None
@@ -608,14 +609,25 @@ class CheckinService:
         return self.db
 
     def create_checkin(self, checkin_data: CheckinCreate) -> Checkin:
-        """Create a new checkin"""
+        """Create a new checkin with duplicate prevention"""
         db = self._ensure_db()
         checkin_dict = checkin_data.model_dump()
         checkin_dict["check_in_time"] = datetime.utcnow()
+        checkin_dict["created_at"] = datetime.utcnow()
         
         # Convert string IDs to ObjectId instances for MongoDB
         checkin_dict["event_id"] = ObjectId(checkin_dict["event_id"])
         checkin_dict["user_id"] = ObjectId(checkin_dict["user_id"])
+        checkin_dict["venue_id"] = ObjectId(checkin_dict["venue_id"])
+
+        # Check for duplicate check-in (event_id + user_id unique constraint)
+        existing_checkin = db.checkins.find_one({
+            "event_id": checkin_dict["event_id"],
+            "user_id": checkin_dict["user_id"]
+        })
+        
+        if existing_checkin:
+            raise ValueError("User has already checked in to this event")
 
         result = db.checkins.insert_one(checkin_dict)
         checkin_dict["_id"] = result.inserted_id
@@ -629,6 +641,20 @@ class CheckinService:
 
         db = self._ensure_db()
         checkin_data = db.checkins.find_one({"_id": ObjectId(checkin_id)})
+        if checkin_data:
+            return Checkin(**checkin_data)
+        return None
+
+    def get_checkin_by_event_user(self, event_id: str, user_id: str) -> Optional[Checkin]:
+        """Get checkin by event and user (for duplicate checking)"""
+        if not ObjectId.is_valid(event_id) or not ObjectId.is_valid(user_id):
+            return None
+
+        db = self._ensure_db()
+        checkin_data = db.checkins.find_one({
+            "event_id": ObjectId(event_id),
+            "user_id": ObjectId(user_id)
+        })
         if checkin_data:
             return Checkin(**checkin_data)
         return None
@@ -655,6 +681,21 @@ class CheckinService:
 
         db = self._ensure_db()
         cursor = db.checkins.find({"user_id": ObjectId(user_id)}).skip(skip).limit(limit).sort("check_in_time", -1)
+        checkins = [Checkin(**checkin) for checkin in cursor]
+
+        return {
+            "checkins": checkins,
+            "has_more": len(checkins) == limit,
+            "offset": skip + len(checkins)
+        }
+
+    def get_checkins_by_venue(self, venue_id: str, skip: int = 0, limit: int = 50) -> dict[str, Any]:
+        """Get checkins for a specific venue (analytics)"""
+        if not ObjectId.is_valid(venue_id):
+            return {"checkins": [], "has_more": False, "offset": 0}
+
+        db = self._ensure_db()
+        cursor = db.checkins.find({"venue_id": ObjectId(venue_id)}).skip(skip).limit(limit).sort("check_in_time", -1)
         checkins = [Checkin(**checkin) for checkin in cursor]
 
         return {
@@ -694,12 +735,503 @@ class CheckinService:
         result = db.checkins.delete_one({"_id": ObjectId(checkin_id)})
         return result.deleted_count > 0
 
+    # Analytics Methods
+    def get_attendance_stats_by_event(self, event_id: str) -> dict[str, Any]:
+        """Get attendance statistics for a specific event"""
+        if not ObjectId.is_valid(event_id):
+            return {"total_checkins": 0, "unique_users": 0, "checkin_methods": {}}
+
+        db = self._ensure_db()
+        
+        pipeline = [
+            {"$match": {"event_id": ObjectId(event_id)}},
+            {
+                "$group": {
+                    "_id": None,
+                    "total_checkins": {"$sum": 1},
+                    "unique_users": {"$addToSet": "$user_id"},
+                    "checkin_methods": {"$push": "$check_in_method"},
+                    "avg_checkin_time": {"$avg": "$check_in_time"}
+                }
+            },
+            {
+                "$project": {
+                    "total_checkins": 1,
+                    "unique_users": {"$size": "$unique_users"},
+                    "checkin_methods": {
+                        "$reduce": {
+                            "input": "$checkin_methods",
+                            "initialValue": {},
+                            "in": {
+                                "$mergeObjects": [
+                                    "$$value",
+                                    {
+                                        "$arrayToObject": [
+                                            [{"k": "$$this", "v": {"$add": [{"$ifNull": [{"$getField": {"field": "$$this", "input": "$$value"}}, 0]}, 1]}}]
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "avg_checkin_time": 1
+                }
+            }
+        ]
+        
+        result = list(db.checkins.aggregate(pipeline))
+        if result:
+            return result[0]
+        return {"total_checkins": 0, "unique_users": 0, "checkin_methods": {}}
+
+    def get_venue_attendance_stats(self, venue_id: str, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None) -> dict[str, Any]:
+        """Get attendance statistics for a specific venue"""
+        if not ObjectId.is_valid(venue_id):
+            return {"total_checkins": 0, "unique_users": 0, "events_attended": 0, "monthly_breakdown": []}
+
+        db = self._ensure_db()
+        
+        match_filter = {"venue_id": ObjectId(venue_id)}
+        if start_date:
+            match_filter["check_in_time"] = {"$gte": start_date}
+        if end_date:
+            if "check_in_time" in match_filter:
+                match_filter["check_in_time"]["$lte"] = end_date
+            else:
+                match_filter["check_in_time"] = {"$lte": end_date}
+
+        pipeline = [
+            {"$match": match_filter},
+            {
+                "$group": {
+                    "_id": None,
+                    "total_checkins": {"$sum": 1},
+                    "unique_users": {"$addToSet": "$user_id"},
+                    "events_attended": {"$addToSet": "$event_id"},
+                    "monthly_data": {
+                        "$push": {
+                            "month": {"$dateToString": {"format": "%Y-%m", "date": "$check_in_time"}},
+                            "checkin_time": "$check_in_time"
+                        }
+                    }
+                }
+            },
+            {
+                "$project": {
+                    "total_checkins": 1,
+                    "unique_users": {"$size": "$unique_users"},
+                    "events_attended": {"$size": "$events_attended"},
+                    "monthly_breakdown": {
+                        "$reduce": {
+                            "input": "$monthly_data",
+                            "initialValue": {},
+                            "in": {
+                                "$mergeObjects": [
+                                    "$$value",
+                                    {
+                                        "$arrayToObject": [
+                                            [{"k": "$$this.month", "v": {"$add": [{"$ifNull": [{"$getField": {"field": "$$this.month", "input": "$$value"}}, 0]}, 1]}}]
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+        
+        result = list(db.checkins.aggregate(pipeline))
+        if result:
+            return result[0]
+        return {"total_checkins": 0, "unique_users": 0, "events_attended": 0, "monthly_breakdown": []}
+
+    def get_repeat_attendees(self, min_events: int = 2) -> list[dict[str, Any]]:
+        """Get users who have attended multiple events (repeat attendees)"""
+        db = self._ensure_db()
+        
+        pipeline = [
+            {
+                "$group": {
+                    "_id": "$user_id",
+                    "event_count": {"$sum": 1},
+                    "events": {"$addToSet": "$event_id"},
+                    "venues": {"$addToSet": "$venue_id"},
+                    "first_checkin": {"$min": "$check_in_time"},
+                    "last_checkin": {"$max": "$check_in_time"}
+                }
+            },
+            {"$match": {"event_count": {"$gte": min_events}}},
+            {"$sort": {"event_count": -1}},
+            {
+                "$project": {
+                    "user_id": "$_id",
+                    "event_count": 1,
+                    "events_attended": {"$size": "$events"},
+                    "venues_visited": {"$size": "$venues"},
+                    "first_checkin": 1,
+                    "last_checkin": 1,
+                    "events": 1,
+                    "venues": 1
+                }
+            }
+        ]
+        
+        return list(db.checkins.aggregate(pipeline))
+
+    def get_checkin_time_patterns(self, venue_id: Optional[str] = None) -> dict[str, Any]:
+        """Get check-in time patterns (peak hours, days of week)"""
+        db = self._ensure_db()
+        
+        match_filter = {}
+        if venue_id and ObjectId.is_valid(venue_id):
+            match_filter["venue_id"] = ObjectId(venue_id)
+        
+        pipeline = [
+            {"$match": match_filter},
+            {
+                "$group": {
+                    "_id": {
+                        "hour": {"$hour": "$check_in_time"},
+                        "dayOfWeek": {"$dayOfWeek": "$check_in_time"}
+                    },
+                    "count": {"$sum": 1}
+                }
+            },
+            {"$sort": {"count": -1}},
+            {
+                "$project": {
+                    "hour": "$_id.hour",
+                    "day_of_week": "$_id.dayOfWeek",
+                    "checkin_count": "$count"
+                }
+            }
+        ]
+        
+        result = list(db.checkins.aggregate(pipeline))
+        return {
+            "peak_hours": [r for r in result[:10]],  # Top 10 peak times
+            "total_patterns": len(result)
+        }
+
+    def get_user_attendance_history(self, user_id: str, limit: int = 50) -> dict[str, Any]:
+        """Get detailed attendance history for a user"""
+        if not ObjectId.is_valid(user_id):
+            return {"checkins": [], "summary": {}}
+
+        db = self._ensure_db()
+        
+        # Get check-ins with event and venue details
+        pipeline = [
+            {"$match": {"user_id": ObjectId(user_id)}},
+            {
+                "$lookup": {
+                    "from": "events",
+                    "localField": "event_id",
+                    "foreignField": "_id",
+                    "as": "event"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "venues",
+                    "localField": "venue_id",
+                    "foreignField": "_id",
+                    "as": "venue"
+                }
+            },
+            {"$unwind": "$event"},
+            {"$unwind": "$venue"},
+            {"$sort": {"check_in_time": -1}},
+            {"$limit": limit},
+            {
+                "$project": {
+                    "_id": 1,
+                    "event_id": 1,
+                    "venue_id": 1,
+                    "check_in_time": 1,
+                    "check_in_method": 1,
+                    "ticket_tier": 1,
+                    "event_title": "$event.title",
+                    "event_category": "$event.category",
+                    "venue_name": "$venue.name",
+                    "venue_city": "$venue.address.city"
+                }
+            }
+        ]
+        
+        checkins = list(db.checkins.aggregate(pipeline))
+        
+        # Get summary statistics
+        summary_pipeline = [
+            {"$match": {"user_id": ObjectId(user_id)}},
+            {
+                "$group": {
+                    "_id": None,
+                    "total_events": {"$sum": 1},
+                    "unique_venues": {"$addToSet": "$venue_id"},
+                    "categories": {"$addToSet": "$event.category"},
+                    "first_checkin": {"$min": "$check_in_time"},
+                    "last_checkin": {"$max": "$check_in_time"}
+                }
+            },
+            {
+                "$project": {
+                    "total_events": 1,
+                    "unique_venues": {"$size": "$unique_venues"},
+                    "categories_attended": {"$size": "$categories"},
+                    "first_checkin": 1,
+                    "last_checkin": 1
+                }
+            }
+        ]
+        
+        summary_result = list(db.checkins.aggregate(summary_pipeline))
+        summary = summary_result[0] if summary_result else {}
+        
+        return {
+            "checkins": checkins,
+            "summary": summary
+        }
+
+
+class ReviewService:
+    """Service class for review operations"""
+
+    def __init__(self):
+        self.db = None
+
+    def _ensure_db(self):
+        """Ensure database connection is established"""
+        if self.db is None:
+            self.db = get_mongodb()
+        return self.db
+
+    def create_review(self, review_data: ReviewCreate) -> Review:
+        """Create a new review"""
+        db = self._ensure_db()
+        review_dict = review_data.model_dump()
+        review_dict["created_at"] = datetime.utcnow()
+        review_dict["updated_at"] = datetime.utcnow()
+
+        # Convert string IDs to ObjectId instances for MongoDB
+        if review_dict.get("event_id"):
+            review_dict["event_id"] = ObjectId(review_dict["event_id"])
+        if review_dict.get("venue_id"):
+            review_dict["venue_id"] = ObjectId(review_dict["venue_id"])
+        review_dict["user_id"] = ObjectId(review_dict["user_id"])
+
+        result = db.reviews.insert_one(review_dict)
+        review_dict["_id"] = result.inserted_id
+
+        return Review(**review_dict)
+
+    def get_review(self, review_id: str) -> Optional[Review]:
+        """Get review by ID"""
+        if not ObjectId.is_valid(review_id):
+            return None
+
+        db = self._ensure_db()
+        review_data = db.reviews.find_one({"_id": ObjectId(review_id)})
+        if review_data:
+            return Review(**review_data)
+        return None
+
+    def get_reviews_by_event(self, event_id: str, skip: int = 0, limit: int = 50) -> dict[str, Any]:
+        """Get reviews for a specific event with pagination"""
+        if not ObjectId.is_valid(event_id):
+            return {"reviews": [], "has_more": False, "offset": 0}
+
+        db = self._ensure_db()
+        cursor = db.reviews.find({"event_id": ObjectId(event_id)}).skip(skip).limit(limit).sort("created_at", -1)
+        reviews = [Review(**review) for review in cursor]
+
+        return {
+            "reviews": reviews,
+            "has_more": len(reviews) == limit,
+            "offset": skip + len(reviews)
+        }
+
+    def get_reviews_by_venue(self, venue_id: str, skip: int = 0, limit: int = 50) -> dict[str, Any]:
+        """Get reviews for a specific venue with pagination"""
+        if not ObjectId.is_valid(venue_id):
+            return {"reviews": [], "has_more": False, "offset": 0}
+
+        db = self._ensure_db()
+        cursor = db.reviews.find({"venue_id": ObjectId(venue_id)}).skip(skip).limit(limit).sort("created_at", -1)
+        reviews = [Review(**review) for review in cursor]
+
+        return {
+            "reviews": reviews,
+            "has_more": len(reviews) == limit,
+            "offset": skip + len(reviews)
+        }
+
+    def get_reviews_by_user(self, user_id: str, skip: int = 0, limit: int = 50) -> dict[str, Any]:
+        """Get reviews by a specific user with pagination"""
+        if not ObjectId.is_valid(user_id):
+            return {"reviews": [], "has_more": False, "offset": 0}
+
+        db = self._ensure_db()
+        cursor = db.reviews.find({"user_id": ObjectId(user_id)}).skip(skip).limit(limit).sort("created_at", -1)
+        reviews = [Review(**review) for review in cursor]
+
+        return {
+            "reviews": reviews,
+            "has_more": len(reviews) == limit,
+            "offset": skip + len(reviews)
+        }
+
+    def update_review(self, review_id: str, review_data: ReviewUpdate) -> Optional[Review]:
+        """Update a review"""
+        if not ObjectId.is_valid(review_id):
+            return None
+
+        db = self._ensure_db()
+        update_dict = {
+            k: v
+            for k, v in review_data.model_dump(exclude_unset=True).items()
+            if v is not None
+        }
+        if not update_dict:
+            return self.get_review(review_id)
+
+        update_dict["updated_at"] = datetime.utcnow()
+
+        result = db.reviews.update_one(
+            {"_id": ObjectId(review_id)}, {"$set": update_dict}
+        )
+
+        if result.matched_count:
+            return self.get_review(review_id)
+        return None
+
+    def delete_review(self, review_id: str) -> bool:
+        """Delete a review"""
+        if not ObjectId.is_valid(review_id):
+            return False
+
+        db = self._ensure_db()
+        result = db.reviews.delete_one({"_id": ObjectId(review_id)})
+        return result.deleted_count > 0
+
+    def get_review_stats_by_event(self, event_id: str) -> dict[str, Any]:
+        """Get review statistics for a specific event"""
+        if not ObjectId.is_valid(event_id):
+            return {"total_reviews": 0, "average_rating": 0, "rating_distribution": {}}
+
+        db = self._ensure_db()
+        
+        pipeline = [
+            {"$match": {"event_id": ObjectId(event_id)}},
+            {
+                "$group": {
+                    "_id": None,
+                    "total_reviews": {"$sum": 1},
+                    "average_rating": {"$avg": "$rating"},
+                    "rating_counts": {"$push": "$rating"}
+                }
+            },
+            {
+                "$project": {
+                    "total_reviews": 1,
+                    "average_rating": {"$round": ["$average_rating", 2]},
+                    "rating_distribution": {
+                        "$reduce": {
+                            "input": "$rating_counts",
+                            "initialValue": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0},
+                            "in": {
+                                "$mergeObjects": [
+                                    "$$value",
+                                    {
+                                        "$arrayToObject": [
+                                            [{"k": {"$toString": "$$this"}, "v": {"$add": [{"$ifNull": [{"$getField": {"field": {"$toString": "$$this"}, "input": "$$value"}}, 0]}, 1]}}]
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+        
+        result = list(db.reviews.aggregate(pipeline))
+        if result:
+            return result[0]
+        return {"total_reviews": 0, "average_rating": 0, "rating_distribution": {}}
+
+    def get_review_stats_by_venue(self, venue_id: str) -> dict[str, Any]:
+        """Get review statistics for a specific venue"""
+        if not ObjectId.is_valid(venue_id):
+            return {"total_reviews": 0, "average_rating": 0, "rating_distribution": {}}
+
+        db = self._ensure_db()
+        
+        pipeline = [
+            {"$match": {"venue_id": ObjectId(venue_id)}},
+            {
+                "$group": {
+                    "_id": None,
+                    "total_reviews": {"$sum": 1},
+                    "average_rating": {"$avg": "$rating"},
+                    "rating_counts": {"$push": "$rating"}
+                }
+            },
+            {
+                "$project": {
+                    "total_reviews": 1,
+                    "average_rating": {"$round": ["$average_rating", 2]},
+                    "rating_distribution": {
+                        "$reduce": {
+                            "input": "$rating_counts",
+                            "initialValue": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0},
+                            "in": {
+                                "$mergeObjects": [
+                                    "$$value",
+                                    {
+                                        "$arrayToObject": [
+                                            [{"k": {"$toString": "$$this"}, "v": {"$add": [{"$ifNull": [{"$getField": {"field": {"$toString": "$$this"}, "input": "$$value"}}, 0]}, 1]}}]
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+        
+        result = list(db.reviews.aggregate(pipeline))
+        if result:
+            return result[0]
+        return {"total_reviews": 0, "average_rating": 0, "rating_distribution": {}}
+
+    def search_reviews(self, query: str, skip: int = 0, limit: int = 50) -> dict[str, Any]:
+        """Search reviews by comment text"""
+        db = self._ensure_db()
+        
+        # Use text search on comments
+        search_query = {"$text": {"$search": query}}
+        projection = {"score": {"$meta": "textScore"}}
+        sort_criteria = [("score", {"$meta": "textScore"})]
+        
+        cursor = db.reviews.find(search_query, projection).sort(sort_criteria).skip(skip).limit(limit)
+        reviews = [Review(**review) for review in cursor]
+
+        return {
+            "reviews": reviews,
+            "has_more": len(reviews) == limit,
+            "offset": skip + len(reviews)
+        }
+
 
 # Global service instances - lazy loaded
 _event_service = None
 _venue_service = None
 _user_service = None
 _checkin_service = None
+_review_service = None
 
 
 def get_event_service():
@@ -732,3 +1264,11 @@ def get_checkin_service():
     if _checkin_service is None:
         _checkin_service = CheckinService()
     return _checkin_service
+
+
+def get_review_service():
+    """Get review service instance (lazy loaded)"""
+    global _review_service
+    if _review_service is None:
+        _review_service = ReviewService()
+    return _review_service
