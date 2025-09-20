@@ -96,13 +96,21 @@ This document outlines the comprehensive database design for the MongoDB Events 
   "_id": ObjectId,
   "event_id": ObjectId,      // Reference to events - REQUIRED
   "user_id": ObjectId,       // Reference to users - REQUIRED
+  "venue_id": ObjectId,      // Reference to venues (denormalized for analytics) - REQUIRED
   "check_in_time": Date,     // Check-in timestamp - REQUIRED
   "qr_code": String,         // Unique QR code for check-in - REQUIRED
   "ticket_tier": String,     // Ticket tier used - OPTIONAL
+  "check_in_method": String, // "qr_code", "manual", "mobile_app" - OPTIONAL
   "location": {              // Check-in location (if different from event) - OPTIONAL
     "type": "Point",         // Must be "Point"
     "coordinates": [longitude, latitude]  // [lng, lat] with bounds validation
-  }
+  },
+  "metadata": {              // Additional check-in context - OPTIONAL
+    "device_info": String,   // Mobile device or browser info
+    "ip_address": String,    // For security/analytics
+    "staff_verified": Boolean // Manual verification by staff
+  },
+  "created_at": Date         // Record creation time - REQUIRED
 }
 ```
 
@@ -128,6 +136,20 @@ This document outlines the comprehensive database design for the MongoDB Events 
 }
 ```
 
+#### `reviews` Collection
+```javascript
+{
+  "_id": ObjectId,
+  "event_id": ObjectId,      // Reference to events - REQUIRED (if reviewing event)
+  "venue_id": ObjectId,      // Reference to venues - REQUIRED (if reviewing venue)
+  "user_id": ObjectId,       // Reference to users - REQUIRED
+  "rating": Number,          // Rating 1-5 - REQUIRED
+  "comment": String,         // Review text - OPTIONAL
+  "created_at": Date,        // Review creation time - REQUIRED
+  "updated_at": Date         // Last update time - REQUIRED
+}
+```
+
 ## Schema Validation & Relationships
 
 ### Document Relationships Strategy
@@ -143,6 +165,26 @@ This document outlines the comprehensive database design for the MongoDB Events 
   - `user_id` in checkins - users referenced across many events
   - `event_id` in checkins - events referenced by many check-ins
 
+#### Bridge Table Design: Check-ins Collection
+The `checkins` collection serves as a **bridge table** (also called an association table or join table) that creates a many-to-many relationship between users and events. This design pattern offers several advantages:
+
+**Why a Separate Collection?**
+- **Analytics Flexibility**: Easy to query attendance patterns, user behavior, and venue statistics
+- **Query Performance**: Optimized indexes for common analytics queries without complex joins
+- **Scalability**: Avoids document size bloat in user or event collections
+- **Data Integrity**: Centralized check-in logic with consistent validation rules
+
+**Common Analytics Queries Enabled:**
+- "Which users attended events at this venue last month?"
+- "What's the average check-in time for this event type?"
+- "How many repeat attendees do we have?"
+- "Which events have the highest attendance rates?"
+
+**Denormalization Strategy:**
+- `venue_id` is denormalized (duplicated) in check-ins for analytics performance
+- This avoids expensive joins when analyzing venue-specific attendance data
+- Trade-off: Slight storage overhead for significant query performance gains
+
 ### Schema Validation Rules
 
 All collections enforce comprehensive JSON Schema validation with the following key features:
@@ -157,7 +199,8 @@ All collections enforce comprehensive JSON Schema validation with the following 
 - **Events**: `title`, `category`, `location`, `start_date`, `created_at`, `updated_at`
 - **Venues**: `name`, `location`, `address`, `created_at`
 - **Users**: `email`, `profile`, `created_at`
-- **Checkins**: `event_id`, `user_id`, `check_in_time`, `qr_code`
+- **Checkins**: `event_id`, `user_id`, `venue_id`, `check_in_time`, `qr_code`, `created_at`
+- **Reviews**: `user_id`, `rating`, `created_at`, `updated_at` (plus either `event_id` OR `venue_id`)
 
 #### Data Type and Range Validation
 - **String Lengths**: Enforced min/max lengths for all text fields
@@ -165,6 +208,8 @@ All collections enforce comprehensive JSON Schema validation with the following 
 - **Email Format**: Valid email pattern for user accounts
 - **Date Logic**: End dates must be after start dates
 - **Array Constraints**: Proper array structures for coordinates and tags
+- **Rating Bounds**: Reviews rating must be between 1 and 5 (inclusive)
+- **Review Logic**: Either `event_id` OR `venue_id` must be provided, not both
 
 #### Example: Events Collection Validation
 ```javascript
@@ -269,6 +314,33 @@ db.events.createIndex({"end_date": 1})     // End date queries
 **Purpose**: Support filtering and aggregation queries
 **Queries**: Events by tags, capacity-based filtering
 
+### 7. Reviews Collection Indexes
+```javascript
+db.reviews.createIndex({"event_id": 1})     // Reviews by event
+db.reviews.createIndex({"venue_id": 1})     // Reviews by venue
+db.reviews.createIndex({"user_id": 1})      // Reviews by user
+db.reviews.createIndex({"rating": 1})       // Rating-based queries
+db.reviews.createIndex({"created_at": 1})   // Chronological sorting
+db.reviews.createIndex({"event_id": 1, "rating": 1}) // Event rating aggregation
+db.reviews.createIndex({"venue_id": 1, "rating": 1}) // Venue rating aggregation
+```
+**Purpose**: Support review queries and aggregations
+**Queries**: Reviews by event/venue, rating statistics, user review history
+
+### 8. Check-ins Collection Indexes
+```javascript
+db.checkins.createIndex({"event_id": 1})           // Check-ins by event
+db.checkins.createIndex({"user_id": 1})            // User attendance history
+db.checkins.createIndex({"venue_id": 1})           // Venue attendance analytics
+db.checkins.createIndex({"check_in_time": 1})      // Time-based analytics
+db.checkins.createIndex({"qr_code": 1})            // Unique QR code lookups
+db.checkins.createIndex({"event_id": 1, "user_id": 1}) // Prevent duplicate check-ins
+db.checkins.createIndex({"venue_id": 1, "check_in_time": 1}) // Venue time analytics
+db.checkins.createIndex({"user_id": 1, "check_in_time": 1}) // User attendance patterns
+```
+**Purpose**: Support attendance analytics and prevent duplicate check-ins
+**Queries**: Attendance tracking, user patterns, venue statistics, duplicate prevention
+
 ## Query Patterns & Performance
 
 ### 1. Geospatial Queries
@@ -345,6 +417,72 @@ db.events.aggregate([
 **Index Used**: `{"start_date": 1}`
 **Performance**: Efficient with proper date indexing
 
+### 6. Reviews Queries
+```javascript
+// Get reviews for a specific event
+db.reviews.find({"event_id": ObjectId("...")}).sort({"created_at": -1})
+
+// Get average rating for an event
+db.reviews.aggregate([
+  { $match: { "event_id": ObjectId("...") } },
+  { $group: { _id: null, avgRating: { $avg: "$rating" }, count: { $sum: 1 } } }
+])
+
+// Get user's review history
+db.reviews.find({"user_id": ObjectId("...")}).sort({"created_at": -1})
+
+// Get top-rated events by average review score
+db.reviews.aggregate([
+  { $group: { _id: "$event_id", avgRating: { $avg: "$rating" }, count: { $sum: 1 } } },
+  { $match: { count: { $gte: 5 } } }, // Minimum 5 reviews
+  { $sort: { avgRating: -1 } }
+])
+```
+**Index Used**: `{"event_id": 1}`, `{"user_id": 1}`, `{"event_id": 1, "rating": 1}`
+**Performance**: O(log n) with proper indexing
+
+### 7. Check-ins Analytics Queries
+```javascript
+// Get all check-ins for an event
+db.checkins.find({"event_id": ObjectId("...")}).sort({"check_in_time": -1})
+
+// Get user's attendance history
+db.checkins.find({"user_id": ObjectId("...")}).sort({"check_in_time": -1})
+
+// Get venue attendance statistics
+db.checkins.aggregate([
+  { $match: { "venue_id": ObjectId("...") } },
+  { $group: { 
+    _id: { $dateToString: { format: "%Y-%m", date: "$check_in_time" } },
+    totalCheckins: { $sum: 1 },
+    uniqueUsers: { $addToSet: "$user_id" }
+  }},
+  { $project: { 
+    month: "$_id", 
+    totalCheckins: 1, 
+    uniqueUsers: { $size: "$uniqueUsers" }
+  }}
+])
+
+// Find repeat attendees (users who attended multiple events)
+db.checkins.aggregate([
+  { $group: { _id: "$user_id", eventCount: { $sum: 1 }, events: { $addToSet: "$event_id" } } },
+  { $match: { eventCount: { $gte: 2 } } },
+  { $sort: { eventCount: -1 } }
+])
+
+// Check-in time patterns (peak check-in hours)
+db.checkins.aggregate([
+  { $group: { 
+    _id: { $hour: "$check_in_time" }, 
+    count: { $sum: 1 } 
+  }},
+  { $sort: { count: -1 } }
+])
+```
+**Index Used**: `{"event_id": 1}`, `{"user_id": 1}`, `{"venue_id": 1}`, `{"check_in_time": 1}`
+**Performance**: O(log n) with proper indexing
+
 ## Real-time Features
 
 ### MongoDB Change Streams
@@ -371,6 +509,10 @@ db.events.watch([
 - **Compound queries**: < 75ms
 - **Pagination**: < 25ms (cursor-based)
 - **Analytics**: < 200ms
+- **Reviews queries**: < 30ms
+- **Review aggregations**: < 100ms
+- **Check-ins queries**: < 25ms
+- **Attendance analytics**: < 150ms
 - **Real-time updates**: < 10ms latency
 
 ### Scalability Considerations
@@ -481,6 +623,7 @@ User Request → API Gateway → MongoDB (Events) → Redis (Cache)
 - 🔄 Event creation and management
 - 🔄 RSVP and ticket booking
 - 🔄 Check-in system with QR codes
+- 📋 Reviews and ratings system
 
 ### Phase 3: Advanced Features
 - 📋 Recommendation engine

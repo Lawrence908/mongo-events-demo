@@ -1,4 +1,4 @@
-# Linear Backlog – Mongo Events Demo (30 tickets)
+# Linear Backlog – Mongo Events Demo (32 tickets)
 
 This is a living backlog to drive end-to-end delivery. Tickets are grouped by phases and include acceptance criteria (AC), estimates, and dependencies (Deps).
 
@@ -60,6 +60,30 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 - AC:
   - Covered by unit tests for boundary conditions
 - Deps: EVE-7
+
+**EVE-36** Reviews collection implementation
+- P:2  E:4h  L:database,schema,backend
+- Desc: Add new 'Reviews' collection to store feedback linked to events and venues with proper schema validation and CRUD operations.
+- AC:
+  - Reviews collection schema defined with required fields (event_id/venue_id, user_id, rating, comment, created_at)
+  - JSON Schema validation enforces rating bounds (1-5) and required fields
+  - CRUD service methods for creating, reading, updating, and deleting reviews
+  - Query methods to fetch reviews by event_id or venue_id with pagination
+  - Unit tests cover happy-path and validation scenarios
+  - Indexes created for event_id, venue_id, user_id, and created_at
+- Deps: EVE-5
+
+**EVE-37** Enhanced check-ins bridge table implementation
+- P:2  E:5h  L:database,schema,backend,analytics
+- Desc: Implement enhanced check-ins collection as bridge table with analytics capabilities, comprehensive indexing, and attendance tracking features.
+- AC:
+  - Enhanced check-ins schema with venue_id denormalization, check_in_method, metadata fields
+  - JSON Schema validation for all required fields and data constraints
+  - CRUD service methods with duplicate prevention (event_id + user_id unique constraint)
+  - Analytics query methods for attendance patterns, venue statistics, repeat attendees
+  - Comprehensive index suite for all query patterns and performance optimization
+  - Unit tests cover bridge table functionality and analytics queries
+- Deps: EVE-5
 
 ---
 
