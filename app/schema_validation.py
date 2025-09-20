@@ -366,7 +366,7 @@ def get_checkins_schema() -> Dict[str, Any]:
     return {
         "$jsonSchema": {
             "bsonType": "object",
-            "required": ["event_id", "user_id", "check_in_time", "qr_code"],
+            "required": ["event_id", "user_id", "venue_id", "check_in_time", "qr_code", "created_at"],
             "properties": {
                 "event_id": {
                     "bsonType": "objectId",
@@ -375,6 +375,10 @@ def get_checkins_schema() -> Dict[str, Any]:
                 "user_id": {
                     "bsonType": "objectId",
                     "description": "Reference to users collection"
+                },
+                "venue_id": {
+                    "bsonType": "objectId",
+                    "description": "Reference to venues collection (denormalized for analytics)"
                 },
                 "check_in_time": {
                     "bsonType": "date",
@@ -390,6 +394,12 @@ def get_checkins_schema() -> Dict[str, Any]:
                     "bsonType": ["string", "null"],
                     "maxLength": 50,
                     "description": "Ticket tier used for check-in"
+                },
+                "check_in_method": {
+                    "bsonType": ["string", "null"],
+                    "maxLength": 50,
+                    "enum": ["qr_code", "manual", "mobile_app", None],
+                    "description": "Method used for check-in"
                 },
                 "location": {
                     "bsonType": ["object", "null"],
@@ -409,6 +419,32 @@ def get_checkins_schema() -> Dict[str, Any]:
                     },
                     "additionalProperties": False,
                     "description": "Check-in location (if different from event)"
+                },
+                "metadata": {
+                    "bsonType": ["object", "null"],
+                    "properties": {
+                        "device_info": {
+                            "bsonType": ["string", "null"],
+                            "maxLength": 200,
+                            "description": "Mobile device or browser info"
+                        },
+                        "ip_address": {
+                            "bsonType": ["string", "null"],
+                            "maxLength": 45,
+                            "pattern": "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$|^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$",
+                            "description": "IP address for security/analytics"
+                        },
+                        "staff_verified": {
+                            "bsonType": ["bool", "null"],
+                            "description": "Manual verification by staff"
+                        }
+                    },
+                    "additionalProperties": False,
+                    "description": "Additional check-in context"
+                },
+                "created_at": {
+                    "bsonType": "date",
+                    "description": "Record creation timestamp"
                 }
             },
             "additionalProperties": False,
@@ -449,11 +485,62 @@ def validate_coordinate_bounds(coordinates: list[float]) -> bool:
     return True
 
 
+def get_reviews_schema() -> Dict[str, Any]:
+    """JSON Schema validation for reviews collection"""
+    return {
+        "$jsonSchema": {
+            "bsonType": "object",
+            "required": ["user_id", "rating", "created_at", "updated_at"],
+            "properties": {
+                "event_id": {
+                    "bsonType": ["objectId", "null"],
+                    "description": "Reference to events collection (if reviewing event)"
+                },
+                "venue_id": {
+                    "bsonType": ["objectId", "null"],
+                    "description": "Reference to venues collection (if reviewing venue)"
+                },
+                "user_id": {
+                    "bsonType": "objectId",
+                    "description": "Reference to users collection"
+                },
+                "rating": {
+                    "bsonType": "int",
+                    "minimum": 1,
+                    "maximum": 5,
+                    "description": "Rating from 1 to 5 stars"
+                },
+                "comment": {
+                    "bsonType": ["string", "null"],
+                    "maxLength": 1000,
+                    "description": "Review comment text"
+                },
+                "created_at": {
+                    "bsonType": "date",
+                    "description": "Review creation timestamp"
+                },
+                "updated_at": {
+                    "bsonType": "date",
+                    "description": "Last update timestamp"
+                }
+            },
+            "additionalProperties": False,
+            "patternProperties": {
+                "^_id$": {
+                    "bsonType": "objectId",
+                    "description": "MongoDB ObjectId"
+                }
+            }
+        }
+    }
+
+
 def get_all_schemas() -> Dict[str, Dict[str, Any]]:
     """Get all collection schemas as a dictionary"""
     return {
         "events": get_events_schema(),
         "venues": get_venues_schema(),
         "users": get_users_schema(),
-        "checkins": get_checkins_schema()
+        "checkins": get_checkins_schema(),
+        "reviews": get_reviews_schema()
     }

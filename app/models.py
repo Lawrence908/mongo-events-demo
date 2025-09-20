@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Optional, List, Literal
 
 from bson import ObjectId
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic_core import core_schema
 
 
@@ -244,13 +244,23 @@ class User(UserBase):
 
 
 # Checkin Models
+class CheckinMetadata(BaseModel):
+    """Check-in metadata for additional context"""
+    device_info: Optional[str] = Field(None, max_length=200, description="Mobile device or browser info")
+    ip_address: Optional[str] = Field(None, max_length=45, description="IP address for security/analytics")
+    staff_verified: Optional[bool] = Field(None, description="Manual verification by staff")
+
+
 class CheckinBase(BaseModel):
     """Base checkin model"""
     event_id: PyObjectId
     user_id: PyObjectId
+    venue_id: PyObjectId = Field(..., description="Reference to venues (denormalized for analytics)")
     qr_code: str = Field(..., min_length=1, max_length=100)
     ticket_tier: Optional[str] = Field(None, max_length=50)
+    check_in_method: Optional[str] = Field(None, max_length=50, description="qr_code, manual, mobile_app")
     location: Optional[EventLocation] = None
+    metadata: Optional[CheckinMetadata] = None
 
 
 class CheckinCreate(CheckinBase):
@@ -262,13 +272,59 @@ class CheckinUpdate(BaseModel):
     """Model for updating checkins"""
     qr_code: Optional[str] = Field(None, min_length=1, max_length=100)
     ticket_tier: Optional[str] = Field(None, max_length=50)
+    check_in_method: Optional[str] = Field(None, max_length=50)
     location: Optional[EventLocation] = None
+    metadata: Optional[CheckinMetadata] = None
 
 
 class Checkin(CheckinBase):
     """Complete checkin model with database fields"""
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     check_in_time: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+    )
+
+
+# Review Models
+class ReviewBase(BaseModel):
+    """Base review model"""
+    event_id: Optional[PyObjectId] = Field(None, description="Reference to events collection (if reviewing event)")
+    venue_id: Optional[PyObjectId] = Field(None, description="Reference to venues collection (if reviewing venue)")
+    user_id: PyObjectId = Field(..., description="Reference to users collection")
+    rating: int = Field(..., ge=1, le=5, description="Rating from 1 to 5 stars")
+    comment: Optional[str] = Field(None, max_length=1000, description="Review comment text")
+
+    @model_validator(mode="after")
+    def validate_review_target(self):
+        """Ensure at least one of event_id or venue_id is provided"""
+        if not self.event_id and not self.venue_id:
+            raise ValueError("Either event_id or venue_id must be provided")
+        if self.event_id and self.venue_id:
+            raise ValueError("Cannot review both event and venue in the same review")
+        return self
+
+
+class ReviewCreate(ReviewBase):
+    """Model for creating reviews"""
+    pass
+
+
+class ReviewUpdate(BaseModel):
+    """Model for updating reviews"""
+    rating: Optional[int] = Field(None, ge=1, le=5)
+    comment: Optional[str] = Field(None, max_length=1000)
+
+
+class Review(ReviewBase):
+    """Complete review model with database fields"""
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     model_config = ConfigDict(
         populate_by_name=True,

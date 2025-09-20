@@ -34,15 +34,22 @@ def test_atlas_connection():
         collections = database.list_collection_names()
         print(f"📁 Available collections: {collections}")
         
-        # Test checkins collection
-        checkins = database.checkins
-        count = checkins.count_documents({})
-        print(f"📊 Check-ins collection has {count} documents")
+        # Test all collections
+        collections_to_test = ['events', 'venues', 'users', 'checkins', 'reviews']
+        for collection_name in collections_to_test:
+            if collection_name in collections:
+                collection = database[collection_name]
+                count = collection.count_documents({})
+                print(f"📊 {collection_name.capitalize()} collection has {count} documents")
+            else:
+                print(f"⚠️  {collection_name.capitalize()} collection not found")
         
         # Test creating a sample check-in with proper types
         from bson import ObjectId
         from datetime import datetime
         
+        print("\n🧪 Testing check-ins collection...")
+        checkins = database.checkins
         sample_checkin = {
             "event_id": ObjectId("507f1f77bcf86cd799439011"),
             "user_id": ObjectId("507f1f77bcf86cd799439012"),
@@ -57,7 +64,26 @@ def test_atlas_connection():
         
         # Clean up test data
         checkins.delete_one({"_id": result.inserted_id})
-        print("🧹 Cleaned up test data")
+        print("🧹 Cleaned up check-in test data")
+        
+        # Test creating a sample review with proper types
+        print("\n🧪 Testing reviews collection...")
+        reviews = database.reviews
+        sample_review = {
+            "event_id": ObjectId("507f1f77bcf86cd799439011"),
+            "user_id": ObjectId("507f1f77bcf86cd799439012"),
+            "rating": 5,
+            "comment": "Great event!",
+            "created_at": datetime.now(),
+            "updated_at": datetime.now()
+        }
+        
+        result = reviews.insert_one(sample_review)
+        print(f"✅ Successfully inserted test review with ID: {result.inserted_id}")
+        
+        # Clean up test data
+        reviews.delete_one({"_id": result.inserted_id})
+        print("🧹 Cleaned up review test data")
         
         client.close()
         return True

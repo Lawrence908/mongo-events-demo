@@ -33,14 +33,19 @@ def test_simple_connection():
         collections = database.list_collection_names()
         print(f"📁 Available collections: {collections}")
         
-        # Test basic operations
-        checkins = database.checkins
-        count = checkins.count_documents({})
-        print(f"📊 Check-ins collection has {count} documents")
-        
-        # Test a simple query
-        result = list(checkins.find().limit(1))
-        print(f"🔍 Sample query returned {len(result)} documents")
+        # Test basic operations for each collection
+        collections_to_test = ['events', 'venues', 'users', 'checkins', 'reviews']
+        for collection_name in collections_to_test:
+            if collection_name in collections:
+                collection = database[collection_name]
+                count = collection.count_documents({})
+                print(f"📊 {collection_name.capitalize()} collection has {count} documents")
+                
+                # Test a simple query
+                result = list(collection.find().limit(1))
+                print(f"🔍 {collection_name.capitalize()} sample query returned {len(result)} documents")
+            else:
+                print(f"⚠️  {collection_name.capitalize()} collection not found")
         
         client.close()
         return True

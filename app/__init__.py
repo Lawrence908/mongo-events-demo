@@ -6,8 +6,8 @@ from flask_socketio import SocketIO
 from pydantic import ValidationError
 
 from .database import mongodb
-from .models import EventCreate, EventsNearbyQuery, EventUpdate
-from .services import get_event_service
+from .models import EventCreate, EventsNearbyQuery, EventUpdate, CheckinCreate, CheckinUpdate
+from .services import get_event_service, get_checkin_service
 from .realtime import init_realtime
 
 load_dotenv()
@@ -341,6 +341,160 @@ def create_app():
                     "end": end_date.isoformat()
                 }
             })
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    # Enhanced Check-ins API Endpoints
+    @app.route("/api/checkins", methods=["POST"])
+    def api_create_checkin():
+        """API: Create check-in with duplicate prevention"""
+        try:
+            data = request.get_json()
+            checkin_data = CheckinCreate(**data)
+            checkin = get_checkin_service().create_checkin(checkin_data)
+            
+            return jsonify(checkin.model_dump()), 201
+            
+        except ValidationError as e:
+            return jsonify({"error": "Validation failed", "details": e.errors()}), 400
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 409  # Conflict for duplicate check-in
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/checkins/<checkin_id>", methods=["GET"])
+    def api_get_checkin(checkin_id):
+        """API: Get single check-in"""
+        checkin = get_checkin_service().get_checkin(checkin_id)
+        if not checkin:
+            return jsonify({"error": "Check-in not found"}), 404
+        
+        return jsonify(checkin.model_dump())
+
+    @app.route("/api/checkins/<checkin_id>", methods=["PUT"])
+    def api_update_checkin(checkin_id):
+        """API: Update check-in"""
+        try:
+            data = request.get_json()
+            checkin_data = CheckinUpdate(**data)
+            checkin = get_checkin_service().update_checkin(checkin_id, checkin_data)
+            
+            if not checkin:
+                return jsonify({"error": "Check-in not found"}), 404
+            
+            return jsonify(checkin.model_dump())
+            
+        except ValidationError as e:
+            return jsonify({"error": "Validation failed", "details": e.errors()}), 400
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/checkins/<checkin_id>", methods=["DELETE"])
+    def api_delete_checkin(checkin_id):
+        """API: Delete check-in"""
+        success = get_checkin_service().delete_checkin(checkin_id)
+        if not success:
+            return jsonify({"error": "Check-in not found"}), 404
+        
+        return "", 204
+
+    @app.route("/api/checkins/event/<event_id>", methods=["GET"])
+    def api_get_checkins_by_event(event_id):
+        """API: Get check-ins for a specific event"""
+        try:
+            skip = request.args.get("skip", 0, type=int)
+            limit = request.args.get("limit", 50, type=int)
+            
+            result = get_checkin_service().get_checkins_by_event(event_id, skip, limit)
+            return jsonify(result)
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/checkins/user/<user_id>", methods=["GET"])
+    def api_get_checkins_by_user(user_id):
+        """API: Get check-ins for a specific user"""
+        try:
+            skip = request.args.get("skip", 0, type=int)
+            limit = request.args.get("limit", 50, type=int)
+            
+            result = get_checkin_service().get_checkins_by_user(user_id, skip, limit)
+            return jsonify(result)
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/checkins/venue/<venue_id>", methods=["GET"])
+    def api_get_checkins_by_venue(venue_id):
+        """API: Get check-ins for a specific venue (analytics)"""
+        try:
+            skip = request.args.get("skip", 0, type=int)
+            limit = request.args.get("limit", 50, type=int)
+            
+            result = get_checkin_service().get_checkins_by_venue(venue_id, skip, limit)
+            return jsonify(result)
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/checkins/analytics/event/<event_id>", methods=["GET"])
+    def api_get_event_attendance_stats(event_id):
+        """API: Get attendance statistics for a specific event"""
+        try:
+            stats = get_checkin_service().get_attendance_stats_by_event(event_id)
+            return jsonify(stats)
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/checkins/analytics/venue/<venue_id>", methods=["GET"])
+    def api_get_venue_attendance_stats(venue_id):
+        """API: Get attendance statistics for a specific venue"""
+        try:
+            from datetime import datetime
+            
+            start_date = request.args.get("start_date")
+            end_date = request.args.get("end_date")
+            
+            start_date = datetime.fromisoformat(start_date) if start_date else None
+            end_date = datetime.fromisoformat(end_date) if end_date else None
+            
+            stats = get_checkin_service().get_venue_attendance_stats(venue_id, start_date, end_date)
+            return jsonify(stats)
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/checkins/analytics/repeat-attendees", methods=["GET"])
+    def api_get_repeat_attendees():
+        """API: Get repeat attendees (users who attended multiple events)"""
+        try:
+            min_events = request.args.get("min_events", 2, type=int)
+            attendees = get_checkin_service().get_repeat_attendees(min_events)
+            return jsonify({"repeat_attendees": attendees, "count": len(attendees)})
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/checkins/analytics/time-patterns", methods=["GET"])
+    def api_get_checkin_time_patterns():
+        """API: Get check-in time patterns (peak hours, days of week)"""
+        try:
+            venue_id = request.args.get("venue_id")
+            patterns = get_checkin_service().get_checkin_time_patterns(venue_id)
+            return jsonify(patterns)
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/checkins/analytics/user/<user_id>/history", methods=["GET"])
+    def api_get_user_attendance_history(user_id):
+        """API: Get detailed attendance history for a user"""
+        try:
+            limit = request.args.get("limit", 50, type=int)
+            history = get_checkin_service().get_user_attendance_history(user_id, limit)
+            return jsonify(history)
             
         except Exception as e:
             return jsonify({"error": str(e)}), 500

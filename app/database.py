@@ -21,6 +21,7 @@ class MongoDB:
         self.venues: Optional[Collection] = None
         self.users: Optional[Collection] = None
         self.checkins: Optional[Collection] = None
+        self.reviews: Optional[Collection] = None
 
     def connect(self):
         """Connect to MongoDB and apply schema validation"""
@@ -33,6 +34,7 @@ class MongoDB:
         self.venues = self.database.venues
         self.users = self.database.users
         self.checkins = self.database.checkins
+        self.reviews = self.database.reviews
 
         # Apply schema validation to all collections
         self._apply_schema_validation()
@@ -68,6 +70,7 @@ class MongoDB:
             self.venues = None
             self.users = None
             self.checkins = None
+            self.reviews = None
 
     def is_connected(self) -> bool:
         """Check if connected to MongoDB"""
@@ -155,12 +158,106 @@ class MongoDB:
             self.events.create_index([("end_date", 1)], name="end_date")
             print("✓ Filtering indexes created")
             
+            # 9. Check-ins collection indexes for bridge table functionality
+            self._create_checkins_indexes()
+            
+            # 10. Reviews collection indexes
+            self._create_reviews_indexes()
+            
             print("✓ All indexes created successfully")
             
         except Exception as e:
             print(f"Warning: Error creating indexes: {e}")
             # Don't raise the exception as indexes might already exist
             # MongoDB create_index is idempotent, but we want to be extra safe
+
+    def _create_checkins_indexes(self):
+        """Create comprehensive indexes for check-ins collection"""
+        try:
+            print("Creating check-ins indexes...")
+            
+            # 1. Basic reference indexes
+            self.checkins.create_index([("event_id", 1)], name="event_id")
+            self.checkins.create_index([("user_id", 1)], name="user_id")
+            self.checkins.create_index([("venue_id", 1)], name="venue_id")
+            print("✓ Basic reference indexes created")
+            
+            # 2. Time-based indexes for analytics
+            self.checkins.create_index([("check_in_time", 1)], name="check_in_time")
+            self.checkins.create_index([("created_at", 1)], name="created_at")
+            print("✓ Time-based indexes created")
+            
+            # 3. Unique constraint for duplicate prevention (event_id + user_id)
+            self.checkins.create_index([("event_id", 1), ("user_id", 1)], name="event_user_unique", unique=True)
+            print("✓ Unique constraint index created")
+            
+            # 4. Analytics compound indexes
+            self.checkins.create_index([("venue_id", 1), ("check_in_time", 1)], name="venue_time_analytics")
+            self.checkins.create_index([("user_id", 1), ("check_in_time", 1)], name="user_time_analytics")
+            self.checkins.create_index([("event_id", 1), ("check_in_time", 1)], name="event_time_analytics")
+            print("✓ Analytics compound indexes created")
+            
+            # 5. Check-in method and ticket tier indexes
+            self.checkins.create_index([("check_in_method", 1)], name="check_in_method")
+            self.checkins.create_index([("ticket_tier", 1)], name="ticket_tier")
+            print("✓ Check-in method and ticket tier indexes created")
+            
+            # 6. QR code index for lookups
+            self.checkins.create_index([("qr_code", 1)], name="qr_code")
+            print("✓ QR code index created")
+            
+            # 7. Metadata indexes for analytics
+            self.checkins.create_index([("metadata.staff_verified", 1)], name="staff_verified")
+            print("✓ Metadata indexes created")
+            
+            # 8. Geospatial index for check-in location (if different from event)
+            self.checkins.create_index([("location", GEOSPHERE)], name="checkin_location_2dsphere")
+            print("✓ Check-in location geospatial index created")
+            
+            print("✓ All check-ins indexes created successfully")
+            
+        except Exception as e:
+            print(f"Warning: Error creating check-ins indexes: {e}")
+
+    def _create_reviews_indexes(self):
+        """Create comprehensive indexes for reviews collection"""
+        try:
+            print("Creating reviews indexes...")
+            
+            # 1. Basic reference indexes
+            self.reviews.create_index([("event_id", 1)], name="event_id")
+            self.reviews.create_index([("venue_id", 1)], name="venue_id")
+            self.reviews.create_index([("user_id", 1)], name="user_id")
+            print("✓ Basic reference indexes created")
+            
+            # 2. Time-based indexes for sorting and analytics
+            self.reviews.create_index([("created_at", 1)], name="created_at")
+            self.reviews.create_index([("updated_at", 1)], name="updated_at")
+            print("✓ Time-based indexes created")
+            
+            # 3. Rating-based indexes for analytics
+            self.reviews.create_index([("rating", 1)], name="rating")
+            print("✓ Rating index created")
+            
+            # 4. Compound indexes for common query patterns
+            self.reviews.create_index([("event_id", 1), ("created_at", -1)], name="event_created_desc")
+            self.reviews.create_index([("venue_id", 1), ("created_at", -1)], name="venue_created_desc")
+            self.reviews.create_index([("user_id", 1), ("created_at", -1)], name="user_created_desc")
+            print("✓ Compound indexes created")
+            
+            # 5. Rating analytics indexes
+            self.reviews.create_index([("event_id", 1), ("rating", 1)], name="event_rating")
+            self.reviews.create_index([("venue_id", 1), ("rating", 1)], name="venue_rating")
+            print("✓ Rating analytics indexes created")
+            
+            # 6. Text search index for comments
+            self.reviews.create_index([("comment", "text")], name="comment_text")
+            print("✓ Text search index created")
+            
+            print("✓ All reviews indexes created successfully")
+            
+        except Exception as e:
+            print(f"Warning: Error creating reviews indexes: {e}")
 
 
 # Global MongoDB instance
