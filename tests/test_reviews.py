@@ -274,7 +274,7 @@ class TestReviewService:
             review_data = ReviewCreate(
                 event_id=sample_event,
                 user_id=sample_user,
-                rating=4 + i,
+                rating=3 + i,  # This will give ratings 3, 4, 5
                 comment=f"Review {i+1}"
             )
             service.create_review(review_data)
@@ -552,3 +552,4 @@ class TestReviewValidation:
 
 if __name__ == "__main__":
     pytest.main([__file__])
+
