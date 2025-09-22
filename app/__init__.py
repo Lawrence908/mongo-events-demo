@@ -21,6 +21,7 @@ def create_app():
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
     app.config["MONGODB_URI"] = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
     app.config["MONGODB_DB_NAME"] = os.getenv("MONGODB_DB_NAME", "events_demo")
+    app.config["GOOGLE_MAPS_API_KEY"] = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
     # Initialize SocketIO for real-time features
     socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')

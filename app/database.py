@@ -158,11 +158,15 @@ class MongoDB:
             self.events.create_index([("end_date", 1)], name="end_date")
             print("✓ Filtering indexes created")
             
-            # 9. Check-ins collection indexes for bridge table functionality
-            self._create_checkins_indexes()
-            
-            # 10. Reviews collection indexes
-            self._create_reviews_indexes()
+            # 9. Reviews collection indexes
+            self.reviews.create_index([("event_id", 1)], name="event_id")
+            self.reviews.create_index([("user_id", 1)], name="user_id")
+            self.reviews.create_index([("rating", 1)], name="rating")
+            self.reviews.create_index([("created_at", 1)], name="created_at")
+            self.reviews.create_index([("event_id", 1), ("rating", 1)], name="event_rating")
+            self.reviews.create_index([("user_id", 1), ("created_at", 1)], name="user_created_at")
+            self.reviews.create_index([("verified_attendee", 1), ("rating", 1)], name="verified_rating")
+            print("✓ Reviews indexes created")
             
             print("✓ All indexes created successfully")
             

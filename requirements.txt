@@ -6,6 +6,7 @@ Faker==22.2.0
 Flask-SocketIO==5.3.6
 pymongo[srv]==4.6.1
 dnspython==2.4.2
+requests==2.31.0
 
 # Development dependencies
 ruff==0.1.9

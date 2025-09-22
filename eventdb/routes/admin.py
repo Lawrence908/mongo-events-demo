@@ -106,7 +106,7 @@ def list_indexes():
         db = get_db()
         
         indexes = {}
-        collections = ['events', 'venues', 'users', 'tickets', 'checkins']
+        collections = ['events', 'venues', 'users', 'tickets', 'checkins', 'reviews']
         
         for collection_name in collections:
             collection = db[collection_name]
@@ -137,7 +137,7 @@ def database_stats():
         
         # Get collection stats
         stats = {}
-        collections = ['events', 'venues', 'users', 'tickets', 'checkins']
+        collections = ['events', 'venues', 'users', 'tickets', 'checkins', 'reviews']
         
         for collection_name in collections:
             collection = db[collection_name]

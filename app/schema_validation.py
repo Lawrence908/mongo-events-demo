@@ -50,6 +50,48 @@ def get_events_schema() -> Dict[str, Any]:
                     "additionalProperties": False,
                     "description": "GeoJSON Point location"
                 },
+                "address": {
+                    "bsonType": ["object", "null"],
+                    "properties": {
+                        "street": {
+                            "bsonType": "string",
+                            "minLength": 1,
+                            "maxLength": 200,
+                            "description": "Street address"
+                        },
+                        "city": {
+                            "bsonType": "string",
+                            "minLength": 1,
+                            "maxLength": 100,
+                            "description": "City name"
+                        },
+                        "state": {
+                            "bsonType": "string",
+                            "minLength": 1,
+                            "maxLength": 100,
+                            "description": "State or province"
+                        },
+                        "zip": {
+                            "bsonType": "string",
+                            "minLength": 1,
+                            "maxLength": 20,
+                            "description": "ZIP or postal code"
+                        },
+                        "country": {
+                            "bsonType": "string",
+                            "minLength": 1,
+                            "maxLength": 100,
+                            "description": "Country name"
+                        }
+                    },
+                    "additionalProperties": False,
+                    "description": "Event address information"
+                },
+                "directions_url": {
+                    "bsonType": ["string", "null"],
+                    "maxLength": 500,
+                    "description": "Google Maps directions URL"
+                },
                 "venue_id": {
                     "bsonType": ["objectId", "null"],
                     "description": "Reference to venues collection"
@@ -510,17 +552,46 @@ def get_reviews_schema() -> Dict[str, Any]:
                     "maximum": 5,
                     "description": "Rating from 1 to 5 stars"
                 },
-                "comment": {
-                    "bsonType": ["string", "null"],
+                "review_text": {
+                    "bsonType": "string",
+                    "minLength": 10,
                     "maxLength": 1000,
-                    "description": "Review comment text"
+                    "description": "Detailed review text"
+                },
+                "title": {
+                    "bsonType": ["string", "null"],
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "Optional review title"
+                },
+                "helpful_votes": {
+                    "bsonType": "int",
+                    "minimum": 0,
+                    "description": "Number of helpful votes"
+                },
+                "verified_attendee": {
+                    "bsonType": "bool",
+                    "description": "Whether the reviewer actually attended the event"
+                },
+                "tags": {
+                    "bsonType": "array",
+                    "items": {
+                        "bsonType": "string",
+                        "enum": [
+                            "great-venue", "good-food", "excellent-speaker", "well-organized",
+                            "poor-venue", "bad-food", "disappointing", "disorganized",
+                            "crowded", "noisy", "expensive", "good-value", "family-friendly",
+                            "professional", "fun", "educational", "networking", "entertaining"
+                        ]
+                    },
+                    "description": "Review tags for categorization"
                 },
                 "created_at": {
                     "bsonType": "date",
                     "description": "Review creation timestamp"
                 },
                 "updated_at": {
-                    "bsonType": "date",
+                    "bsonType": ["date", "null"],
                     "description": "Last update timestamp"
                 }
             },

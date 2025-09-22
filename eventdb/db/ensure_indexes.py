@@ -88,11 +88,56 @@ def create_indexes():
     ], name="timestamp")
     print("✓ Checkin timestamp index created")
     
+    # Reviews collection indexes
+    print("\nCreating reviews indexes...")
+    
+    # Event and user indexes
+    db.reviews.create_index([
+        ("event_id", 1)
+    ], name="event_id")
+    print("✓ Review event_id index created")
+    
+    db.reviews.create_index([
+        ("user_id", 1)
+    ], name="user_id")
+    print("✓ Review user_id index created")
+    
+    # Rating index for filtering
+    db.reviews.create_index([
+        ("rating", 1)
+    ], name="rating")
+    print("✓ Review rating index created")
+    
+    # Created date index for time-based queries
+    db.reviews.create_index([
+        ("created_at", -1)
+    ], name="created_at")
+    print("✓ Review created_at index created")
+    
+    # Compound indexes for common queries
+    db.reviews.create_index([
+        ("event_id", 1),
+        ("rating", 1)
+    ], name="event_rating")
+    print("✓ Review event_rating compound index created")
+    
+    db.reviews.create_index([
+        ("user_id", 1),
+        ("created_at", -1)
+    ], name="user_created_at")
+    print("✓ Review user_created_at compound index created")
+    
+    db.reviews.create_index([
+        ("verified_attendee", 1),
+        ("rating", 1)
+    ], name="verified_rating")
+    print("✓ Review verified_rating compound index created")
+    
     print("\n✅ All indexes created successfully!")
     
     # Display index information
     print("\nIndex Summary:")
-    for collection_name in ["events", "venues", "users", "tickets", "checkins"]:
+    for collection_name in ["events", "venues", "users", "tickets", "checkins", "reviews"]:
         collection = db[collection_name]
         indexes = list(collection.list_indexes())
         print(f"\n{collection_name}:")

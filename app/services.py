@@ -12,6 +12,7 @@ from .models import (
     Review, ReviewCreate, ReviewUpdate
 )
 from .utils import calculate_weekend_window
+from .geocoding import get_geocoding_service, GeocodingError
 
 
 class EventService:
@@ -27,9 +28,21 @@ class EventService:
         return self.db
 
     def create_event(self, event_data: EventCreate) -> Event:
-        """Create a new event"""
+        """Create a new event with geocoding support"""
         db = self._ensure_db()
         event_dict = event_data.model_dump()
+        
+        # Handle geocoding if Google Maps API is configured
+        try:
+            geocoding_service = get_geocoding_service()
+            event_dict = geocoding_service.validate_and_geocode_event(event_dict)
+        except GeocodingError as e:
+            # If geocoding fails, we can still create the event but log the error
+            print(f"Warning: Geocoding failed for event creation: {str(e)}")
+        except Exception as e:
+            # If geocoding service is not available (no API key), continue without it
+            print(f"Info: Geocoding service not available: {str(e)}")
+        
         event_dict["created_at"] = datetime.utcnow()
         event_dict["updated_at"] = datetime.utcnow()
 
@@ -146,7 +159,7 @@ class EventService:
             }
 
     def update_event(self, event_id: str, event_data: EventUpdate) -> Optional[Event]:
-        """Update an event"""
+        """Update an event with geocoding support"""
         if not ObjectId.is_valid(event_id):
             return None
 
@@ -158,6 +171,25 @@ class EventService:
         }
         if not update_dict:
             return self.get_event(event_id)
+
+        # Handle geocoding if address or location is being updated
+        if "address" in update_dict or "location" in update_dict:
+            try:
+                geocoding_service = get_geocoding_service()
+                # Get current event data to merge with updates
+                current_event = self.get_event(event_id)
+                if current_event:
+                    current_dict = current_event.model_dump()
+                    current_dict.update(update_dict)
+                    updated_dict = geocoding_service.validate_and_geocode_event(current_dict)
+                    # Only update the fields that were actually changed
+                    for key in ["location", "address", "directions_url"]:
+                        if key in updated_dict:
+                            update_dict[key] = updated_dict[key]
+            except GeocodingError as e:
+                print(f"Warning: Geocoding failed for event update: {str(e)}")
+            except Exception as e:
+                print(f"Info: Geocoding service not available: {str(e)}")
 
         update_dict["updated_at"] = datetime.utcnow()
 

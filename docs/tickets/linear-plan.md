@@ -122,12 +122,27 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
   - Visual markers for events (can be mocked initially)
 - Deps: EVE-11
 
+**EVE-38** Event address support with geocoding
+- P:3  E:5h  L:geo,backend,api
+- Desc: Add optional address field to events with Google Maps geocoding integration for bidirectional coordinate/address conversion and directions links.
+- AC:
+  - Event schema includes optional `address` field with street, city, state, zip, country structure
+  - Google Maps Geocoding API integration for address→coordinates conversion
+  - Reverse geocoding for coordinates→address conversion when address missing
+  - Google Maps directions URL generated and stored on event creation
+  - Robust validation ensures address can be geocoded or coordinates can be reverse-geocoded
+  - API endpoints support address-based event creation and updates
+  - Error handling for geocoding failures with fallback options
+  - Environment configuration for Google Maps API key setup
+- Deps: EVE-5,EVE-7
+
 ---
 
 ## Phase 3 – Analytics & Aggregations
 
 **EVE-15** Peak times aggregation
 - P:2  E:3h  L:analytics
+- Status: ✅ COMPLETED
 - Desc: `$group` by hour and dayOfWeek with counts.
 - AC:
   - `/api/analytics` returns top 10 peak buckets
@@ -289,6 +304,31 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
   - All tests pass without deprecation warnings
   - No functionality changes - only timezone awareness improvements
 - Deps: None
+
+**EVE-36** Reviews collection implementation
+- P:1  E:4h  L:database,schema,backend
+- Status: ✅ COMPLETED
+- Desc: Add new 'Reviews' collection to store feedback linked to events and venues with proper schema validation and CRUD operations.
+- AC:
+  - Reviews collection schema defined with required fields (event_id/venue_id, user_id, rating, comment, created_at)
+  - JSON Schema validation enforces rating bounds (1-5) and required fields
+  - CRUD service methods for creating, reading, updating, and deleting reviews
+  - Query methods to fetch reviews by event_id or venue_id with pagination
+  - Unit tests cover happy-path and validation scenarios
+  - Indexes created for event_id, venue_id, user_id, and created_at
+- Deps: EVE-5
+
+**EVE-37** Enhanced check-ins bridge table implementation
+- P:1  E:5h  L:database,schema,analytics,backend
+- Desc: Implement enhanced check-ins collection as bridge table with analytics capabilities, comprehensive indexing, and attendance tracking features.
+- AC:
+  - Enhanced check-ins schema with venue_id denormalization, check_in_method, metadata fields
+  - JSON Schema validation for all required fields and data constraints
+  - CRUD service methods with duplicate prevention (event_id + user_id unique constraint)
+  - Analytics query methods for attendance patterns, venue statistics, repeat attendees
+  - Comprehensive index suite for all query patterns and performance optimization
+  - Unit tests cover bridge table functionality and analytics queries
+- Deps: EVE-5
 
 ---
 

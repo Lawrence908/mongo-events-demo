@@ -38,6 +38,15 @@ class PyObjectId(ObjectId):
         return ObjectId(v)
 
 
+class EventAddress(BaseModel):
+    """Event address information"""
+    street: str = Field(..., min_length=1, max_length=200)
+    city: str = Field(..., min_length=1, max_length=100)
+    state: str = Field(..., min_length=1, max_length=100)
+    zip: str = Field(..., min_length=1, max_length=20)
+    country: str = Field(..., min_length=1, max_length=100)
+
+
 class EventLocation(BaseModel):
     """Geographic location with coordinates"""
 
@@ -87,6 +96,8 @@ class EventBase(BaseModel):
     description: Optional[str] = Field(None, max_length=1000)
     category: str = Field(..., min_length=1, max_length=50)
     location: EventLocation
+    address: Optional[EventAddress] = None
+    directions_url: Optional[str] = Field(None, max_length=500, description="Google Maps directions URL")
     venue_id: Optional[PyObjectId] = None
     start_date: datetime
     end_date: Optional[datetime] = None
@@ -118,6 +129,8 @@ class EventUpdate(BaseModel):
     description: Optional[str] = Field(None, max_length=1000)
     category: Optional[str] = Field(None, min_length=1, max_length=50)
     location: Optional[EventLocation] = None
+    address: Optional[EventAddress] = None
+    directions_url: Optional[str] = Field(None, max_length=500, description="Google Maps directions URL")
     venue_id: Optional[PyObjectId] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
@@ -325,6 +338,47 @@ class Review(ReviewBase):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+    )
+
+
+# Review Models
+class ReviewBase(BaseModel):
+    """Base model for reviews"""
+    event_id: PyObjectId
+    user_id: PyObjectId
+    rating: int = Field(..., ge=1, le=5, description="Rating from 1 to 5 stars")
+    review_text: str = Field(..., min_length=10, max_length=1000, description="Detailed review text")
+    title: Optional[str] = Field(None, min_length=1, max_length=100, description="Optional review title")
+    helpful_votes: int = Field(default=0, ge=0, description="Number of helpful votes")
+    verified_attendee: bool = Field(default=False, description="Whether the reviewer actually attended the event")
+    tags: List[str] = Field(default_factory=list, description="Review tags for categorization")
+
+
+class ReviewCreate(ReviewBase):
+    """Model for creating reviews"""
+    pass
+
+
+class ReviewUpdate(BaseModel):
+    """Model for updating reviews"""
+    rating: Optional[int] = Field(None, ge=1, le=5)
+    review_text: Optional[str] = Field(None, min_length=10, max_length=1000)
+    title: Optional[str] = Field(None, min_length=1, max_length=100)
+    helpful_votes: Optional[int] = Field(None, ge=0)
+    verified_attendee: Optional[bool] = None
+    tags: Optional[List[str]] = None
+
+
+class Review(ReviewBase):
+    """Complete review model with database fields"""
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
