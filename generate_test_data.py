@@ -9,7 +9,7 @@ import random
 import json
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional
 import math
 from bson import ObjectId
@@ -295,6 +295,20 @@ USER_OCCUPATIONS = [
 # Check-in status options
 CHECKIN_STATUSES = ["attending", "checked_in", "left_early", "completed"]
 
+def poisson_approximation(lam: float) -> int:
+    """Simple Poisson distribution approximation using exponential distribution"""
+    if lam <= 0:
+        return 0
+    
+    # Use exponential distribution to approximate Poisson
+    # This is a simple approximation that works well for small to medium lambda values
+    k = 0
+    p = 1.0
+    while p > math.exp(-lam):
+        k += 1
+        p *= random.random()
+    return max(0, k - 1)
+
 def generate_random_coordinates(city: Dict[str, Any]) -> tuple[float, float]:
     """Generate random coordinates within a city's radius"""
     # Convert radius from km to degrees (approximate)
@@ -381,8 +395,8 @@ def generate_venue() -> Dict[str, Any]:
         },
         "rating": round(random.uniform(3.0, 5.0), 1),
         "review_count": random.randint(0, 200),
-        "created_at": datetime.utcnow() - timedelta(days=random.randint(30, 365)),
-        "updated_at": datetime.utcnow() - timedelta(days=random.randint(1, 30))
+        "created_at": datetime.now(timezone.utc) - timedelta(days=random.randint(30, 365)),
+        "updated_at": datetime.now(timezone.utc) - timedelta(days=random.randint(1, 30))
     }
     
     return venue
@@ -420,7 +434,7 @@ def generate_user() -> Dict[str, Any]:
     age = random.randint(18, 65)
     
     # Generate join date (within last 2 years)
-    join_date = datetime.utcnow() - timedelta(days=random.randint(1, 730))
+    join_date = datetime.now(timezone.utc) - timedelta(days=random.randint(1, 730))
     
     user = {
         "first_name": first_name,
@@ -534,7 +548,7 @@ def generate_checkins(users: List[Dict[str, Any]], events: List[Dict[str, Any]],
             print(f"Generated check-ins for {i + 1} users...")
         
         # Number of check-ins per user (Poisson distribution)
-        num_checkins = int(random.poisson(checkins_per_user))
+        num_checkins = poisson_approximation(checkins_per_user)
         
         # Select random events for this user
         user_events = random.sample(events, min(num_checkins, len(events)))
@@ -555,8 +569,8 @@ def generate_checkins(users: List[Dict[str, Any]], events: List[Dict[str, Any]],
 def generate_event_times() -> tuple[datetime, datetime]:
     """Generate realistic event start and end times"""
     # Events can be from 1 month ago to 6 months in the future
-    start_range = datetime.utcnow() - timedelta(days=30)
-    end_range = datetime.utcnow() + timedelta(days=180)
+    start_range = datetime.now(timezone.utc) - timedelta(days=30)
+    end_range = datetime.now(timezone.utc) + timedelta(days=180)
     
     start_date = start_range + timedelta(
         seconds=random.randint(0, int((end_range - start_range).total_seconds()))
@@ -727,7 +741,7 @@ def generate_reviews(events: List[Dict[str, Any]], users: List[Dict[str, Any]], 
             print(f"Generated reviews for {i + 1} events...")
         
         # Number of reviews per event (some events have no reviews, some have many)
-        num_reviews = int(random.poisson(reviews_per_event * 10))  # Poisson distribution
+        num_reviews = poisson_approximation(reviews_per_event * 10)  # Poisson distribution
         
         for _ in range(num_reviews):
             user = random.choice(users)
@@ -746,10 +760,13 @@ def save_to_json(events: List[Dict[str, Any]], filename: str = "test_events.json
     """Save events to JSON file"""
     print(f"Saving {len(events)} events to {filename}...")
     
-    # Convert datetime objects to ISO strings for JSON serialization
+    # Convert datetime objects and ObjectIds to strings for JSON serialization
     json_events = []
     for event in events:
         json_event = event.copy()
+        json_event["_id"] = str(event["_id"])
+        if event.get("venue_id"):
+            json_event["venue_id"] = str(event["venue_id"])
         json_event["start_date"] = event["start_date"].isoformat()
         json_event["end_date"] = event["end_date"].isoformat()
         json_event["created_at"] = event["created_at"].isoformat()
@@ -769,6 +786,7 @@ def save_reviews_to_json(reviews: List[Dict[str, Any]], filename: str = "test_re
     json_reviews = []
     for review in reviews:
         json_review = review.copy()
+        json_review["_id"] = str(review["_id"])
         json_review["event_id"] = str(review["event_id"])
         json_review["user_id"] = str(review["user_id"])
         json_review["created_at"] = review["created_at"].isoformat()
@@ -785,10 +803,11 @@ def save_venues_to_json(venues: List[Dict[str, Any]], filename: str = "test_venu
     """Save venues to JSON file"""
     print(f"Saving {len(venues)} venues to {filename}...")
     
-    # Convert datetime objects to ISO strings for JSON serialization
+    # Convert datetime objects and ObjectIds to strings for JSON serialization
     json_venues = []
     for venue in venues:
         json_venue = venue.copy()
+        json_venue["_id"] = str(venue["_id"])
         json_venue["created_at"] = venue["created_at"].isoformat()
         json_venue["updated_at"] = venue["updated_at"].isoformat()
         json_venues.append(json_venue)
@@ -802,10 +821,11 @@ def save_users_to_json(users: List[Dict[str, Any]], filename: str = "test_users.
     """Save users to JSON file"""
     print(f"Saving {len(users)} users to {filename}...")
     
-    # Convert datetime objects to ISO strings for JSON serialization
+    # Convert datetime objects and ObjectIds to strings for JSON serialization
     json_users = []
     for user in users:
         json_user = user.copy()
+        json_user["_id"] = str(user["_id"])
         json_user["created_at"] = user["created_at"].isoformat()
         json_user["updated_at"] = user["updated_at"].isoformat()
         json_users.append(json_user)
@@ -823,6 +843,7 @@ def save_checkins_to_json(checkins: List[Dict[str, Any]], filename: str = "test_
     json_checkins = []
     for checkin in checkins:
         json_checkin = checkin.copy()
+        json_checkin["_id"] = str(checkin["_id"])
         json_checkin["user_id"] = str(checkin["user_id"])
         json_checkin["event_id"] = str(checkin["event_id"])
         json_checkin["checkin_time"] = checkin["checkin_time"].isoformat()
@@ -863,7 +884,7 @@ def generate_tickets(events: List[Dict[str, Any]], users: List[Dict[str, Any]], 
                 weights=[80, 10, 10]
             )[0],
             "purchaseDate": event["start_date"] - timedelta(days=random.randint(1, 30)),
-            "created_at": datetime.utcnow() - timedelta(days=random.randint(1, 60))
+            "created_at": datetime.now(timezone.utc) - timedelta(days=random.randint(1, 60))
         }
         tickets.append(ticket)
     
@@ -877,6 +898,7 @@ def save_tickets_to_json(tickets: List[Dict[str, Any]], filename: str = "test_ti
     json_tickets = []
     for ticket in tickets:
         json_ticket = ticket.copy()
+        json_ticket["_id"] = str(ticket["_id"])
         json_ticket["eventId"] = str(ticket["eventId"])
         json_ticket["userId"] = str(ticket["userId"])
         json_ticket["purchaseDate"] = ticket["purchaseDate"].isoformat()
