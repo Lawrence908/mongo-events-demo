@@ -21,10 +21,11 @@ try:
     from config import Config
     from pymongo import MongoClient
     MONGODB_AVAILABLE = True
+    print("MongoDB integration available")
 except ImportError:
     MONGODB_AVAILABLE = False
     print("Warning: MongoDB integration not available. Install pymongo and ensure config.py is accessible for direct database seeding.")
-
+    
 # Sample data for realistic event generation
 CATEGORIES = [
     "Technology", "Music", "Sports", "Food & Drink", "Arts & Culture",
@@ -910,18 +911,17 @@ def save_tickets_to_json(tickets: List[Dict[str, Any]], filename: str = "test_ti
     
     print(f"Saved to {filename}")
 
-def seed_database(clear_existing: bool = True):
-    """Seed MongoDB database with generated data"""
+def seed_database(venues, users, events, tickets, checkins, reviews, clear_existing: bool = True):
+    """Seed MongoDB database with provided data"""
     if not MONGODB_AVAILABLE:
         print("Error: MongoDB integration not available. Cannot seed database.")
         return False
     
     try:
-        client = MongoClient(Config.MONGODB_URI)
-        db = client[Config.DB_NAME]
-        
         print(f"Seeding database: {Config.DB_NAME}")
+        client = MongoClient(Config.MONGODB_URI)
         print(f"Using connection: {Config.MONGODB_URI}")
+        db = client[Config.DB_NAME]
         
         if clear_existing:
             # Clear existing data
@@ -933,15 +933,6 @@ def seed_database(clear_existing: bool = True):
             db.checkins.drop()
             db.reviews.drop()
             print("✓ Existing data cleared")
-        
-        # Generate data
-        print("\nGenerating comprehensive test data...")
-        venues = generate_venues(500)
-        users = generate_users(2000)
-        events = generate_events(10000, venues)
-        tickets = generate_tickets(events, users, 5000)
-        checkins = generate_checkins(users, events, 2.5)
-        reviews = generate_reviews(events, users, 0.4)
         
         # Insert data into MongoDB
         print("\nInserting data into MongoDB...")
@@ -1025,7 +1016,7 @@ def main():
     # Handle output based on arguments
     if args.seed_db and MONGODB_AVAILABLE:
         print("\n7. Seeding MongoDB Database...")
-        success = seed_database(clear_existing=args.clear_db)
+        success = seed_database(venues, users, events, tickets, checkins, reviews, clear_existing=args.clear_db)
         if success:
             print("✅ Database seeding completed successfully!")
         else:

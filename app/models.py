@@ -393,5 +393,5 @@ class EventsNearbyQuery(BaseModel):
 
     longitude: float = Field(..., ge=-180, le=180)
     latitude: float = Field(..., ge=-90, le=90)
-    radius_km: float = Field(default=10, gt=0, le=100)
+    radius_km: float = Field(default=10, gt=0, le=20000)
     limit: int = Field(default=50, gt=0, le=100)

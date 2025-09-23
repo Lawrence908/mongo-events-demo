@@ -18,15 +18,15 @@ class Config:
     
     # Local MongoDB (school network via SSH)
     LOCAL_MONGODB_URI = os.getenv("LOCAL_MONGODB_URI", "mongodb://localhost:27017/")
-    LOCAL_DB_NAME = os.getenv("LOCAL_DB_NAME", "eventdb")
+    LOCAL_DB_NAME = os.getenv("LOCAL_PRACTICE_DB_NAME", "EventSphere")
     
     # Cloud MongoDB Atlas
-    CLOUD_MONGODB_URI = os.getenv("CLOUD_MONGODB_URI", "")
-    CLOUD_DB_NAME = os.getenv("CLOUD_DB_NAME", "eventdb")
+    CLOUD_MONGODB_URI = os.getenv("MONGODB_URI", "")
+    CLOUD_DB_NAME = os.getenv("MONGODB_DB_NAME", "EventSphere")
     
     # Default database selection
     MONGODB_URI = LOCAL_MONGODB_URI if DB_TYPE == "local" else CLOUD_MONGODB_URI
-    DB_NAME = LOCAL_DB_NAME if DB_TYPE == "local" else CLOUD_DB_NAME
+    DB_NAME = LOCAL_PRACTICE_DB_NAME if DB_TYPE == "local" else CLOUD_DB_NAME
     
     # Application settings
     HOST = os.getenv("HOST", "127.0.0.1")

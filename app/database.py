@@ -45,20 +45,35 @@ class MongoDB:
         return self
 
     def _apply_schema_validation(self):
-        """Apply JSON Schema validation to all collections"""
+        """Apply JSON Schema validation to all collections without data loss.
+
+        Uses collMod when the collection already exists, otherwise creates the
+        collection with the validator attached. Validation level is set to
+        'moderate' so existing documents are not rejected but all new/updated
+        documents must satisfy the schema.
+        """
         schemas = get_all_schemas()
-        
-        # Apply schema validation to each collection
+
         for collection_name, schema in schemas.items():
-            collection = getattr(self, collection_name)
             try:
-                # Drop existing validation if any
-                collection.drop()
-                # Create collection with schema validation
-                self.database.create_collection(collection_name, validator=schema)
-                print(f"✓ Applied schema validation to {collection_name} collection")
-            except Exception as e:
-                print(f"Warning: Could not apply schema validation to {collection_name}: {e}")
+                # Attempt to modify validator on existing collection
+                self.database.command({
+                    "collMod": collection_name,
+                    "validator": schema,
+                    "validationLevel": "moderate",
+                })
+                print(f"✓ Updated schema validation for {collection_name}")
+            except Exception:
+                # If collection does not exist yet, create it with the validator
+                try:
+                    self.database.create_collection(
+                        collection_name,
+                        validator=schema,
+                        validationLevel="moderate",
+                    )
+                    print(f"✓ Created {collection_name} with schema validation")
+                except Exception as e:
+                    print(f"Warning: Could not apply schema for {collection_name}: {e}")
 
     def disconnect(self):
         """Disconnect from MongoDB"""
@@ -111,69 +126,47 @@ class MongoDB:
         """Create all required indexes for optimal query performance"""
         try:
             print("Creating database indexes...")
-            
-            # 1. Geospatial index for location-based queries
+
+            # Events indexes
             self.events.create_index([("location", GEOSPHERE)], name="location_2dsphere")
-            print("✓ Geospatial index created")
-            
-            # 2. Text index for full-text search
             self.events.create_index(
-                [
-                    ("title", "text"),
-                    ("description", "text"),
-                    ("category", "text"),
-                    ("tags", "text"),
-                ],
-                name="text_search"
+                [("title", "text"), ("description", "text"), ("category", "text"), ("tags", "text")],
+                name="text_search",
             )
-            print("✓ Text search index created")
-            
-            # 3. Date-based queries and sorting
             self.events.create_index([("start_date", 1)], name="start_date")
             self.events.create_index([("created_at", 1)], name="created_at")
-            print("✓ Date-based indexes created")
-            
-            # 4. Compound indexes for common query patterns
             self.events.create_index([("category", 1), ("start_date", 1)], name="category_start_date")
-            # Note: location_start_date compound index commented out to avoid conflict with location_2dsphere
-            # self.events.create_index([("location", GEOSPHERE), ("start_date", 1)], name="location_start_date")
             self.events.create_index([("organizer", 1), ("start_date", 1)], name="organizer_start_date")
-            print("✓ Compound indexes created")
-            
-            # 5. Cursor-based pagination support
             self.events.create_index([("_id", 1), ("start_date", 1)], name="id_start_date")
-            print("✓ Pagination index created")
-            
-            # 6. Analytics and aggregation support
             self.events.create_index([("category", 1), ("created_at", 1)], name="category_created_at")
             self.events.create_index([("start_date", 1), ("category", 1)], name="start_date_category")
-            print("✓ Analytics indexes created")
-            
-            # 7. Tags array queries
             self.events.create_index([("tags", 1)], name="tags")
-            print("✓ Tags index created")
-            
-            # 8. Event status and filtering
             self.events.create_index([("max_attendees", 1)], name="max_attendees")
             self.events.create_index([("end_date", 1)], name="end_date")
-            print("✓ Filtering indexes created")
-            
-            # 9. Reviews collection indexes
-            self.reviews.create_index([("event_id", 1)], name="event_id")
-            self.reviews.create_index([("user_id", 1)], name="user_id")
-            self.reviews.create_index([("rating", 1)], name="rating")
-            self.reviews.create_index([("created_at", 1)], name="created_at")
-            self.reviews.create_index([("event_id", 1), ("rating", 1)], name="event_rating")
-            self.reviews.create_index([("user_id", 1), ("created_at", 1)], name="user_created_at")
-            self.reviews.create_index([("verified_attendee", 1), ("rating", 1)], name="verified_rating")
-            print("✓ Reviews indexes created")
-            
+            print("✓ Event indexes created")
+
+            # Venues indexes
+            self.venues.create_index([("location", GEOSPHERE)], name="venue_location_2dsphere")
+            self.venues.create_index([("name", 1)], name="venue_name")
+            self.venues.create_index([("address.city", 1)], name="venue_city")
+            self.venues.create_index([("created_at", 1)], name="venue_created_at")
+            print("✓ Venue indexes created")
+
+            # Users indexes
+            self.users.create_index([("email", 1)], name="user_email", unique=True)
+            self.users.create_index([("profile.first_name", 1), ("profile.last_name", 1)], name="user_name")
+            self.users.create_index([("created_at", 1)], name="user_created_at")
+            self.users.create_index([("profile.preferences.location", GEOSPHERE)], name="user_pref_location_2dsphere")
+            print("✓ User indexes created")
+
+            # Check-ins and Reviews dedicated index suites
+            self._create_checkins_indexes()
+            self._create_reviews_indexes()
+
             print("✓ All indexes created successfully")
-            
+
         except Exception as e:
             print(f"Warning: Error creating indexes: {e}")
-            # Don't raise the exception as indexes might already exist
-            # MongoDB create_index is idempotent, but we want to be extra safe
 
     def _create_checkins_indexes(self):
         """Create comprehensive indexes for check-ins collection"""

@@ -155,7 +155,7 @@ class Checkin(CheckinBase):
 class EventsNearbyQuery(BaseModel):
     lng: float = Field(..., ge=-180, le=180)
     lat: float = Field(..., ge=-90, le=90)
-    km: float = Field(default=5, gt=0, le=100)
+    km: float = Field(default=5, gt=0, le=20000)
     limit: int = Field(default=50, gt=0, le=100)
 
 
