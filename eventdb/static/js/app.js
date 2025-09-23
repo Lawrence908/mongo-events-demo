@@ -4,6 +4,8 @@
 let map = null;
 let markers = [];
 let currentDb = 'local';
+let eventsLayer = null; // GeoJSON layer for nearby results
+let socket = null; // Socket.IO client for realtime (EVE-19)
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -21,6 +23,9 @@ function initializeApp() {
     loadEvents();
     loadEventsForTickets();
     loadUsersForTickets();
+
+    // Initialize realtime pipeline (EVE-19)
+    initializeRealtime();
 }
 
 function initializeDatabaseSwitch() {
@@ -231,6 +236,10 @@ async function handleFindNearby() {
     const lng = parseFloat(document.getElementById('nearby-lng').value);
     const lat = parseFloat(document.getElementById('nearby-lat').value);
     const radius = parseFloat(document.getElementById('nearby-radius').value);
+    const limitInput = document.getElementById('nearby-limit');
+    const limit = limitInput ? parseInt(limitInput.value || '500', 10) : 500;
+    const categoryEl = document.getElementById('nearby-category');
+    const category = categoryEl && categoryEl.value ? categoryEl.value : '';
     
     if (isNaN(lng) || isNaN(lat)) {
         showToast('Please enter valid coordinates', 'warning');
@@ -238,7 +247,15 @@ async function handleFindNearby() {
     }
     
     try {
-        const response = await fetch(`/api/events/nearby?lng=${lng}&lat=${lat}&km=${radius}`);
+        // Backend expects radius (km) as 'radius' and supports optional 'limit' and 'category'
+        const params = new URLSearchParams({
+            lng: String(lng),
+            lat: String(lat),
+            radius: String(radius),
+            limit: String(limit)
+        });
+        if (category) params.set('category', category);
+        const response = await fetch(`/api/events/nearby?${params.toString()}`);
         const data = await response.json();
         
         displayNearbyEvents(data.features);
@@ -257,20 +274,20 @@ function displayNearbyEvents(events) {
         return;
     }
     
-    const html = events.map(event => `
+    const html = events.map(event => {
+        const { title, description = '', category, start_date, distance } = event.properties || {};
+        const km = typeof distance === 'number' ? (distance / 1000).toFixed(2) : '—';
+        return `
         <div class="nearby-event" onclick="centerMapOnEvent(${event.geometry.coordinates[1]}, ${event.geometry.coordinates[0]})">
-            <div class="event-title">${event.properties.title}</div>
-            <div class="event-description">${event.properties.description || 'No description'}</div>
+            <div class="event-title">${title}</div>
+            <div class="event-description">${description || 'No description'}</div>
             <div class="event-meta">
-                <strong>Venue:</strong> ${event.properties.venue.name}<br>
-                <strong>Date:</strong> ${new Date(event.properties.datetime).toLocaleString()}<br>
-                <strong>Price:</strong> ${event.properties.price ? `$${event.properties.price}` : 'Free'}
+                <strong>Category:</strong> ${category || '—'}<br>
+                <strong>Date:</strong> ${start_date ? new Date(start_date).toLocaleString() : '—'}
             </div>
-            <div class="distance-info">
-                Distance: ${(event.properties.distanceMeters / 1000).toFixed(2)} km
-            </div>
-        </div>
-    `).join('');
+            <div class="distance-info">Distance: ${km} km</div>
+        </div>`;
+    }).join('');
     
     container.innerHTML = html;
 }
@@ -278,8 +295,12 @@ function displayNearbyEvents(events) {
 function updateMapWithEvents(events, center) {
     if (!map) return;
     
-    // Clear existing markers
-    markers.forEach(marker => map.removeLayer(marker));
+    // Clear existing layer/markers
+    if (eventsLayer) {
+        map.removeLayer(eventsLayer);
+        eventsLayer = null;
+    }
+    markers.forEach(m => map.removeLayer(m));
     markers = [];
     
     // Center map on search location
@@ -290,18 +311,21 @@ function updateMapWithEvents(events, center) {
     centerMarker.bindPopup('Search Center').openPopup();
     markers.push(centerMarker);
     
-    // Add markers for events
-    events.forEach(event => {
-        const coords = [event.geometry.coordinates[1], event.geometry.coordinates[0]];
-        const marker = L.marker(coords).addTo(map);
-        marker.bindPopup(`
-            <strong>${event.properties.title}</strong><br>
-            ${event.properties.venue.name}<br>
-            ${new Date(event.properties.datetime).toLocaleString()}<br>
-            Distance: ${(event.properties.distanceMeters / 1000).toFixed(2)} km
-        `);
-        markers.push(marker);
-    });
+    // Draw GeoJSON features
+    eventsLayer = L.geoJSON({ type: 'FeatureCollection', features: events }, {
+        pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+            radius: 7,
+            fillOpacity: 0.9,
+            color: '#333',
+            weight: 1,
+            fillColor: '#3fb1ce'
+        }).bindPopup(`
+            <strong>${feature.properties.title}</strong><br>
+            ${feature.properties.category || ''}<br>
+            ${feature.properties.start_date ? new Date(feature.properties.start_date).toLocaleString() : ''}<br>
+            ${typeof feature.properties.distance === 'number' ? `Distance: ${(feature.properties.distance/1000).toFixed(2)} km` : ''}
+        `)
+    }).addTo(map);
 }
 
 function centerMapOnEvent(lat, lng) {
@@ -330,6 +354,28 @@ function handleUseCurrentLocation() {
 function updateRadiusDisplay() {
     const radius = document.getElementById('nearby-radius').value;
     document.getElementById('radius-value').textContent = `${radius}km`;
+}
+
+// Realtime (EVE-19): basic Socket.IO client that listens for event changes
+function initializeRealtime() {
+    if (typeof io === 'undefined') return; // Socket.IO not loaded
+    try {
+        socket = io('/events');
+        socket.on('connect', () => {
+            showToast('Realtime connected', 'success');
+        });
+        socket.on('event_created', (payload) => {
+            showToast(`Event created: ${payload.event.title}`, 'info');
+        });
+        socket.on('event_updated', (payload) => {
+            showToast(`Event updated: ${payload.event.title}`, 'info');
+        });
+        socket.on('event_deleted', (payload) => {
+            showToast(`Event deleted`, 'warning');
+        });
+    } catch (e) {
+        console.warn('Realtime init failed:', e);
+    }
 }
 
 // Analytics Functions
