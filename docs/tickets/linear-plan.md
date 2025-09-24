@@ -75,6 +75,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-37** Enhanced check-ins bridge table implementation
 - P:2  E:5h  L:database,schema,backend,analytics
+- Status: ✅ COMPLETED
 - Desc: Implement enhanced check-ins collection as bridge table with analytics capabilities, comprehensive indexing, and attendance tracking features.
 - AC:
   - Enhanced check-ins schema with venue_id denormalization, check_in_method, metadata fields
@@ -176,6 +177,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-19** Socket.IO server plumbing
 - P:1  E:3h  L:realtime,backend
+- Status: ✅ COMPLETED
 - Desc: Initialize SocketIO, events and analytics namespaces.
 - AC:
   - Server boots; client can connect and receive a welcome ping
@@ -183,6 +185,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-20** MongoDB change streams listener
 - P:1  E:4h  L:realtime,database
+- Status: ✅ COMPLETED
 - Desc: Watch `events` collection; handle insert/update/delete.
 - AC:
   - Broadcasts `event_created`, `event_updated`, `event_deleted`
