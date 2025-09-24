@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from pymongo import MongoClient
 from bson import ObjectId
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from ..config import Config
 
@@ -184,7 +184,7 @@ def event_stats():
         
         # Get upcoming events
         upcoming_events = db.events.count_documents({
-            'datetime': {'$gt': datetime.utcnow()}
+            'datetime': {'$gt': datetime.now(timezone.utc)}
         })
         
         # Get total revenue

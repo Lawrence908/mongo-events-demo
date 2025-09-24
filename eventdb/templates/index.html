@@ -181,24 +181,32 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="nearby-radius" class="form-label">Radius (km)</label>
-                                    <input type="range" class="form-range" id="nearby-radius" min="1" max="50" value="10">
+                                    <input type="range" class="form-range" id="nearby-radius" min="1" max="1000" value="10">
                                     <div class="d-flex justify-content-between">
                                         <small>1km</small>
                                         <small id="radius-value">10km</small>
-                                        <small>50km</small>
+                                        <small>1000km</small>
                                     </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="nearby-limit" class="form-label">Max Results</label>
+                                    <input type="number" class="form-control" id="nearby-limit" min="1" max="{{ max_events_limit }}" value="10000" placeholder="Maximum number of events to return">
+                                    <small class="form-text text-muted">Maximum: {{ max_events_limit }} events (you have ~10,000 total)</small>
                                 </div>
                                 <button class="btn btn-primary" id="find-nearby-btn">Find Nearby Events</button>
                                 <button class="btn btn-outline-secondary" id="use-current-location">Use Current Location</button>
                             </div>
                         </div>
                         <div class="card mt-3">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5>Nearby Events</h5>
+                                <span id="nearby-events-count" class="badge bg-secondary">0 results</span>
                             </div>
-                            <div class="card-body">
-                                <div id="nearby-events-list">
-                                    <p class="text-muted">Click "Find Nearby Events" to search</p>
+                            <div class="card-body p-0">
+                                <div id="nearby-events-list" style="max-height: 400px; overflow-y: auto;">
+                                    <div class="p-3">
+                                        <p class="text-muted">Click "Find Nearby Events" to search</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

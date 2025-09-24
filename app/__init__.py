@@ -9,6 +9,7 @@ from .database import mongodb
 from .models import EventCreate, EventsNearbyQuery, EventUpdate, CheckinCreate, CheckinUpdate
 from .services import get_event_service, get_checkin_service
 from .realtime import init_realtime
+from eventdb.config import Config
 
 load_dotenv()
 
@@ -36,7 +37,7 @@ def create_app():
     @app.route("/")
     def index():
         """Home page with event map"""
-        return render_template("index.html")
+        return render_template("index.html", max_events_limit=Config.MAX_EVENTS_LIMIT)
     
     @app.route("/realtime")
     def realtime_demo():
@@ -215,7 +216,7 @@ def create_app():
                 "longitude": float(request.args.get("lng", 0)),
                 "latitude": float(request.args.get("lat", 0)),
                 "radius_km": float(request.args.get("radius", 10)),
-                "limit": min(int(request.args.get("limit", 50)), 100),
+                "limit": min(int(request.args.get("limit", 50)), Config.MAX_EVENTS_LIMIT),
             }
             
             # Optional category filter

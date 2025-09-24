@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from pymongo import MongoClient
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ..config import Config
 from ..models import VenueCreate
@@ -46,7 +46,7 @@ def create_venue():
         
         db = get_db()
         venue_doc = venue_data.model_dump()
-        venue_doc['created_at'] = datetime.utcnow()
+        venue_doc['created_at'] = datetime.now(timezone.utc)
         
         result = db.venues.insert_one(venue_doc)
         venue_doc['_id'] = str(result.inserted_id)
@@ -80,7 +80,7 @@ def update_venue(venue_id):
         
         db = get_db()
         update_data = {k: v for k, v in data.items() if v is not None}
-        update_data['updated_at'] = datetime.utcnow()
+        update_data['updated_at'] = datetime.now(timezone.utc)
         
         result = db.venues.update_one(
             {'_id': ObjectId(venue_id)},

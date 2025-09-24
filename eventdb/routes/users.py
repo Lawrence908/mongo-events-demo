@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from pymongo import MongoClient
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ..config import Config
 from ..models import UserCreate
@@ -46,7 +46,7 @@ def create_user():
         
         db = get_db()
         user_doc = user_data.model_dump()
-        user_doc['created_at'] = datetime.utcnow()
+        user_doc['created_at'] = datetime.now(timezone.utc)
         
         result = db.users.insert_one(user_doc)
         user_doc['_id'] = str(result.inserted_id)
@@ -80,7 +80,7 @@ def update_user(user_id):
         
         db = get_db()
         update_data = {k: v for k, v in data.items() if v is not None}
-        update_data['updated_at'] = datetime.utcnow()
+        update_data['updated_at'] = datetime.now(timezone.utc)
         
         result = db.users.update_one(
             {'_id': ObjectId(user_id)},

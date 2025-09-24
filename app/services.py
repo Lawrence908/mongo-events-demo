@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 from bson import ObjectId
@@ -43,8 +43,8 @@ class EventService:
             # If geocoding service is not available (no API key), continue without it
             print(f"Info: Geocoding service not available: {str(e)}")
         
-        event_dict["created_at"] = datetime.utcnow()
-        event_dict["updated_at"] = datetime.utcnow()
+        event_dict["created_at"] = datetime.now(timezone.utc)
+        event_dict["updated_at"] = datetime.now(timezone.utc)
 
         result = db.events.insert_one(event_dict)
         event_dict["_id"] = result.inserted_id
@@ -100,7 +100,7 @@ class EventService:
             sort_criteria = [("score", {"$meta": "textScore"})]
 
         if upcoming_only:
-            query["start_date"] = {"$gte": datetime.utcnow()}
+            query["start_date"] = {"$gte": datetime.now(timezone.utc)}
 
         # Cursor-based pagination (preferred)
         if cursor_id is None or (cursor_id and ObjectId.is_valid(cursor_id)):
@@ -191,7 +191,7 @@ class EventService:
             except Exception as e:
                 print(f"Info: Geocoding service not available: {str(e)}")
 
-        update_dict["updated_at"] = datetime.utcnow()
+        update_dict["updated_at"] = datetime.now(timezone.utc)
 
         result = db.events.update_one(
             {"_id": ObjectId(event_id)}, {"$set": update_dict}
@@ -304,7 +304,7 @@ class EventService:
                 "$sort": {"start_date": 1}
             },
             {
-                "$limit": 100
+                "$limit": query.limit
             }
         ])
         
@@ -402,7 +402,7 @@ class EventService:
             "category_popularity": category_stats,
             "monthly_trends": monthly_trends,
             "total_events": db.events.count_documents({}),
-            "upcoming_events": db.events.count_documents({"start_date": {"$gte": datetime.utcnow()}})
+            "upcoming_events": db.events.count_documents({"start_date": {"$gte": datetime.now(timezone.utc)}})
         }
 
     def get_events_by_date_range(
@@ -480,7 +480,7 @@ class VenueService:
         """Create a new venue"""
         db = self._ensure_db()
         venue_dict = venue_data.model_dump()
-        venue_dict["created_at"] = datetime.utcnow()
+        venue_dict["created_at"] = datetime.now(timezone.utc)
 
         result = db.venues.insert_one(venue_dict)
         venue_dict["_id"] = result.inserted_id
@@ -558,7 +558,7 @@ class UserService:
         """Create a new user"""
         db = self._ensure_db()
         user_dict = user_data.model_dump()
-        user_dict["created_at"] = datetime.utcnow()
+        user_dict["created_at"] = datetime.now(timezone.utc)
 
         result = db.users.insert_one(user_dict)
         user_dict["_id"] = result.inserted_id
@@ -644,8 +644,8 @@ class CheckinService:
         """Create a new checkin with duplicate prevention"""
         db = self._ensure_db()
         checkin_dict = checkin_data.model_dump()
-        checkin_dict["check_in_time"] = datetime.utcnow()
-        checkin_dict["created_at"] = datetime.utcnow()
+        checkin_dict["check_in_time"] = datetime.now(timezone.utc)
+        checkin_dict["created_at"] = datetime.now(timezone.utc)
         
         # Convert string IDs to ObjectId instances for MongoDB
         checkin_dict["event_id"] = ObjectId(checkin_dict["event_id"])
@@ -1043,8 +1043,8 @@ class ReviewService:
         """Create a new review"""
         db = self._ensure_db()
         review_dict = review_data.model_dump()
-        review_dict["created_at"] = datetime.utcnow()
-        review_dict["updated_at"] = datetime.utcnow()
+        review_dict["created_at"] = datetime.now(timezone.utc)
+        review_dict["updated_at"] = datetime.now(timezone.utc)
 
         # Convert string IDs to ObjectId instances for MongoDB
         if review_dict.get("event_id"):
@@ -1128,7 +1128,7 @@ class ReviewService:
         if not update_dict:
             return self.get_review(review_id)
 
-        update_dict["updated_at"] = datetime.utcnow()
+        update_dict["updated_at"] = datetime.now(timezone.utc)
 
         result = db.reviews.update_one(
             {"_id": ObjectId(review_id)}, {"$set": update_dict}

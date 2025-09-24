@@ -4,7 +4,7 @@ Generate sample data for the event database
 """
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from faker import Faker
 from pymongo import MongoClient
 import random
@@ -145,7 +145,7 @@ def generate_checkins(events, users, checkin_count=300):
         user = random.choice(users)
         
         # Only generate checkins for past events
-        if event["datetime"] < datetime.utcnow():
+        if event["datetime"] < datetime.now(timezone.utc):
             checkin = {
                 "eventId": event["_id"],
                 "userId": user["_id"],

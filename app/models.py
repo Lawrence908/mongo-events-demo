@@ -5,6 +5,8 @@ from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic_core import core_schema
 
+from eventdb.config import Config
+
 
 class PyObjectId(ObjectId):
     """Custom ObjectId type for Pydantic v2"""
@@ -394,4 +396,4 @@ class EventsNearbyQuery(BaseModel):
     longitude: float = Field(..., ge=-180, le=180)
     latitude: float = Field(..., ge=-90, le=90)
     radius_km: float = Field(default=10, gt=0, le=20000)
-    limit: int = Field(default=50, gt=0, le=100)
+    limit: int = Field(default=50, gt=0, le=Config.MAX_EVENTS_LIMIT)

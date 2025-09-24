@@ -268,24 +268,46 @@ async function handleFindNearby() {
 
 function displayNearbyEvents(events) {
     const container = document.getElementById('nearby-events-list');
+    const countElement = document.getElementById('nearby-events-count');
+    
+    // Update results count
+    if (countElement) {
+        countElement.textContent = `${events.length} result${events.length !== 1 ? 's' : ''}`;
+        countElement.className = events.length > 0 ? 'badge bg-success' : 'badge bg-secondary';
+    }
     
     if (events.length === 0) {
-        container.innerHTML = '<p class="text-muted">No events found nearby</p>';
+        container.innerHTML = '<div class="p-3"><p class="text-muted">No events found nearby</p></div>';
         return;
     }
     
-    const html = events.map(event => {
+    const html = events.map((event, index) => {
         const { title, description = '', category, start_date, distance } = event.properties || {};
         const km = typeof distance === 'number' ? (distance / 1000).toFixed(2) : '—';
+        const dateStr = start_date ? new Date(start_date).toLocaleString() : '—';
+        
         return `
-        <div class="nearby-event" onclick="centerMapOnEvent(${event.geometry.coordinates[1]}, ${event.geometry.coordinates[0]})">
-            <div class="event-title">${title}</div>
-            <div class="event-description">${description || 'No description'}</div>
-            <div class="event-meta">
-                <strong>Category:</strong> ${category || '—'}<br>
-                <strong>Date:</strong> ${start_date ? new Date(start_date).toLocaleString() : '—'}
+        <div class="border-bottom p-3 nearby-event-item" onclick="centerMapOnEvent(${event.geometry.coordinates[1]}, ${event.geometry.coordinates[0]})" style="cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor=''">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <h6 class="mb-1 text-primary">${title || 'Untitled Event'}</h6>
+                    <p class="mb-2 text-muted small">${description || 'No description available'}</p>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">
+                                <strong>Category:</strong> ${category || '—'}<br>
+                                <strong>Date:</strong> ${dateStr}
+                            </small>
+                        </div>
+                        <div class="col-6 text-end">
+                            <small class="text-info">
+                                <strong>Distance:</strong> ${km} km<br>
+                                <strong>#${index + 1}</strong>
+                            </small>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="distance-info">Distance: ${km} km</div>
         </div>`;
     }).join('');
     

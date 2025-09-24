@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template
 from pymongo import MongoClient, TEXT
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 from ..config import Config
@@ -48,7 +48,7 @@ def create_event():
         
         db = get_db()
         event_doc = event_data.model_dump()
-        event_doc['created_at'] = datetime.utcnow()
+        event_doc['created_at'] = datetime.now(timezone.utc)
         
         result = db.events.insert_one(event_doc)
         event_doc['_id'] = str(result.inserted_id)
@@ -86,7 +86,7 @@ def update_event(event_id):
         
         db = get_db()
         update_data = {k: v for k, v in event_data.model_dump().items() if v is not None}
-        update_data['updated_at'] = datetime.utcnow()
+        update_data['updated_at'] = datetime.now(timezone.utc)
         
         result = db.events.update_one(
             {'_id': ObjectId(event_id)},

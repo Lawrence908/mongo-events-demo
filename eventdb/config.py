@@ -52,3 +52,6 @@ class Config:
         else:
             cls.MONGODB_URI = cls.CLOUD_MONGODB_URI
             cls.DB_NAME = cls.CLOUD_DB_NAME
+
+    # API Limits
+    MAX_EVENTS_LIMIT = int(os.getenv("MAX_EVENTS_LIMIT", "100000"))  # Maximum number of events that can be returned in a single query

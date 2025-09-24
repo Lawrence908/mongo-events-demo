@@ -4,7 +4,7 @@ Demonstrates MongoDB Change Streams for live event notifications
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask import request
@@ -72,7 +72,7 @@ class RealtimeEventService:
             event = Event(**event_data)
             self.socketio.emit('event_created', {
                 'event': event.model_dump(),
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             }, namespace='/events')
             print(f"📢 Broadcasted event created: {event.title}")
         except Exception as e:
@@ -89,7 +89,7 @@ class RealtimeEventService:
                     'event_id': str(event_id),
                     'event': event.model_dump(),
                     'updated_fields': list(update_description.get('updatedFields', {}).keys()),
-                    'timestamp': datetime.utcnow().isoformat()
+                    'timestamp': datetime.now(timezone.utc).isoformat()
                 }, namespace='/events')
                 print(f"📢 Broadcasted event updated: {event.title}")
         except Exception as e:
@@ -100,7 +100,7 @@ class RealtimeEventService:
         try:
             self.socketio.emit('event_deleted', {
                 'event_id': str(event_id),
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             }, namespace='/events')
             print(f"📢 Broadcasted event deleted: {event_id}")
         except Exception as e:
@@ -111,7 +111,7 @@ class RealtimeEventService:
         try:
             self.socketio.emit('analytics_updated', {
                 'analytics': analytics_data,
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             }, namespace='/analytics')
             print("📊 Broadcasted analytics update")
         except Exception as e:

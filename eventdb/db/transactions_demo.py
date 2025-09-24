@@ -53,7 +53,7 @@ def buy_ticket(event_id, user_id, price_paid):
                     "userId": user_id,
                     "pricePaid": price_paid,
                     "status": "active",
-                    "purchasedAt": datetime.utcnow()
+                    "purchasedAt": datetime.now(timezone.utc)
                 }
                 
                 ticket_result = db.tickets.insert_one(ticket, session=session)
