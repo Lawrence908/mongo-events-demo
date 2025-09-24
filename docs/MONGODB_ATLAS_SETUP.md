@@ -15,11 +15,11 @@ This guide explains how to set up and test the enhanced check-ins functionality 
 - **Cluster**: eventsphere.mzturli.mongodb.net
 - **Database**: EventSphere
 - **Username**: chrislawrencedev
-- **Password**: Xc93FPujnvVD2Xb6
+- **Password**: `password`
 
 ### 2. Connection String
 ```
-mongodb+srv://chrislawrencedev:Xc93FPujnvVD2Xb6@eventsphere.mzturli.mongodb.net/EventSphere?retryWrites=true&w=majority&appName=EventSphere
+mongodb+srv://chrislawrencedev:<password>@eventsphere.mzturli.mongodb.net/EventSphere?retryWrites=true&w=majority&appName=EventSphere
 ```
 
 ### 3. Network Access Setup
@@ -188,7 +188,7 @@ sudo dpkg -i mongodb-mongosh_2.5.8_amd64.deb
 
 ### Connect to Atlas
 ```bash
-mongosh "mongodb+srv://chrislawrencedev:Xc93FPujnvVD2Xb6@eventsphere.mzturli.mongodb.net/EventSphere?retryWrites=true&w=majority"
+mongosh "mongodb+srv://chrislawrencedev:<password>@eventsphere.mzturli.mongodb.net/EventSphere?retryWrites=true&w=majority"
 ```
 
 ### Useful Commands
