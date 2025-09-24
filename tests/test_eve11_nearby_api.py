@@ -29,7 +29,7 @@ def test_nearby_events_api():
         if events_count == 0:
             print("   ⚠️  No events found. Creating test event...")
             # Create a test event
-            from datetime import datetime
+            from datetime import datetime, timezone
             test_event = {
                 "title": "Test Music Event",
                 "description": "A test event for geospatial testing",
@@ -41,8 +41,8 @@ def test_nearby_events_api():
                 "start_date": datetime(2024, 12, 25, 20, 0, 0),
                 "max_attendees": 100,
                 "organizer": "Test Organizer",
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
+                "created_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc)
             }
             result = db.events.insert_one(test_event)
             print(f"   ✅ Created test event with ID: {result.inserted_id}")

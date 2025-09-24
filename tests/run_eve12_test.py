@@ -11,7 +11,7 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test_eve12_weekend_api import run_weekend_api_tests
+from tests.test_eve12_weekend_api import run_weekend_api_tests
 
 if __name__ == "__main__":
     print("🚀 Running EVE-12 Weekend API Tests")

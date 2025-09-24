@@ -7,7 +7,7 @@ Verifies that compound indexes are used efficiently for geospatial queries with 
 import os
 import sys
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pymongo import MongoClient
 from bson import ObjectId
 
@@ -39,7 +39,7 @@ class TestEVE13CategoryGeoCompound:
                 "title": "TEST_EVE13_Music Event NYC",
                 "description": "A music event in New York",
                 "category": "music",
-                "start_date": datetime.utcnow() + timedelta(days=1),
+                "start_date": datetime.now(timezone.utc) + timedelta(days=1),
                 "location": {
                     "type": "Point",
                     "coordinates": [-74.0060, 40.7128]  # NYC
@@ -51,7 +51,7 @@ class TestEVE13CategoryGeoCompound:
                 "title": "TEST_EVE13_Tech Event NYC",
                 "description": "A tech event in New York",
                 "category": "tech",
-                "start_date": datetime.utcnow() + timedelta(days=2),
+                "start_date": datetime.now(timezone.utc) + timedelta(days=2),
                 "location": {
                     "type": "Point",
                     "coordinates": [-74.0060, 40.7128]  # NYC
@@ -63,7 +63,7 @@ class TestEVE13CategoryGeoCompound:
                 "title": "TEST_EVE13_Music Event SF",
                 "description": "A music event in San Francisco",
                 "category": "music",
-                "start_date": datetime.utcnow() + timedelta(days=3),
+                "start_date": datetime.now(timezone.utc) + timedelta(days=3),
                 "location": {
                     "type": "Point",
                     "coordinates": [-122.4194, 37.7749]  # SF
@@ -75,7 +75,7 @@ class TestEVE13CategoryGeoCompound:
                 "title": "TEST_EVE13_Tech Event SF",
                 "description": "A tech event in San Francisco",
                 "category": "tech",
-                "start_date": datetime.utcnow() + timedelta(days=4),
+                "start_date": datetime.now(timezone.utc) + timedelta(days=4),
                 "location": {
                     "type": "Point",
                     "coordinates": [-122.4194, 37.7749]  # SF
@@ -236,8 +236,8 @@ class TestEVE13CategoryGeoCompound:
     
     def test_date_range_with_category_and_geo_filter(self):
         """Test date range queries with category and geospatial filtering"""
-        start_date = datetime.utcnow()
-        end_date = datetime.utcnow() + timedelta(days=7)
+        start_date = datetime.now(timezone.utc)
+        end_date = datetime.now(timezone.utc) + timedelta(days=7)
         
         # Test with all filters
         events = self.service.get_events_by_date_range(

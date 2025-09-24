@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -57,8 +57,8 @@ def sample_event(db):
     )
     
     event_dict = event_data.model_dump()
-    event_dict["created_at"] = datetime.utcnow()
-    event_dict["updated_at"] = datetime.utcnow()
+    event_dict["created_at"] = datetime.now(timezone.utc)
+    event_dict["updated_at"] = datetime.now(timezone.utc)
     
     result = db.events.insert_one(event_dict)
     event_dict["_id"] = result.inserted_id
@@ -82,7 +82,7 @@ def sample_venue(db):
     )
     
     venue_dict = venue_data.model_dump()
-    venue_dict["created_at"] = datetime.utcnow()
+    venue_dict["created_at"] = datetime.now(timezone.utc)
     
     result = db.venues.insert_one(venue_dict)
     venue_dict["_id"] = result.inserted_id
@@ -101,7 +101,7 @@ def sample_user(db):
     )
     
     user_dict = user_data.model_dump()
-    user_dict["created_at"] = datetime.utcnow()
+    user_dict["created_at"] = datetime.now(timezone.utc)
     
     result = db.users.insert_one(user_dict)
     user_dict["_id"] = result.inserted_id

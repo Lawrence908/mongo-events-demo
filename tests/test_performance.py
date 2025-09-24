@@ -6,7 +6,7 @@ Tests query performance with different indexes and data volumes
 
 import time
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List
 
 from app.database import get_mongodb
@@ -34,7 +34,7 @@ def generate_test_events(count: int = 1000) -> List[Dict[str, Any]]:
         lng = city["lng"] + random.uniform(-0.1, 0.1)
         
         # Generate dates from 1 month ago to 3 months in the future
-        start_date = datetime.utcnow() + timedelta(
+        start_date = datetime.now(timezone.utc) + timedelta(
             days=random.randint(-30, 90),
             hours=random.randint(0, 23)
         )
@@ -53,8 +53,8 @@ def generate_test_events(count: int = 1000) -> List[Dict[str, Any]]:
             "organizer": f"Organizer {i+1}",
             "max_attendees": random.randint(10, 500),
             "tags": [f"tag{i%10}", f"category{random.randint(1,5)}"],
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
         events.append(event)
     
@@ -117,7 +117,7 @@ def test_query_performance():
     
     # Test 5: Date range query
     print("\n📊 Test 5: Date Range Query Performance")
-    start_date = datetime.utcnow()
+    start_date = datetime.now(timezone.utc)
     end_date = start_date + timedelta(days=30)
     start_time = time.time()
     date_events = service.get_events_by_date_range(start_date, end_date, "Technology")
@@ -193,7 +193,7 @@ def test_index_effectiveness():
         # This should use the compound index (category, start_date)
         explain_result = db.events.find({
             "category": "Technology",
-            "start_date": {"$gte": datetime.utcnow()}
+            "start_date": {"$gte": datetime.now(timezone.utc)}
         }).sort("start_date", 1).explain()
         
         execution_stats = explain_result.get('executionStats', {})
