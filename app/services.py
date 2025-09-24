@@ -25,6 +25,13 @@ class EventService:
         """Ensure database connection is established"""
         if self.db is None:
             self.db = get_mongodb()
+        # Defensive: ensure collections are available
+        if getattr(self.db, "events", None) is None:
+            try:
+                self.db.connect()
+            except Exception:
+                # Fallback to reconnect via accessor
+                self.db = get_mongodb()
         return self.db
 
     def create_event(self, event_data: EventCreate) -> Event:
@@ -210,9 +217,13 @@ class EventService:
         result = db.events.delete_one({"_id": ObjectId(event_id)})
         return result.deleted_count > 0
 
-    def get_events_nearby(self, query: EventsNearbyQuery, category: Optional[str] = None) -> dict[str, Any]:
+    def get_events_nearby(self, query: EventsNearbyQuery | dict, category: Optional[str] = None) -> dict[str, Any]:
         """Get events near a location as GeoJSON with optional category filtering"""
         db = self._ensure_db()
+
+        # Allow passing a plain dict for backwards compatibility in some tests
+        if isinstance(query, dict):
+            query = EventsNearbyQuery(**query)
         pipeline = [
             {
                 "$geoNear": {
@@ -265,7 +276,7 @@ class EventService:
         db = self._ensure_db()
         return db.events.distinct("category")
 
-    def get_events_this_weekend(self, longitude: float, latitude: float, radius_km: float = 50, category: Optional[str] = None) -> dict[str, Any]:
+    def get_events_this_weekend(self, longitude: float, latitude: float, radius_km: float = 50, category: Optional[str] = None, limit: int = 50) -> dict[str, Any]:
         """Get events this weekend near a location with optional category filtering"""
         db = self._ensure_db()
         
@@ -304,7 +315,7 @@ class EventService:
                 "$sort": {"start_date": 1}
             },
             {
-                "$limit": query.limit
+                "$limit": limit
             }
         ])
         

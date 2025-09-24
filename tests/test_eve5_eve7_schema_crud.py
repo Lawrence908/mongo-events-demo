@@ -21,7 +21,8 @@ from app.models import (
 def app():
     """Create test app"""
     os.environ["MONGODB_DB_NAME"] = "test_events_demo"
-    app = create_app()
+    app_tup = create_app()
+    app = app_tup[0] if isinstance(app_tup, tuple) else app_tup
     app.config["TESTING"] = True
     yield app
 
@@ -165,7 +166,7 @@ class TestDatabase:
 
     def test_create_and_retrieve_event(self, db):
         """Test creating and retrieving an event"""
-        from app.services import event_service
+        from app.services import get_event_service
 
         event_data = EventCreate(
             title="Test DB Event",
@@ -175,6 +176,7 @@ class TestDatabase:
         )
 
         # Create event
+        event_service = get_event_service()
         created_event = event_service.create_event(event_data)
         assert created_event.id is not None
         assert created_event.title == "Test DB Event"
@@ -187,7 +189,7 @@ class TestDatabase:
     def test_nearby_events_search(self, db):
         """Test nearby events search"""
         from app.models import EventsNearbyQuery
-        from app.services import event_service
+        from app.services import get_event_service
 
         # Create test event
         event_data = EventCreate(
@@ -197,6 +199,7 @@ class TestDatabase:
             start_date=datetime.now(),
         )
 
+        event_service = get_event_service()
         event_service.create_event(event_data)
 
         # Search for nearby events
@@ -304,7 +307,7 @@ class TestEventServiceCRUD:
         assert updated_event is not None
         assert updated_event.title == "Updated Title"
         assert updated_event.description == "Updated description"
-        assert updated_event.updated_at > created_event.updated_at
+        assert updated_event.updated_at.timestamp() > created_event.updated_at.timestamp()
 
     def test_update_event_partial_update(self, db):
         """Test partial update of an event"""

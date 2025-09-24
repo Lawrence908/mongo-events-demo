@@ -358,7 +358,7 @@ class TestReviewService:
         assert updated_review is not None
         assert updated_review.rating == 5
         assert updated_review.comment == "Updated comment"
-        assert updated_review.updated_at > created_review.updated_at
+        assert updated_review.updated_at.timestamp() > created_review.updated_at.timestamp()
 
     def test_delete_review(self, db, sample_event, sample_user):
         """Test deleting a review"""

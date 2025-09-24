@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional, List, Literal
 
 from bson import ObjectId
@@ -148,8 +148,8 @@ class Event(EventBase):
     """Complete event model with database fields"""
 
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     score: Optional[float] = Field(None, description="Text search relevance score")
 
     model_config = ConfigDict(
@@ -204,7 +204,7 @@ class VenueUpdate(BaseModel):
 class Venue(VenueBase):
     """Complete venue model with database fields"""
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -248,7 +248,7 @@ class UserUpdate(BaseModel):
 class User(UserBase):
     """Complete user model with database fields"""
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     last_login: Optional[datetime] = None
 
     model_config = ConfigDict(
@@ -270,7 +270,7 @@ class CheckinBase(BaseModel):
     """Base checkin model"""
     event_id: PyObjectId
     user_id: PyObjectId
-    venue_id: PyObjectId = Field(..., description="Reference to venues (denormalized for analytics)")
+    venue_id: Optional[PyObjectId] = Field(None, description="Reference to venues (denormalized for analytics)")
     qr_code: str = Field(..., min_length=1, max_length=100)
     ticket_tier: Optional[str] = Field(None, max_length=50)
     check_in_method: Optional[str] = Field(None, max_length=50, description="qr_code, manual, mobile_app")
@@ -295,8 +295,8 @@ class CheckinUpdate(BaseModel):
 class Checkin(CheckinBase):
     """Complete checkin model with database fields"""
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    check_in_time: datetime = Field(default_factory=datetime.utcnow)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    check_in_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -338,8 +338,8 @@ class ReviewUpdate(BaseModel):
 class Review(ReviewBase):
     """Complete review model with database fields"""
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -348,45 +348,7 @@ class Review(ReviewBase):
     )
 
 
-# Review Models
-class ReviewBase(BaseModel):
-    """Base model for reviews"""
-    event_id: PyObjectId
-    user_id: PyObjectId
-    rating: int = Field(..., ge=1, le=5, description="Rating from 1 to 5 stars")
-    review_text: str = Field(..., min_length=10, max_length=1000, description="Detailed review text")
-    title: Optional[str] = Field(None, min_length=1, max_length=100, description="Optional review title")
-    helpful_votes: int = Field(default=0, ge=0, description="Number of helpful votes")
-    verified_attendee: bool = Field(default=False, description="Whether the reviewer actually attended the event")
-    tags: List[str] = Field(default_factory=list, description="Review tags for categorization")
-
-
-class ReviewCreate(ReviewBase):
-    """Model for creating reviews"""
-    pass
-
-
-class ReviewUpdate(BaseModel):
-    """Model for updating reviews"""
-    rating: Optional[int] = Field(None, ge=1, le=5)
-    review_text: Optional[str] = Field(None, min_length=10, max_length=1000)
-    title: Optional[str] = Field(None, min_length=1, max_length=100)
-    helpful_votes: Optional[int] = Field(None, ge=0)
-    verified_attendee: Optional[bool] = None
-    tags: Optional[List[str]] = None
-
-
-class Review(ReviewBase):
-    """Complete review model with database fields"""
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: Optional[datetime] = None
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-        json_encoders={ObjectId: str},
-    )
+# (Removed duplicate alternative Review models with review_text/title fields to match tests using 'comment')
 
 
 # Query Models

@@ -552,39 +552,11 @@ def get_reviews_schema() -> Dict[str, Any]:
                     "maximum": 5,
                     "description": "Rating from 1 to 5 stars"
                 },
-                "review_text": {
+                "comment": {
                     "bsonType": "string",
-                    "minLength": 10,
-                    "maxLength": 1000,
-                    "description": "Detailed review text"
-                },
-                "title": {
-                    "bsonType": ["string", "null"],
                     "minLength": 1,
-                    "maxLength": 100,
-                    "description": "Optional review title"
-                },
-                "helpful_votes": {
-                    "bsonType": "int",
-                    "minimum": 0,
-                    "description": "Number of helpful votes"
-                },
-                "verified_attendee": {
-                    "bsonType": "bool",
-                    "description": "Whether the reviewer actually attended the event"
-                },
-                "tags": {
-                    "bsonType": "array",
-                    "items": {
-                        "bsonType": "string",
-                        "enum": [
-                            "great-venue", "good-food", "excellent-speaker", "well-organized",
-                            "poor-venue", "bad-food", "disappointing", "disorganized",
-                            "crowded", "noisy", "expensive", "good-value", "family-friendly",
-                            "professional", "fun", "educational", "networking", "entertaining"
-                        ]
-                    },
-                    "description": "Review tags for categorization"
+                    "maxLength": 1000,
+                    "description": "Review comment text"
                 },
                 "created_at": {
                     "bsonType": "date",

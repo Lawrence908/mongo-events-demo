@@ -54,9 +54,10 @@ def create_app():
         category = request.args.get("category")
         search = request.args.get("search")
 
-        events = get_event_service().get_events(
+        result = get_event_service().get_events(
             skip=skip, limit=per_page, category=category, search=search
         )
+        events = result["events"] if isinstance(result, dict) else result
         categories = get_event_service().get_categories()
 
         return render_template(
