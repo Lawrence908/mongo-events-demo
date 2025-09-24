@@ -300,6 +300,7 @@ Legend: P = priority (1 highest), E = estimate (ideal hours), L = labels
 
 **EVE-35** Timezone modernization and datetime.utcnow() deprecation
 - P:2  E:3h  L:quality,security,backend,refactoring
+- Status: ✅ COMPLETED
 - Desc: Systematically replace all instances of deprecated `datetime.utcnow()` with timezone-aware `datetime.now(timezone.utc)` throughout the codebase.
 - AC:
   - All `datetime.utcnow()` calls replaced with `datetime.now(timezone.utc)`
