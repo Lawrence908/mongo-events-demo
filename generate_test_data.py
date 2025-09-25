@@ -632,7 +632,7 @@ def generate_event(venue_id: str = None) -> Dict[str, Any]:
             "type": "Point",
             "coordinates": [lng, lat]
         },
-        "venue_id": ObjectId(venue_id) if venue_id else None,
+        "venueId": ObjectId(venue_id) if venue_id else None,
         "start_date": start_date,
         "end_date": end_date,
         "organizer": random.choice(ORGANIZERS),
@@ -774,8 +774,8 @@ def save_to_json(events: List[Dict[str, Any]], filename: str = "test_events.json
     for event in events:
         json_event = event.copy()
         json_event["_id"] = str(event["_id"])
-        if event.get("venue_id"):
-            json_event["venue_id"] = str(event["venue_id"])
+        if event.get("venueId"):
+            json_event["venueId"] = str(event["venueId"])
         json_event["start_date"] = event["start_date"].isoformat()
         json_event["end_date"] = event["end_date"].isoformat()
         json_event["created_at"] = event["created_at"].isoformat()
@@ -1139,7 +1139,7 @@ def main():
     print(f"\nEvents: {len(events)}")
     categories = {}
     free_events = sum(1 for event in events if event["is_free"])
-    events_with_venues = sum(1 for event in events if event["venue_id"] is not None)
+    events_with_venues = sum(1 for event in events if event["venueId"] is not None)
     
     for event in events:
         cat = event["category"]

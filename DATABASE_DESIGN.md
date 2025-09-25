@@ -33,11 +33,16 @@ This document outlines the comprehensive database design for the MongoDB Events 
     "type": "Point",         // Must be "Point"
     "coordinates": [longitude, latitude]  // [lng, lat] with bounds validation
   },
-  "venue_id": ObjectId,      // Reference to venues collection - OPTIONAL
+  "venueId": ObjectId,       // Reference to venues collection - OPTIONAL
   "start_date": Date,        // Event start time (indexed) - REQUIRED
   "end_date": Date,          // Event end time - OPTIONAL
   "organizer": String,       // Event organizer (indexed) - OPTIONAL
   "max_attendees": Number,   // Maximum attendees (indexed) - OPTIONAL
+  "current_attendees": Number, // Current number of attendees - OPTIONAL
+  "price": Number,           // Event price - OPTIONAL
+  "currency": String,        // Currency code (e.g., "USD") - OPTIONAL
+  "is_free": Boolean,        // Whether event is free - OPTIONAL
+  "status": String,          // Event status ("draft", "published", "cancelled", "completed") - OPTIONAL
   "tickets": [{              // Embedded subdocuments for performance - OPTIONAL
     "tier": String,          // "General", "VIP", "Early Bird" - REQUIRED
     "price": Number,         // Price >= 0 - REQUIRED
@@ -68,11 +73,13 @@ This document outlines the comprehensive database design for the MongoDB Events 
 {
   "_id": ObjectId,
   "name": String,            // Venue name - REQUIRED
+  "type": String,            // Venue type (e.g., "Conference Center", "Restaurant") - OPTIONAL
+  "description": String,     // Venue description - OPTIONAL
   "address": {               // Complete address - REQUIRED
     "street": String,        // Street address - REQUIRED
     "city": String,          // City - REQUIRED
     "state": String,         // State/Province - REQUIRED
-    "zip": String,           // ZIP/Postal code - REQUIRED
+    "zip_code": String,      // ZIP/Postal code - REQUIRED
     "country": String        // Country - REQUIRED
   },
   "location": {              // GeoJSON Point - REQUIRED
@@ -86,7 +93,20 @@ This document outlines the comprehensive database design for the MongoDB Events 
     "email": String,
     "website": String
   },
-  "created_at": Date         // Document creation time - REQUIRED
+  "pricing": {               // Venue pricing information - OPTIONAL
+    "hourly_rate": Number,
+    "daily_rate": Number,
+    "currency": String
+  },
+  "availability": {          // Venue availability schedule - OPTIONAL
+    "monday": {"open": String, "close": String},
+    "tuesday": {"open": String, "close": String},
+    // ... other days
+  },
+  "rating": Number,          // Venue rating (1-5) - OPTIONAL
+  "review_count": Number,    // Number of reviews - OPTIONAL
+  "created_at": Date,        // Document creation time - REQUIRED
+  "updated_at": Date         // Last update time - REQUIRED
 }
 ```
 
@@ -161,7 +181,7 @@ This document outlines the comprehensive database design for the MongoDB Events 
   - `address` in venues - always needed with venue info
 
 - **Referenced Documents** (for large or shared data):
-  - `venue_id` in events - venues shared across multiple events
+  - `venueId` in events - venues shared across multiple events
   - `user_id` in checkins - users referenced across many events
   - `event_id` in checkins - events referenced by many check-ins
 

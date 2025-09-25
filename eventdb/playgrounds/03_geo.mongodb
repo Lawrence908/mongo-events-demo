@@ -12,6 +12,9 @@ db.venues.createIndex({
 // 1a. Check if venues exist and what they look like
 db.venues.find().limit(3);
 
+// 1aa. Check if events exist and what they look like
+db.events.find().limit(3);
+
 // 1b. Check if venues have location data
 db.venues.find({}, {name: 1, location: 1}).limit(5);
 
@@ -417,7 +420,7 @@ db.venues.aggregate([
   { $unwind: "$events" },
   {
     $match: {
-      "events.datetime": { $gte: new Date() }
+      "events.start_date": { $gte: new Date() }
     }
   }
 ]);

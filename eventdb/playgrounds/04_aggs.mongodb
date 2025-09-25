@@ -4,6 +4,13 @@
 // Use the EventSphere database
 use('EventSphere');
 
+// 0. Diagnostic queries to check data structure
+db.events.findOne();
+db.events.find().limit(2);
+db.venues.find().limit(2);
+db.events.countDocuments({});
+db.venues.countDocuments({});
+
 // 1. Basic aggregation - count events by month
 db.events.aggregate([
   {
@@ -92,7 +99,7 @@ db.events.aggregate([
     }
   },
   {
-    $sort: { "datetime": 1 }
+    $sort: { "start_date": 1 }
   }
 ]);
 
@@ -108,7 +115,7 @@ db.events.aggregate([
             default: "500+",
             output: {
               count: { $sum: 1 },
-              avgSeats: { $avg: "$seatsAvailable" }
+              avgSeats: { $avg: "$max_attendees" }
             }
           }
         }
@@ -116,7 +123,7 @@ db.events.aggregate([
       "byMonth": [
         {
           $group: {
-            _id: { $month: "$datetime" },
+            _id: { $month: "$start_date" },
             count: { $sum: 1 },
             avgPrice: { $avg: "$price" }
           }
@@ -175,7 +182,7 @@ db.events.aggregate([
       _id: "$priceCategory",
       count: { $sum: 1 },
       avgPrice: { $avg: "$price" },
-      avgSeats: { $avg: "$seatsAvailable" }
+      avgSeats: { $avg: "$max_attendees" }
     }
   }
 ]);
@@ -184,8 +191,8 @@ db.events.aggregate([
 db.events.aggregate([
   {
     $addFields: {
-      dayOfWeek: { $dayOfWeek: "$datetime" },
-      hour: { $hour: "$datetime" }
+      dayOfWeek: { $dayOfWeek: "$start_date" },
+      hour: { $hour: "$start_date" }
     }
   },
   {
@@ -277,7 +284,7 @@ db.events.aggregate([
     $lookup: {
       from: "tickets",
       localField: "_id",
-      foreignField: "eventId",
+      foreignField: "event_id",
       as: "tickets"
     }
   },
@@ -295,8 +302,8 @@ db.events.aggregate([
   {
     $group: {
       _id: {
-        year: { $year: "$datetime" },
-        month: { $month: "$datetime" }
+        year: { $year: "$start_date" },
+        month: { $month: "$start_date" }
       },
       totalRevenue: { $sum: "$revenue" },
       totalTickets: { $sum: "$ticketCount" },
@@ -376,20 +383,20 @@ db.events.aggregate([
 db.events.aggregate([
   {
     $match: {
-      "datetime": { $gte: new Date("2024-01-01") }
+      "start_date": { $gte: new Date("2024-01-01") }
     }
   },
   {
-    $sort: { "datetime": 1 }
+    $sort: { "start_date": 1 }
   },
   {
     $group: {
       _id: {
-        year: { $year: "$datetime" },
-        month: { $month: "$datetime" }
+        year: { $year: "$start_date" },
+        month: { $month: "$start_date" }
       },
       count: { $sum: 1 },
-      totalSeats: { $sum: "$seatsAvailable" }
+      totalSeats: { $sum: "$max_attendees" }
     }
   },
   {
@@ -446,12 +453,12 @@ db.events.aggregate([
     $addFields: {
       isWeekend: {
         $in: [
-          { $dayOfWeek: "$datetime" },
+          { $dayOfWeek: "$start_date" },
           [1, 7] // Sunday and Saturday
         ]
       },
       isEvening: {
-        $gte: [{ $hour: "$datetime" }, 18]
+        $gte: [{ $hour: "$start_date" }, 18]
       }
     }
   },
@@ -463,7 +470,7 @@ db.events.aggregate([
       },
       count: { $sum: 1 },
       avgPrice: { $avg: "$price" },
-      avgSeats: { $avg: "$seatsAvailable" }
+      avgSeats: { $avg: "$max_attendees" }
     }
   }
 ]);
@@ -500,7 +507,7 @@ db.events.aggregate([
     $lookup: {
       from: "tickets",
       localField: "_id",
-      foreignField: "eventId",
+      foreignField: "event_id",
       as: "tickets"
     }
   },
@@ -510,7 +517,7 @@ db.events.aggregate([
       occupancyRate: {
         $divide: [
           { $size: "$tickets" },
-          "$seatsAvailable"
+          "$max_attendees"
         ]
       }
     }
@@ -541,17 +548,17 @@ db.events.aggregate([
     $group: {
       _id: {
         venueName: "$venue.name",
-        year: { $year: "$datetime" },
-        month: { $month: "$datetime" }
+        year: { $year: "$start_date" },
+        month: { $month: "$start_date" }
       },
       eventCount: { $sum: 1 },
-      totalSeats: { $sum: "$seatsAvailable" },
+      totalSeats: { $sum: "$max_attendees" },
       avgPrice: { $avg: "$price" },
       totalRevenue: {
         $sum: {
           $multiply: [
             { $ifNull: ["$price", 0] },
-            "$seatsAvailable"
+            "$max_attendees"
           ]
         }
       }
