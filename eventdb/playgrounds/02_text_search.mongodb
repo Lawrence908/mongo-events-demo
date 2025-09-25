@@ -16,6 +16,32 @@ db.events.find({
   $text: { $search: "music" }
 });
 
+// 2a. Try different search terms to find results
+db.events.find({
+  $text: { $search: "concert" }
+});
+
+// 2b. Search for any text content
+db.events.find({
+  $text: { $search: "event" }
+});
+
+// 2c. Let's see what data actually exists
+db.events.find().limit(3);
+
+// 2d. Check what titles exist
+db.events.find({}, {title: 1}).limit(5);
+
+// 2e. Try common event terms
+db.events.find({
+  $text: { $search: "party" }
+});
+
+// 2f. Try another common term
+db.events.find({
+  $text: { $search: "conference" }
+});
+
 // 3. Text search with score
 db.events.find(
   { $text: { $search: "music" } },

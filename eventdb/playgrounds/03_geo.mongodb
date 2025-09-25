@@ -9,6 +9,21 @@ db.venues.createIndex({
   "location": "2dsphere"
 });
 
+// 1a. Check if venues exist and what they look like
+db.venues.find().limit(3);
+
+// 1b. Check if venues have location data
+db.venues.find({}, {name: 1, location: 1}).limit(5);
+
+// 1c. Count venues with location data
+db.venues.countDocuments({location: {$exists: true}});
+
+// 1d. See what location coordinates exist
+db.venues.find(
+  {location: {$exists: true}}, 
+  {name: 1, location: 1}
+).limit(5);
+
 // 2. Find venues near a point
 db.venues.find({
   "location": {
@@ -17,7 +32,35 @@ db.venues.find({
         type: "Point",
         coordinates: [-74.0060, 40.7128] // New York City
       },
-      $maxDistance: 1000 // 1km in meters
+      $maxDistance: 100000 // 100km in meters (increased for testing)
+    }
+  }
+});
+
+// 2a. Find ALL venues with location data (no distance limit)
+db.venues.find({
+  "location": {
+    $near: {
+      $geometry: {
+        type: "Point",
+        coordinates: [-74.0060, 40.7128]
+      }
+    }
+  }
+});
+
+// 2b. If you have venues, try with their actual coordinates
+// First run query 1d to see what coordinates exist, then use those
+// Example: if you see coordinates like [-122.4194, 37.7749] (San Francisco)
+// Replace the coordinates below with actual ones from your data
+db.venues.find({
+  "location": {
+    $near: {
+      $geometry: {
+        type: "Point",
+        coordinates: [-122.4194, 37.7749] // San Francisco example
+      },
+      $maxDistance: 50000 // 50km
     }
   }
 });
@@ -86,16 +129,8 @@ db.venues.aggregate([
 ]);
 
 // 7. Find events near a location using aggregation
-db.events.aggregate([
-  {
-    $lookup: {
-      from: "venues",
-      localField: "venueId",
-      foreignField: "_id",
-      as: "venue"
-    }
-  },
-  { $unwind: "$venue" },
+// Note: $geoNear must be the first stage, so we need to restructure this query
+db.venues.aggregate([
   {
     $geoNear: {
       near: {
@@ -104,15 +139,23 @@ db.events.aggregate([
       },
       distanceField: "distanceMeters",
       spherical: true,
-      key: "venue.location",
       maxDistance: 5000 // 5km
     }
   },
   {
+    $lookup: {
+      from: "events",
+      localField: "_id",
+      foreignField: "venueId",
+      as: "events"
+    }
+  },
+  { $unwind: "$events" },
+  {
     $project: {
-      "title": 1,
-      "venue.name": 1,
-      "venue.address": 1,
+      "events.title": 1,
+      "name": 1,
+      "address": 1,
       "distanceMeters": 1
     }
   }
@@ -202,16 +245,8 @@ db.venues.aggregate([
 ]);
 
 // 12. Find events with distance-based sorting
-db.events.aggregate([
-  {
-    $lookup: {
-      from: "venues",
-      localField: "venueId",
-      foreignField: "_id",
-      as: "venue"
-    }
-  },
-  { $unwind: "$venue" },
+// Note: Restructured to put $geoNear first
+db.venues.aggregate([
   {
     $geoNear: {
       near: {
@@ -219,10 +254,18 @@ db.events.aggregate([
         coordinates: [-74.0060, 40.7128]
       },
       distanceField: "distanceMeters",
-      spherical: true,
-      key: "venue.location"
+      spherical: true
     }
   },
+  {
+    $lookup: {
+      from: "events",
+      localField: "_id",
+      foreignField: "venueId",
+      as: "events"
+    }
+  },
+  { $unwind: "$events" },
   {
     $sort: { "distanceMeters": 1 }
   },
@@ -277,16 +320,8 @@ db.venues.aggregate([
 ]);
 
 // 15. Find events with specific distance range
-db.events.aggregate([
-  {
-    $lookup: {
-      from: "venues",
-      localField: "venueId",
-      foreignField: "_id",
-      as: "venue"
-    }
-  },
-  { $unwind: "$venue" },
+// Note: Restructured to put $geoNear first
+db.venues.aggregate([
   {
     $geoNear: {
       near: {
@@ -295,24 +330,24 @@ db.events.aggregate([
       },
       distanceField: "distanceMeters",
       spherical: true,
-      key: "venue.location",
       minDistance: 1000, // 1km
       maxDistance: 5000  // 5km
     }
-  }
+  },
+  {
+    $lookup: {
+      from: "events",
+      localField: "_id",
+      foreignField: "venueId",
+      as: "events"
+    }
+  },
+  { $unwind: "$events" }
 ]);
 
 // 16. Calculate average distance to events
-db.events.aggregate([
-  {
-    $lookup: {
-      from: "venues",
-      localField: "venueId",
-      foreignField: "_id",
-      as: "venue"
-    }
-  },
-  { $unwind: "$venue" },
+// Note: Restructured to put $geoNear first
+db.venues.aggregate([
   {
     $geoNear: {
       near: {
@@ -320,10 +355,18 @@ db.events.aggregate([
         coordinates: [-74.0060, 40.7128]
       },
       distanceField: "distanceMeters",
-      spherical: true,
-      key: "venue.location"
+      spherical: true
     }
   },
+  {
+    $lookup: {
+      from: "events",
+      localField: "_id",
+      foreignField: "venueId",
+      as: "events"
+    }
+  },
+  { $unwind: "$events" },
   {
     $group: {
       _id: null,
@@ -349,21 +392,8 @@ db.venues.find({
 });
 
 // 18. Geospatial aggregation with date filtering
-db.events.aggregate([
-  {
-    $lookup: {
-      from: "venues",
-      localField: "venueId",
-      foreignField: "_id",
-      as: "venue"
-    }
-  },
-  { $unwind: "$venue" },
-  {
-    $match: {
-      "datetime": { $gte: new Date() }
-    }
-  },
+// Note: Restructured to put $geoNear first
+db.venues.aggregate([
   {
     $geoNear: {
       near: {
@@ -372,8 +402,21 @@ db.events.aggregate([
       },
       distanceField: "distanceMeters",
       spherical: true,
-      key: "venue.location",
       maxDistance: 10000 // 10km
+    }
+  },
+  {
+    $lookup: {
+      from: "events",
+      localField: "_id",
+      foreignField: "venueId",
+      as: "events"
+    }
+  },
+  { $unwind: "$events" },
+  {
+    $match: {
+      "events.datetime": { $gte: new Date() }
     }
   }
 ]);
@@ -405,21 +448,8 @@ db.venues.find({
 });
 
 // 20. Geospatial aggregation with text search
-db.events.aggregate([
-  {
-    $match: {
-      $text: { $search: "music" }
-    }
-  },
-  {
-    $lookup: {
-      from: "venues",
-      localField: "venueId",
-      foreignField: "_id",
-      as: "venue"
-    }
-  },
-  { $unwind: "$venue" },
+// Note: This approach uses $match first, then $geoNear on venues
+db.venues.aggregate([
   {
     $geoNear: {
       near: {
@@ -427,8 +457,21 @@ db.events.aggregate([
         coordinates: [-74.0060, 40.7128]
       },
       distanceField: "distanceMeters",
-      spherical: true,
-      key: "venue.location"
+      spherical: true
+    }
+  },
+  {
+    $lookup: {
+      from: "events",
+      localField: "_id",
+      foreignField: "venueId",
+      as: "events"
+    }
+  },
+  { $unwind: "$events" },
+  {
+    $match: {
+      "events.title": { $regex: "music", $options: "i" }
     }
   }
 ]);
