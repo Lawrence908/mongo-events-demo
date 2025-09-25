@@ -3,6 +3,11 @@
 Test Data Generator for MongoDB Events Demo
 Generates comprehensive test data including events, venues, users, checkins, and reviews
 Supports both JSON export and direct MongoDB seeding
+
+Usage:
+python generate_test_data.py --seed-db --clear-db --events 10000 --venues 500 --users 2000 --tickets 5000 # this will generate all the data and seed the database
+python generate_test_data.py --json-only # this will generate all the data and save it to json files
+
 """
 
 import random
@@ -642,6 +647,9 @@ def generate_event(venue_id: str = None) -> Dict[str, Any]:
         "updated_at": start_date - timedelta(days=random.randint(1, 30))
     }
     
+    # Generate embedded tickets for the event
+    event["tickets"] = generate_event_tickets(event)
+    
     return event
 
 def generate_events(count: int = 10000, venues: List[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
@@ -857,14 +865,57 @@ def save_checkins_to_json(checkins: List[Dict[str, Any]], filename: str = "test_
     
     print(f"Saved to {filename}")
 
-def generate_tickets(events: List[Dict[str, Any]], users: List[Dict[str, Any]], ticket_count: int = 5000) -> List[Dict[str, Any]]:
-    """Generate ticket data linking users to events"""
-    print(f"Generating {ticket_count} tickets...")
+def generate_event_tickets(event: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Generate embedded EventTickets (ticket types available for the event)"""
+    # Most events have 1-3 ticket tiers
+    num_tiers = random.choices([1, 2, 3], weights=[50, 35, 15])[0]
+    tickets = []
+    
+    base_price = event.get("price", 0)
+    
+    for i in range(num_tiers):
+        if num_tiers == 1:
+            tier_name = "General Admission"
+        elif i == 0:
+            tier_name = "Early Bird"
+        elif i == 1:
+            tier_name = "General Admission"
+        else:
+            tier_name = "VIP"
+        
+        # Calculate tier pricing
+        if base_price == 0:
+            tier_price = 0
+        else:
+            if tier_name == "Early Bird":
+                tier_price = max(0, base_price * 0.8)  # 20% discount
+            elif tier_name == "VIP":
+                tier_price = base_price * 1.5  # 50% premium
+            else:
+                tier_price = base_price
+        
+        # Generate availability and sold counts
+        max_available = random.randint(10, 200)
+        sold = random.randint(0, int(max_available * 0.8))  # Up to 80% sold
+        
+        ticket = {
+            "tier": tier_name,
+            "price": tier_price,
+            "available": max_available - sold,
+            "sold": sold
+        }
+        tickets.append(ticket)
+    
+    return tickets
+
+def generate_user_tickets(events: List[Dict[str, Any]], users: List[Dict[str, Any]], ticket_count: int = 5000) -> List[Dict[str, Any]]:
+    """Generate separate Ticket collection (actual user purchases)"""
+    print(f"Generating {ticket_count} user ticket purchases...")
     tickets = []
     
     for i in range(ticket_count):
         if (i + 1) % 500 == 0:
-            print(f"Generated {i + 1} tickets...")
+            print(f"Generated {i + 1} ticket purchases...")
         
         event = random.choice(events)
         user = random.choice(users)
@@ -884,7 +935,7 @@ def generate_tickets(events: List[Dict[str, Any]], users: List[Dict[str, Any]], 
                 ["active", "cancelled", "used"],
                 weights=[80, 10, 10]
             )[0],
-            "purchaseDate": event["start_date"] - timedelta(days=random.randint(1, 30)),
+            "purchasedAt": event["start_date"] - timedelta(days=random.randint(1, 30)),
             "created_at": datetime.now(timezone.utc) - timedelta(days=random.randint(1, 60))
         }
         tickets.append(ticket)
@@ -892,8 +943,8 @@ def generate_tickets(events: List[Dict[str, Any]], users: List[Dict[str, Any]], 
     return tickets
 
 def save_tickets_to_json(tickets: List[Dict[str, Any]], filename: str = "test_tickets.json"):
-    """Save tickets to JSON file"""
-    print(f"Saving {len(tickets)} tickets to {filename}...")
+    """Save user tickets to JSON file"""
+    print(f"Saving {len(tickets)} user tickets to {filename}...")
     
     # Convert datetime objects and ObjectIds to strings for JSON serialization
     json_tickets = []
@@ -902,7 +953,7 @@ def save_tickets_to_json(tickets: List[Dict[str, Any]], filename: str = "test_ti
         json_ticket["_id"] = str(ticket["_id"])
         json_ticket["eventId"] = str(ticket["eventId"])
         json_ticket["userId"] = str(ticket["userId"])
-        json_ticket["purchaseDate"] = ticket["purchaseDate"].isoformat()
+        json_ticket["purchasedAt"] = ticket["purchasedAt"].isoformat()
         json_ticket["created_at"] = ticket["created_at"].isoformat()
         json_tickets.append(json_ticket)
     
@@ -929,37 +980,63 @@ def seed_database(venues, users, events, tickets, checkins, reviews, clear_exist
             db.events.drop()
             db.venues.drop()
             db.users.drop()
-            db.tickets.drop()
             db.checkins.drop()
             db.reviews.drop()
+            # Clear tickets collection (user purchases)
+            db.tickets.drop()
             print("✓ Existing data cleared")
         
         # Insert data into MongoDB
         print("\nInserting data into MongoDB...")
         
-        print("Inserting venues...")
-        result = db.venues.insert_many(venues)
-        print(f"✓ Inserted {len(result.inserted_ids)} venues")
+        try:
+            print("Inserting venues...")
+            result = db.venues.insert_many(venues)
+            print(f"✓ Inserted {len(result.inserted_ids)} venues")
+        except Exception as e:
+            print(f"❌ Failed to insert venues: {e}")
+            raise
         
-        print("Inserting users...")
-        result = db.users.insert_many(users)
-        print(f"✓ Inserted {len(result.inserted_ids)} users")
+        try:
+            print("Inserting users...")
+            result = db.users.insert_many(users)
+            print(f"✓ Inserted {len(result.inserted_ids)} users")
+        except Exception as e:
+            print(f"❌ Failed to insert users: {e}")
+            raise
         
-        print("Inserting events...")
-        result = db.events.insert_many(events)
-        print(f"✓ Inserted {len(result.inserted_ids)} events")
+        try:
+            print("Inserting events...")
+            result = db.events.insert_many(events)
+            print(f"✓ Inserted {len(result.inserted_ids)} events")
+        except Exception as e:
+            print(f"❌ Failed to insert events: {e}")
+            print("This might be due to validation errors. Check your event schema.")
+            raise
         
-        print("Inserting tickets...")
-        result = db.tickets.insert_many(tickets)
-        print(f"✓ Inserted {len(result.inserted_ids)} tickets")
+        try:
+            print("Inserting user tickets...")
+            result = db.tickets.insert_many(tickets)
+            print(f"✓ Inserted {len(result.inserted_ids)} user tickets")
+        except Exception as e:
+            print(f"❌ Failed to insert user tickets: {e}")
+            raise
         
-        print("Inserting checkins...")
-        result = db.checkins.insert_many(checkins)
-        print(f"✓ Inserted {len(result.inserted_ids)} checkins")
+        try:
+            print("Inserting checkins...")
+            result = db.checkins.insert_many(checkins)
+            print(f"✓ Inserted {len(result.inserted_ids)} checkins")
+        except Exception as e:
+            print(f"❌ Failed to insert checkins: {e}")
+            raise
         
-        print("Inserting reviews...")
-        result = db.reviews.insert_many(reviews)
-        print(f"✓ Inserted {len(result.inserted_ids)} reviews")
+        try:
+            print("Inserting reviews...")
+            result = db.reviews.insert_many(reviews)
+            print(f"✓ Inserted {len(result.inserted_ids)} reviews")
+        except Exception as e:
+            print(f"❌ Failed to insert reviews: {e}")
+            raise
         
         print("\n✅ Database seeded successfully!")
         
@@ -987,7 +1064,7 @@ def main():
     parser.add_argument('--venues', type=int, default=500, help='Number of venues to generate')
     parser.add_argument('--users', type=int, default=2000, help='Number of users to generate')
     parser.add_argument('--events', type=int, default=10000, help='Number of events to generate')
-    parser.add_argument('--tickets', type=int, default=5000, help='Number of tickets to generate')
+    parser.add_argument('--tickets', type=int, default=5000, help='Number of user ticket purchases to generate')
     
     args = parser.parse_args()
     
@@ -1001,11 +1078,11 @@ def main():
     print(f"\n2. Generating {args.users} Users...")
     users = generate_users(args.users)
     
-    print(f"\n3. Generating {args.events} Events...")
+    print(f"\n3. Generating {args.events} Events (with embedded ticket types)...")
     events = generate_events(args.events, venues)
     
-    print(f"\n4. Generating {args.tickets} Tickets...")
-    tickets = generate_tickets(events, users, args.tickets)
+    print(f"\n4. Generating {args.tickets} User Ticket Purchases...")
+    tickets = generate_user_tickets(events, users, args.tickets)
     
     print("\n5. Generating Reviews...")
     reviews = generate_reviews(events, users, reviews_per_event=0.4)
@@ -1074,14 +1151,30 @@ def main():
     for cat, count in sorted(categories.items(), key=lambda x: x[1], reverse=True)[:5]:
         print(f"  {cat}: {count}")
     
-    # Ticket statistics
-    print(f"\nTickets: {len(tickets)}")
+    # EventTicket statistics (embedded in events)
+    total_event_tickets = sum(len(event.get("tickets", [])) for event in events)
+    print(f"\nEventTicket Types (embedded in events): {total_event_tickets}")
+    
+    # Count ticket tiers
+    ticket_tiers = {}
+    for event in events:
+        for ticket in event.get("tickets", []):
+            tier = ticket["tier"]
+            ticket_tiers[tier] = ticket_tiers.get(tier, 0) + 1
+    
+    print("EventTicket tier distribution:")
+    for tier, count in sorted(ticket_tiers.items(), key=lambda x: x[1], reverse=True):
+        percentage = (count / total_event_tickets) * 100 if total_event_tickets > 0 else 0
+        print(f"  {tier}: {count} ({percentage:.1f}%)")
+    
+    # User Ticket statistics (separate collection)
+    print(f"\nUser Ticket Purchases: {len(tickets)}")
     ticket_statuses = {}
     for ticket in tickets:
         status = ticket["status"]
         ticket_statuses[status] = ticket_statuses.get(status, 0) + 1
     
-    print("Ticket status distribution:")
+    print("User ticket status distribution:")
     for status, count in sorted(ticket_statuses.items(), key=lambda x: x[1], reverse=True):
         percentage = (count / len(tickets)) * 100
         print(f"  {status}: {count} ({percentage:.1f}%)")
@@ -1125,6 +1218,7 @@ def main():
         print("mongoimport --db events_demo --collection tickets --file test_tickets.json --jsonArray")
         print("mongoimport --db events_demo --collection reviews --file test_reviews.json --jsonArray")
         print("mongoimport --db events_demo --collection checkins --file test_checkins.json --jsonArray")
+        print("Note: Events contain embedded EventTickets (ticket types), tickets collection contains user purchases")
     
     print("\n✅ Test data generation complete!")
 

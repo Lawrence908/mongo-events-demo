@@ -152,6 +152,113 @@ mongo-events-demo/
 - **Caching Strategy**: Optimized data retrieval for map interactions
 - **Modular Architecture**: Clean separation of concerns for maintainability
 
+## Data Generation & Seeding
+
+### Comprehensive Test Data Generator
+
+The project includes a sophisticated test data generator (`generate_test_data.py`) that creates realistic sample data for development and testing.
+
+#### Features
+- **10,000+ Events**: Realistic events across major US cities with proper geospatial coordinates
+- **500+ Venues**: Diverse venues with capacity, amenities, and contact information
+- **2,000+ Users**: User profiles with preferences and location data
+- **5,000+ Tickets**: Ticket sales with realistic pricing and availability
+- **Reviews & Check-ins**: User feedback and attendance tracking
+- **JSON Export**: Export data for external use or backup
+- **Direct Database Seeding**: Populate MongoDB directly with generated data
+
+#### Usage Options
+
+**1. Generate JSON Files Only (Default)**
+```bash
+python generate_test_data.py --json-only
+```
+This creates:
+- `test_events.json` - 10,000 events with geospatial data
+- `test_venues.json` - 500 venues with location and capacity info
+- `test_users.json` - 2,000 user profiles
+- `test_tickets.json` - 5,000 ticket records
+- `test_checkins.json` - Check-in records for analytics
+- `test_reviews.json` - User reviews and ratings
+
+**2. Direct Database Seeding**
+```bash
+python generate_test_data.py --seed-db --clear-db
+```
+This will:
+- Clear existing data (optional with `--clear-db`)
+- Generate comprehensive test data
+- Insert directly into MongoDB
+- Provide seeding progress and statistics
+
+**3. Custom Data Volumes**
+```bash
+python generate_test_data.py --seed-db --events 5000 --venues 250 --users 1000
+```
+
+#### MongoDB Import Commands
+
+If you prefer to use `mongoimport` with the generated JSON files:
+
+```bash
+# Import events (ensure 2dsphere index exists first)
+mongoimport --db events_db --collection events --file test_events.json --jsonArray
+
+# Import venues
+mongoimport --db events_db --collection venues --file test_venues.json --jsonArray
+
+# Import users
+mongoimport --db events_db --collection users --file test_users.json --jsonArray
+
+# Import tickets
+mongoimport --db events_db --collection tickets --file test_tickets.json --jsonArray
+
+# Import checkins
+mongoimport --db events_db --collection checkins --file test_checkins.json --jsonArray
+
+# Import reviews
+mongoimport --db events_db --collection reviews --file test_reviews.json --jsonArray
+```
+
+#### Environment Setup
+
+Ensure your MongoDB connection is configured in `eventdb/config.py`:
+
+```python
+MONGODB_URI = "mongodb://localhost:27017"
+DB_NAME = "events_db"
+```
+
+#### Data Characteristics
+
+**Geographic Distribution**
+- Events distributed across 50+ major US cities
+- Realistic coordinate variations within city boundaries
+- Proper GeoJSON Point format for MongoDB 2dsphere indexes
+
+**Temporal Distribution**
+- Events spanning 3 months (1 month past, 2 months future)
+- Realistic time distributions (more events on weekends)
+- Proper timezone handling with UTC timestamps
+
+**Category Distribution**
+- 16 diverse event categories
+- Realistic category-to-title mappings
+- Balanced distribution across categories
+
+**User Engagement**
+- Realistic review patterns (40% of events have reviews)
+- Check-in data for analytics and attendance tracking
+- User preferences and location data
+
+#### Performance Testing
+
+The generated data is optimized for performance testing:
+- Large enough dataset (10k+ events) for meaningful benchmarks
+- Realistic geospatial distribution for proximity queries
+- Proper indexing requirements for optimal query performance
+- Analytics-ready data for aggregation testing
+
 ## Future Enhancements
 
 - User authentication and event ownership management
