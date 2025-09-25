@@ -1,8 +1,8 @@
 // MongoDB Playground - Transactions
 // This file demonstrates MongoDB transaction capabilities
 
-// Use the eventdb database
-use('eventdb');
+// Use the EventSphere database
+use('EventSphere');
 
 // Note: Transactions require a replica set or sharded cluster
 // These examples show the structure but may not work in a standalone MongoDB instance

@@ -16,7 +16,7 @@ This living document ties the project's architecture and implementation work dir
 ## 2) Data Model and Justification (Course Concepts)
 
 - **Document Model Rationale**: Events have heterogeneous attributes; embedding provides efficient reads; references used for shared entities (venues, users). Demonstrates schema flexibility vs. rigid relational schemas.
-- **Collections**: `events`, `venues`, `users`, `checkins`
+- **Collections**: `events`, `venues`, `users`, `checkins`, `reviews`, `tickets`
 - **Embedding vs Referencing**:
   - Embed: `tickets[]`, `attendees[]` (frequent co-access, small bounded growth)
   - Reference: `venue_id`, `user_id`, `event_id` (shared, potentially large fan-out)
@@ -116,7 +116,7 @@ Deliverables each milestone: code edits, metrics, explain snapshots, reflection 
 ## 11) How to Reproduce (Evaluator/TA Checklist)
 
 - Generate data: `python generate_test_data.py`
-- Import data: `mongoimport --db events_demo --collection events --file test_events.json --jsonArray`
+- Import data: `python generate_test_data.py --seed-db --clear-db` (or use mongoimport commands)
 - Run app: `python -m app` → visit `/realtime` and `/api/*`
 - Run benchmarks: `python test_performance.py`
 - Inspect design: `DATABASE_DESIGN.md` and this report

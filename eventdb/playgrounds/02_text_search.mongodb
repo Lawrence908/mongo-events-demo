@@ -1,8 +1,8 @@
 // MongoDB Playground - Text Search
 // This file demonstrates MongoDB text search capabilities
 
-// Use the eventdb database
-use('eventdb');
+// Use the EventSphere database
+use('EventSphere');
 
 // 1. Create text index (if not already created)
 db.events.createIndex({

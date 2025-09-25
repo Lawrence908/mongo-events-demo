@@ -1,8 +1,8 @@
 // MongoDB Playground - CRUD Operations
 // This file demonstrates basic CRUD operations on the events collection
 
-// Use the eventdb database
-use('eventdb');
+// Use the EventSphere database
+use('EventSphere');
 
 // 1. CREATE - Insert a new event
 db.events.insertOne({
@@ -10,9 +10,16 @@ db.events.insertOne({
   "title": "Tech Conference 2024",
   "description": "Annual technology conference featuring the latest innovations",
   "tags": ["tech", "conference", "innovation"],
-  "datetime": new Date("2024-06-15T09:00:00Z"),
+  "start_date": new Date("2024-06-15T09:00:00Z"),
+  "end_date": new Date("2024-06-15T17:00:00Z"),
   "price": 299.99,
-  "seatsAvailable": 500
+  "max_attendees": 500,
+  "current_attendees": 0,
+  "category": "Technology",
+  "organizer": "TechCorp Events",
+  "is_free": false,
+  "currency": "USD",
+  "status": "published"
 });
 
 // 2. READ - Find all events
@@ -21,8 +28,8 @@ db.events.find().limit(5);
 // 3. READ - Find events with specific criteria
 db.events.find({
   "price": { $lt: 100 },
-  "seatsAvailable": { $gt: 0 }
-}).sort({ "datetime": 1 });
+  "current_attendees": { $gt: 0 }
+}).sort({ "start_date": 1 });
 
 // 4. READ - Find events by tag
 db.events.find({
@@ -40,10 +47,10 @@ db.events.updateOne(
   }
 );
 
-// 6. UPDATE - Increment seats available
+// 6. UPDATE - Increment current attendees
 db.events.updateOne(
   { "title": "Tech Conference 2024" },
-  { $inc: { "seatsAvailable": 50 } }
+  { $inc: { "current_attendees": 50 } }
 );
 
 // 7. UPDATE - Add new tag to events
@@ -52,9 +59,9 @@ db.events.updateMany(
   { $addToSet: { "tags": "technology" } }
 );
 
-// 8. DELETE - Remove events with no seats
+// 8. DELETE - Remove events with no attendees
 db.events.deleteMany({
-  "seatsAvailable": 0
+  "current_attendees": 0
 });
 
 // 9. DELETE - Remove specific event
@@ -68,17 +75,17 @@ db.events.countDocuments();
 // 11. READ - Find with projection
 db.events.find(
   { "price": { $exists: true } },
-  { "title": 1, "price": 1, "datetime": 1, "_id": 0 }
+  { "title": 1, "price": 1, "start_date": 1, "_id": 0 }
 ).limit(5);
 
 // 12. READ - Find with sorting and limiting
 db.events.find()
-  .sort({ "datetime": -1 })
+  .sort({ "start_date": -1 })
   .limit(10);
 
 // 13. READ - Find events in date range
 db.events.find({
-  "datetime": {
+  "start_date": {
     $gte: new Date("2024-01-01"),
     $lt: new Date("2024-12-31")
   }
@@ -119,7 +126,7 @@ db.events.find({
 db.events.find({
   $and: [
     { "price": { $exists: true } },
-    { "seatsAvailable": { $gt: 10 } },
-    { "datetime": { $gte: new Date() } }
+    { "current_attendees": { $gt: 10 } },
+    { "start_date": { $gte: new Date() } }
   ]
-}).sort({ "datetime": 1 });
+}).sort({ "start_date": 1 });

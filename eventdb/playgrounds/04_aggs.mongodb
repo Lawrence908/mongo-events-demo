@@ -1,16 +1,16 @@
 // MongoDB Playground - Aggregations
 // This file demonstrates MongoDB aggregation pipeline capabilities
 
-// Use the eventdb database
-use('eventdb');
+// Use the EventSphere database
+use('EventSphere');
 
 // 1. Basic aggregation - count events by month
 db.events.aggregate([
   {
     $group: {
       _id: {
-        year: { $year: "$datetime" },
-        month: { $month: "$datetime" }
+        year: { $year: "$start_date" },
+        month: { $month: "$start_date" }
       },
       count: { $sum: 1 }
     }
@@ -36,7 +36,7 @@ db.events.aggregate([
       "title": 1,
       "venue.name": 1,
       "venue.address": 1,
-      "datetime": 1,
+      "start_date": 1,
       "price": 1
     }
   }
@@ -58,7 +58,7 @@ db.events.aggregate([
       _id: "$venue.name",
       eventCount: { $sum: 1 },
       avgPrice: { $avg: "$price" },
-      totalSeats: { $sum: "$seatsAvailable" }
+      totalSeats: { $sum: "$max_attendees" }
     }
   },
   {
@@ -70,7 +70,7 @@ db.events.aggregate([
 db.events.aggregate([
   {
     $match: {
-      "datetime": { $gte: new Date() }
+      "start_date": { $gte: new Date() }
     }
   },
   {
@@ -86,9 +86,9 @@ db.events.aggregate([
     $project: {
       "title": 1,
       "venue.name": 1,
-      "datetime": 1,
+      "start_date": 1,
       "price": 1,
-      "seatsAvailable": 1
+      "max_attendees": 1
     }
   },
   {
@@ -146,7 +146,7 @@ db.events.aggregate([
       _id: "$tags",
       count: { $sum: 1 },
       avgPrice: { $avg: "$price" },
-      totalSeats: { $sum: "$seatsAvailable" }
+      totalSeats: { $sum: "$max_attendees" }
     }
   },
   {
@@ -265,8 +265,8 @@ db.events.aggregate([
     $project: {
       "title": 1,
       "price": 1,
-      "datetime": 1,
-      "seatsAvailable": 1
+      "start_date": 1,
+      "max_attendees": 1
     }
   }
 ]);
@@ -432,7 +432,7 @@ db.events.aggregate([
       _id: "$venue.name",
       count: { $sum: 1 },
       avgPrice: { $avg: "$price" },
-      totalSeats: { $sum: "$seatsAvailable" }
+      totalSeats: { $sum: "$max_attendees" }
     }
   },
   {
@@ -520,7 +520,7 @@ db.events.aggregate([
       "title": 1,
       "venue.name": 1,
       "ticketCount": 1,
-      "seatsAvailable": 1,
+      "max_attendees": 1,
       "occupancyRate": 1
     }
   }

@@ -14,7 +14,7 @@
 ## 2) Data Model and Justification
 
 - **Document Model Rationale**: Events have heterogeneous attributes, embedding provides efficient reads, references used for shared entities (venues, users). Demonstrates schema flexibility vs. rigid relational schemas.
-- **Collections**: `events`, `venues`, `users`, `checkins`
+- **Collections**: `events`, `venues`, `users`, `checkins`, `reviews`, `tickets`
 - **Embedding vs Referencing**:
   - Embed: `tickets[]`, `attendees[]`
   - Reference: `venue_id`, `user_id`, `event_id` 

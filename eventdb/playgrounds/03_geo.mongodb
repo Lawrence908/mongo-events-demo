@@ -1,8 +1,8 @@
 // MongoDB Playground - Geospatial Queries
 // This file demonstrates MongoDB geospatial capabilities
 
-// Use the eventdb database
-use('eventdb');
+// Use the EventSphere database
+use('EventSphere');
 
 // 1. Create geospatial index (if not already created)
 db.venues.createIndex({
@@ -24,7 +24,8 @@ db.venues.find(
   {name: 1, location: 1}
 ).limit(5);
 
-// 2. Find venues near a point
+// 2. Find venues near a point (using actual coordinates from your data)
+// First, let's find venues near New York City
 db.venues.find({
   "location": {
     $near: {
@@ -32,10 +33,10 @@ db.venues.find({
         type: "Point",
         coordinates: [-74.0060, 40.7128] // New York City
       },
-      $maxDistance: 100000 // 100km in meters (increased for testing)
+      $maxDistance: 100000 // 100km in meters
     }
   }
-});
+}).limit(5);
 
 // 2a. Find ALL venues with location data (no distance limit)
 db.venues.find({
