@@ -29,31 +29,30 @@
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <button class="btn btn-primary w-100" @click="searchEvents()">
+                            <button class="btn btn-accent w-100" @click="searchEvents()">
                                 <span x-show="!loading">Search Events</span>
                                 <span x-show="loading" class="spinner-border spinner-border-sm me-2"></span>
                                 <span x-show="loading">Loading...</span>
                             </button>
                         </div>
-                        <div class="col-md-1">
-                            <button class="btn btn-outline-secondary w-100" @click="loadMockData()" title="Load Mock Data for Testing">
-                                🧪
-                            </button>
-                        </div>
                     </div>
                     
-                    <!-- Category Legend -->
+                    <!-- Category Filters -->
                     <div class="mt-3">
                         <h6 class="mb-2">Event Categories</h6>
                         <div class="d-flex flex-wrap gap-2">
-                            <span class="badge" style="background-color: #007bff">💻 Technology</span>
-                            <span class="badge" style="background-color: #e83e8c">🎵 Music</span>
-                            <span class="badge" style="background-color: #28a745">⚽ Sports</span>
-                            <span class="badge" style="background-color: #fd7e14">🍕 Food & Drink</span>
-                            <span class="badge" style="background-color: #6f42c1">🎨 Arts & Culture</span>
-                            <span class="badge" style="background-color: #6c757d">💼 Business</span>
-                            <span class="badge" style="background-color: #17a2b8">📚 Education</span>
-                            <span class="badge" style="background-color: #20c997">💪 Health & Wellness</span>
+                            <template x-for="category in allCategories" :key="category">
+                                <button type="button"
+                                        class="btn btn-sm"
+                                        :class="selectedCategories.includes(category) ? 'btn-accent' : 'btn-outline-accent'"
+                                        @click="toggleCategory(category)">
+                                    <span class="me-1" x-text="getCategoryEmoji(category)"></span>
+                                    <span x-text="category"></span>
+                                </button>
+                            </template>
+                            <button type="button" class="btn btn-sm btn-outline-accent" @click="clearCategories()">
+                                <i class="bi bi-x-circle me-1"></i>Clear
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -67,16 +66,16 @@
             </div>
             
             <!-- Search Results -->
-            <div class="mt-4" x-show="events.length > 0">
-                <h3>Found Events (<span x-text="events.length"></span>)</h3>
+            <div class="mt-4" x-show="filteredEvents().length > 0">
+                <h3>Found Events (<span x-text="filteredEvents().length"></span>)</h3>
                 <div class="row">
-                    <template x-for="event in events" :key="event.properties.id">
+                    <template x-for="event in filteredEvents()" :key="event.properties.id">
                         <div class="col-md-6 col-lg-4 mb-3">
                             <div class="card event-card h-100">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <h5 class="card-title mb-0" x-text="event.properties.title"></h5>
-                                        <span class="badge bg-secondary category-badge" x-text="event.properties.category"></span>
+                                        <span class="badge category-badge" :style="`background-color: ${getCategoryColor(event.properties.category)}`" x-text="event.properties.category"></span>
                                     </div>
                                     <p class="card-text text-muted small" x-text="event.properties.description"></p>
                                     <div class="small text-muted">
@@ -85,7 +84,7 @@
                                         <div><strong>Distance:</strong> <span x-text="event.properties.distance"></span>m</div>
                                     </div>
                                     <div class="mt-2">
-                                        <a :href="`/events/${event.properties.id}`" class="btn btn-sm btn-outline-primary">View Details</a>
+                                        <a :href="`/events/${event.properties.id}`" class="btn btn-sm btn-outline-accent">View Details</a>
                                     </div>
                                 </div>
                             </div>
@@ -111,6 +110,8 @@ function eventsMap() {
         markersLayer: null,
         searchCircle: null,
         events: [],
+        allCategories: ['Technology','Music','Sports','Food & Drink','Arts & Culture','Business','Education','Health & Wellness'],
+        selectedCategories: [],
         loading: false,
         searched: false,
         radius: 10,
@@ -163,9 +164,9 @@ function eventsMap() {
             
             this.searchCircle = L.circle([this.currentLat, this.currentLng], {
                 radius: this.radius * 1000, // Convert to meters
-                fillColor: 'blue',
+                fillColor: '#00ED64',
                 fillOpacity: 0.1,
-                color: 'blue',
+                color: '#00ED64',
                 weight: 2,
                 opacity: 0.8
             }).addTo(this.map);
@@ -188,81 +189,13 @@ function eventsMap() {
                 
                 if (response.ok) {
                     this.events = data.features || [];
-                    
-                    // If no real data, show mock data for testing
-                    if (this.events.length === 0) {
-                        this.events = this.generateMockEvents();
-                    }
-                    
                     this.displayEventMarkers();
                 } else {
                     console.error('Error fetching events:', data.error);
-                    // Show mock data on error for testing
-                    this.events = this.generateMockEvents();
-                    this.displayEventMarkers();
                 }
             } catch (error) {
                 console.error('Network error:', error);
-                // Show mock data on error for testing
-                this.events = this.generateMockEvents();
-                this.displayEventMarkers();
             }
-            
-            this.loading = false;
-        },
-        
-        generateMockEvents() {
-            // Generate mock events around the current location for testing
-            const mockEvents = [];
-            const categories = ['Technology', 'Music', 'Sports', 'Food & Drink', 'Arts & Culture', 'Business', 'Education', 'Health & Wellness'];
-            const titles = {
-                'Technology': ['Tech Meetup', 'AI Workshop', 'Blockchain Conference', 'DevOps Summit'],
-                'Music': ['Jazz Night', 'Rock Concert', 'Electronic Music Festival', 'Classical Performance'],
-                'Sports': ['Marathon Run', 'Basketball Tournament', 'Soccer Match', 'Tennis Championship'],
-                'Food & Drink': ['Wine Tasting', 'Cooking Class', 'Food Festival', 'Beer Brewing Workshop'],
-                'Arts & Culture': ['Art Exhibition', 'Museum Tour', 'Theater Performance', 'Poetry Reading'],
-                'Business': ['Networking Event', 'Conference', 'Workshop', 'Seminar'],
-                'Education': ['Lecture Series', 'Training Course', 'Workshop', 'Study Group'],
-                'Health & Wellness': ['Yoga Class', 'Fitness Workshop', 'Meditation Session', 'Health Seminar']
-            };
-            
-            for (let i = 0; i < 8; i++) {
-                const category = categories[i];
-                const title = titles[category][Math.floor(Math.random() * titles[category].length)];
-                
-                // Generate random coordinates within 10km of current location
-                const latOffset = (Math.random() - 0.5) * 0.1; // ~5km
-                const lngOffset = (Math.random() - 0.5) * 0.1; // ~5km
-                
-                const event = {
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [this.currentLng + lngOffset, this.currentLat + latOffset]
-                    },
-                    properties: {
-                        id: `mock-${i}`,
-                        title: title,
-                        description: `Mock event for testing map visualization. This is a ${category.toLowerCase()} event.`,
-                        category: category,
-                        start_date: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-                        organizer: `Mock Organizer ${i + 1}`,
-                        distance: Math.floor(Math.random() * 5000) + 100 // 100m to 5km
-                    }
-                };
-                
-                mockEvents.push(event);
-            }
-            
-            return mockEvents;
-        },
-        
-        loadMockData() {
-            this.loading = true;
-            this.searched = true;
-            
-            // Generate mock events
-            this.events = this.generateMockEvents();
-            this.displayEventMarkers();
             
             this.loading = false;
         },
@@ -270,7 +203,7 @@ function eventsMap() {
         displayEventMarkers() {
             this.markersLayer.clearLayers();
             
-            this.events.forEach(event => {
+            this.filteredEvents().forEach(event => {
                 const [lng, lat] = event.geometry.coordinates;
                 
                 // Create custom icon based on category
@@ -300,10 +233,31 @@ function eventsMap() {
             }
         },
         
+        filteredEvents() {
+            if (this.selectedCategories.length === 0) {
+                return this.events;
+            }
+            return this.events.filter(e => this.selectedCategories.includes(e.properties.category));
+        },
+        
+        toggleCategory(category) {
+            if (this.selectedCategories.includes(category)) {
+                this.selectedCategories = this.selectedCategories.filter(c => c !== category);
+            } else {
+                this.selectedCategories = [...this.selectedCategories, category];
+            }
+            this.displayEventMarkers();
+        },
+        
+        clearCategories() {
+            this.selectedCategories = [];
+            this.displayEventMarkers();
+        },
+        
         getCategoryIcon(category) {
             // Define category-specific icons and colors
             const categoryConfig = {
-                'Technology': { icon: '💻', color: '#007bff' },
+                'Technology': { icon: '💻', color: '#0d6efd' },
                 'Music': { icon: '🎵', color: '#e83e8c' },
                 'Sports': { icon: '⚽', color: '#28a745' },
                 'Food & Drink': { icon: '🍕', color: '#fd7e14' },
@@ -364,6 +318,20 @@ function eventsMap() {
                 'Networking': '#fd7e14'
             };
             return categoryConfig[category] || '#6c757d';
+        },
+        
+        getCategoryEmoji(category) {
+            const map = {
+                'Technology': '💻',
+                'Music': '🎵',
+                'Sports': '⚽',
+                'Food & Drink': '🍕',
+                'Arts & Culture': '🎨',
+                'Business': '💼',
+                'Education': '📚',
+                'Health & Wellness': '💪'
+            };
+            return map[category] || '📍';
         },
         
         formatDate(dateStr) {

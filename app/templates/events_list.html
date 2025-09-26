@@ -6,7 +6,7 @@
 <div x-data="eventsList()">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Events</h1>
-        <a href="{{ url_for('create_event') }}" class="btn btn-primary">
+        <a href="{{ url_for('create_event') }}" class="btn btn-accent">
             <i class="bi bi-plus"></i> Add Event
         </a>
     </div>
@@ -35,8 +35,8 @@
                         </select>
                     </div>
                     <div class="col-md-4 d-flex align-items-end">
-                        <button type="submit" class="btn btn-secondary me-2">Filter</button>
-                        <a href="{{ url_for('events_list') }}" class="btn btn-outline-secondary">Clear</a>
+                        <button type="submit" class="btn btn-accent me-2">Filter</button>
+                        <a href="{{ url_for('events_list') }}" class="btn btn-outline-accent">Clear</a>
                     </div>
                 </div>
             </form>
@@ -52,7 +52,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h5 class="card-title">{{ event.title }}</h5>
-                                <span class="badge bg-primary category-badge">{{ event.category }}</span>
+                                <span class="badge category-badge" style="background-color: var(--mdb-accent); color:#00150a;">{{ event.category }}</span>
                             </div>
                             
                             {% if event.description %}
@@ -94,10 +94,10 @@
                             
                             <div class="d-flex gap-2">
                                 <a href="{{ url_for('event_detail', event_id=event.id) }}" 
-                                   class="btn btn-sm btn-outline-primary flex-fill">
+                                   class="btn btn-sm btn-outline-accent flex-fill">
                                     View Details
                                 </a>
-                                <button class="btn btn-sm btn-outline-secondary" 
+                                <button class="btn btn-sm btn-outline-accent" 
                                         @click="showOnMap({{ event.location.coordinates[1] }}, {{ event.location.coordinates[0] }})">
                                     <i class="bi bi-map"></i>
                                 </button>
@@ -134,7 +134,7 @@
         <div class="text-center py-5">
             <h4 class="text-muted">No events found</h4>
             <p class="text-muted">Try adjusting your search criteria or create a new event.</p>
-            <a href="{{ url_for('create_event') }}" class="btn btn-primary">Create First Event</a>
+            <a href="{{ url_for('create_event') }}" class="btn btn-accent">Create First Event</a>
         </div>
     {% endif %}
 </div>
