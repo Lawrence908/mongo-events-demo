@@ -126,6 +126,7 @@ REVIEW_TAGS = [
 
 # Major cities with coordinates for realistic geospatial distribution
 CITIES = [
+    # US Cities
     {"name": "New York", "lat": 40.7128, "lng": -74.0060, "radius": 50},
     {"name": "Los Angeles", "lat": 34.0522, "lng": -118.2437, "radius": 60},
     {"name": "Chicago", "lat": 41.8781, "lng": -87.6298, "radius": 40},
@@ -145,7 +146,22 @@ CITIES = [
     {"name": "Indianapolis", "lat": 39.7684, "lng": -86.1581, "radius": 25},
     {"name": "Seattle", "lat": 47.6062, "lng": -122.3321, "radius": 30},
     {"name": "Denver", "lat": 39.7392, "lng": -104.9903, "radius": 35},
-    {"name": "Washington", "lat": 38.9072, "lng": -77.0369, "radius": 25}
+    {"name": "Washington", "lat": 38.9072, "lng": -77.0369, "radius": 25},
+    
+    # Canadian Cities
+    {"name": "Vancouver", "lat": 49.1655, "lng": -123.9393, "radius": 10},
+    {"name": "Nanaimo", "lat": 49.0831, "lng": -123.9351, "radius": 10},
+    {"name": "Duncan", "lat": 48.7777, "lng": -123.7118, "radius": 10},
+    {"name": "Victoria", "lat": 48.4284, "lng": -123.3656, "radius": 10},
+    {"name": "Toronto", "lat": 43.6532, "lng": -79.3832, "radius": 40},
+    {"name": "Montreal", "lat": 45.5017, "lng": -73.5673, "radius": 35},
+    {"name": "Calgary", "lat": 51.0447, "lng": -114.0719, "radius": 30},
+    {"name": "Ottawa", "lat": 45.4215, "lng": -75.6972, "radius": 25},
+    {"name": "Edmonton", "lat": 53.5461, "lng": -113.4938, "radius": 30},
+    {"name": "Winnipeg", "lat": 49.8951, "lng": -97.1384, "radius": 25},
+    {"name": "Quebec City", "lat": 46.8139, "lng": -71.2080, "radius": 20},
+    {"name": "Hamilton", "lat": 43.2557, "lng": -79.8711, "radius": 20},
+    {"name": "Kitchener", "lat": 43.4501, "lng": -80.4829, "radius": 15}
 ]
 
 # Venue data for realistic venue generation
@@ -315,8 +331,22 @@ def poisson_approximation(lam: float) -> int:
         p *= random.random()
     return max(0, k - 1)
 
+# Specific coordinates to ensure some events appear at exact locations
+SPECIFIC_COORDINATES = [
+    {"lat": 49.1655111990514, "lng": -123.93925511567, "name": "Vancouver Specific Location"},
+    {"lat": 43.6532, "lng": -79.3832, "name": "Toronto Downtown"},
+    {"lat": 40.7128, "lng": -74.0060, "name": "New York City Center"},
+    {"lat": 37.7749, "lng": -122.4194, "name": "San Francisco Downtown"},
+    {"lat": 47.6062, "lng": -122.3321, "name": "Seattle Downtown"}
+]
+
 def generate_random_coordinates(city: Dict[str, Any]) -> tuple[float, float]:
     """Generate random coordinates within a city's radius"""
+    # 20% chance to use exact coordinates for better test data coverage
+    if random.random() < 0.2:
+        specific_coord = random.choice(SPECIFIC_COORDINATES)
+        return specific_coord["lng"], specific_coord["lat"]
+    
     # Convert radius from km to degrees (approximate)
     lat_radius = city["radius"] / 111.0  # 1 degree latitude ≈ 111 km
     lng_radius = city["radius"] / (111.0 * math.cos(math.radians(city["lat"])))
@@ -498,7 +528,7 @@ def generate_users(count: int = 2000) -> List[Dict[str, Any]]:
     
     return users
 
-def generate_checkin(user_id: str, event_id: str, event_start: datetime, event_end: datetime) -> Dict[str, Any]:
+def generate_checkin(user_id: str, event_id: str, event_start: datetime, event_end: datetime, event_location: Dict[str, Any] = None) -> Dict[str, Any]:
     """Generate a single check-in with realistic data"""
     # Check-in time is typically around event start time
     checkin_time = event_start + timedelta(minutes=random.randint(-30, 60))
@@ -513,9 +543,18 @@ def generate_checkin(user_id: str, event_id: str, event_start: datetime, event_e
     else:
         status = "completed"
     
-    # Generate location (slightly offset from event location for realism)
-    offset_lat = random.uniform(-0.001, 0.001)
-    offset_lng = random.uniform(-0.001, 0.001)
+    # Generate location based on event location (slightly offset for realism)
+    if event_location and "coordinates" in event_location:
+        event_lng, event_lat = event_location["coordinates"]
+        # Small offset for realism (within ~100m)
+        offset_lat = random.uniform(-0.001, 0.001)
+        offset_lng = random.uniform(-0.001, 0.001)
+        checkin_lng = event_lng + offset_lng
+        checkin_lat = event_lat + offset_lat
+    else:
+        # Fallback to random coordinates if no event location
+        checkin_lng = random.uniform(-180, 180)
+        checkin_lat = random.uniform(-90, 90)
     
     checkin = {
         "user_id": ObjectId(user_id),
@@ -524,7 +563,7 @@ def generate_checkin(user_id: str, event_id: str, event_start: datetime, event_e
         "checkin_time": checkin_time,
         "location": {
             "type": "Point",
-            "coordinates": [offset_lng, offset_lat]  # Will be updated with actual event location
+            "coordinates": [checkin_lng, checkin_lat]
         },
         "notes": random.choice([
             "Great event so far!",
@@ -564,7 +603,8 @@ def generate_checkins(users: List[Dict[str, Any]], events: List[Dict[str, Any]],
                 user["_id"],  # Use actual user _id
                 event["_id"],  # Use actual event _id
                 event["start_date"],
-                event["end_date"]
+                event["end_date"],
+                event.get("location")  # Pass event location
             )
             # Add _id for MongoDB compatibility
             checkin["_id"] = ObjectId()
@@ -657,6 +697,9 @@ def generate_events(count: int = 10000, venues: List[Dict[str, Any]] = None) -> 
     print(f"Generating {count} events...")
     events = []
     
+    # Ensure some events are created at specific coordinates
+    specific_events_count = min(50, count // 20)  # 5% of events or max 50
+    
     for i in range(count):
         if (i + 1) % 1000 == 0:
             print(f"Generated {i + 1} events...")
@@ -668,6 +711,17 @@ def generate_events(count: int = 10000, venues: List[Dict[str, Any]] = None) -> 
             venue_id = venue["_id"]  # Use actual venue _id
         
         event = generate_event(venue_id)
+        
+        # For the first few events, ensure they're at specific coordinates
+        if i < specific_events_count:
+            specific_coord = SPECIFIC_COORDINATES[i % len(SPECIFIC_COORDINATES)]
+            event["location"] = {
+                "type": "Point",
+                "coordinates": [specific_coord["lng"], specific_coord["lat"]]
+            }
+            # Update event title to indicate it's at a specific location
+            event["title"] = f"{event['title']} - {specific_coord['name']}"
+        
         # Add _id for MongoDB compatibility
         event["_id"] = ObjectId()
         events.append(event)
