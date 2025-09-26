@@ -50,6 +50,16 @@ body {
     font-weight: 600;
 }
 
+/* Ensure anchor-based buttons render with dark text by default */
+.btn-accent:link,
+.btn-accent:visited {
+    color: #00150a;
+}
+.btn-accent:hover,
+.btn-accent:focus {
+    color: #ffffff;
+}
+
 .btn-outline-accent {
     --bs-btn-color: var(--mdb-accent);
     --bs-btn-border-color: rgba(0, 237, 100, 0.35);
