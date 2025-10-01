@@ -1,1 +1,0 @@
-# MongoDB Events Demo Package
