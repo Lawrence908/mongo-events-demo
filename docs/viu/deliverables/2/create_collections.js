@@ -10,6 +10,8 @@ db.createCollection("events", {
         "category",
         "location",
         "start_date",
+        "event_type",
+        "schemaVersion",
         "created_at",
         "updated_at"
       ],
@@ -17,6 +19,8 @@ db.createCollection("events", {
         title: { bsonType: "string", minLength: 1, maxLength: 200 },
         description: { bsonType: ["string", "null"] },
         category: { bsonType: "string", minLength: 1 },
+        event_type: { bsonType: "string", enum: ["in_person", "virtual", "hybrid", "recurring"] },
+        schemaVersion: { bsonType: "string", enum: ["1.0"] },
         location: {
           bsonType: "object",
           required: ["type", "coordinates"],
@@ -31,6 +35,15 @@ db.createCollection("events", {
           }
         },
         venueId: { bsonType: ["objectId", "null"] },
+        venue_reference: {
+          bsonType: ["object", "null"],
+          properties: {
+            name: { bsonType: ["string", "null"] },
+            city: { bsonType: ["string", "null"] },
+            capacity: { bsonType: ["int", "long", "null"], minimum: 0 },
+            venue_type: { bsonType: ["string", "null"] }
+          }
+        },
         start_date: { bsonType: "date" },
         end_date: { bsonType: ["date", "null"] },
         organizer: { bsonType: ["string", "null"] },
@@ -66,13 +79,38 @@ db.createCollection("events", {
           }
         },
         tags: { bsonType: ["array", "null"], items: { bsonType: "string" } },
+        // Polymorphic event-specific fields
+        virtual_details: {
+          bsonType: ["object", "null"],
+          properties: {
+            platform: { bsonType: ["string", "null"] },
+            meeting_url: { bsonType: ["string", "null"] },
+            recording_available: { bsonType: ["bool", "null"] },
+            timezone: { bsonType: ["string", "null"] }
+          }
+        },
+        recurring_details: {
+          bsonType: ["object", "null"],
+          properties: {
+            frequency: { bsonType: ["string", "null"], enum: ["daily", "weekly", "monthly", "yearly", null] },
+            end_recurrence: { bsonType: ["date", "null"] },
+            exceptions: { bsonType: ["array", "null"], items: { bsonType: "date" } }
+          }
+        },
+        hybrid_details: {
+          bsonType: ["object", "null"],
+          properties: {
+            virtual_capacity: { bsonType: ["int", "long", "null"], minimum: 0 },
+            in_person_capacity: { bsonType: ["int", "long", "null"], minimum: 0 },
+            virtual_meeting_url: { bsonType: ["string", "null"] }
+          }
+        },
         metadata: {
           bsonType: ["object", "null"],
           properties: {
-            virtual: { bsonType: ["bool", "null"] },
-            recurring: { bsonType: ["bool", "null"] },
             age_restriction: { bsonType: ["string", "null"] },
-            dress_code: { bsonType: ["string", "null"] }
+            dress_code: { bsonType: ["string", "null"] },
+            accessibility_features: { bsonType: ["array", "null"], items: { bsonType: "string" } }
           }
         },
         created_at: { bsonType: "date" },
@@ -87,9 +125,11 @@ db.createCollection("venues", {
   validator: {
     $jsonSchema: {
       bsonType: "object",
-      required: ["name", "address", "location", "created_at", "updated_at"],
+      required: ["name", "address", "location", "venue_type", "schemaVersion", "created_at", "updated_at"],
       properties: {
         name: { bsonType: "string", minLength: 1 },
+        venue_type: { bsonType: "string", enum: ["conference_center", "park", "restaurant", "virtual_space", "stadium", "theater"] },
+        schemaVersion: { bsonType: "string", enum: ["1.0"] },
         type: { bsonType: ["string", "null"] },
         description: { bsonType: ["string", "null"] },
         address: {
@@ -127,6 +167,31 @@ db.createCollection("venues", {
           properties: { hourly_rate: { bsonType: ["double", "int", "long", "null"], minimum: 0 }, daily_rate: { bsonType: ["double", "int", "long", "null"], minimum: 0 }, currency: { bsonType: ["string", "null"] } }
         },
         availability: { bsonType: ["object", "null"] },
+        // Polymorphic venue-specific fields
+        conference_center_details: {
+          bsonType: ["object", "null"],
+          properties: {
+            breakout_rooms: { bsonType: ["int", "long", "null"], minimum: 0 },
+            a_v_equipment: { bsonType: ["array", "null"], items: { bsonType: "string" } },
+            catering_available: { bsonType: ["bool", "null"] }
+          }
+        },
+        park_details: {
+          bsonType: ["object", "null"],
+          properties: {
+            outdoor_space: { bsonType: ["bool", "null"] },
+            parking_spaces: { bsonType: ["int", "long", "null"], minimum: 0 },
+            restroom_facilities: { bsonType: ["bool", "null"] }
+          }
+        },
+        virtual_space_details: {
+          bsonType: ["object", "null"],
+          properties: {
+            platform: { bsonType: ["string", "null"] },
+            max_concurrent_users: { bsonType: ["int", "long", "null"], minimum: 0 },
+            recording_capability: { bsonType: ["bool", "null"] }
+          }
+        },
         rating: { bsonType: ["double", "int", "long", "null"], minimum: 0, maximum: 5 },
         review_count: { bsonType: ["int", "long", "null"], minimum: 0 },
         created_at: { bsonType: "date" },
@@ -141,9 +206,10 @@ db.createCollection("users", {
   validator: {
     $jsonSchema: {
       bsonType: "object",
-      required: ["email", "profile", "created_at"],
+      required: ["email", "profile", "schemaVersion", "created_at"],
       properties: {
         email: { bsonType: "string", minLength: 3 },
+        schemaVersion: { bsonType: "string", enum: ["1.0"] },
         profile: {
           bsonType: "object",
           required: ["first_name", "last_name"],
@@ -178,13 +244,14 @@ db.createCollection("checkins", {
   validator: {
     $jsonSchema: {
       bsonType: "object",
-      required: ["event_id", "user_id", "venue_id", "check_in_time", "qr_code", "created_at"],
+      required: ["event_id", "user_id", "venue_id", "check_in_time", "qr_code", "schemaVersion", "created_at"],
       properties: {
         event_id: { bsonType: "objectId" },
         user_id: { bsonType: "objectId" },
         venue_id: { bsonType: "objectId" },
         check_in_time: { bsonType: "date" },
         qr_code: { bsonType: "string", minLength: 3 },
+        schemaVersion: { bsonType: "string", enum: ["1.0"] },
         ticket_tier: { bsonType: ["string", "null"] },
         check_in_method: { bsonType: ["string", "null"], enum: ["qr_code", "manual", "mobile_app", null] },
         location: {
@@ -206,12 +273,13 @@ db.createCollection("reviews", {
   validator: {
     $jsonSchema: {
       bsonType: "object",
-      required: ["user_id", "rating", "created_at"],
+      required: ["user_id", "rating", "schemaVersion", "created_at"],
       properties: {
         event_id: { bsonType: ["objectId", "null"] },
         venue_id: { bsonType: ["objectId", "null"] },
         user_id: { bsonType: "objectId" },
         rating: { bsonType: ["int", "long"], minimum: 1, maximum: 5 },
+        schemaVersion: { bsonType: "string", enum: ["1.0"] },
         comment: { bsonType: ["string", "null"] },
         created_at: { bsonType: "date" },
         updated_at: { bsonType: ["date", "null"] }
