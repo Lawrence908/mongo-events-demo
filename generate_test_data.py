@@ -19,8 +19,8 @@ from typing import List, Dict, Any, Optional
 import math
 from bson import ObjectId
 
-# Add eventdb directory to path for config import
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'eventdb'))
+# Add app directory to path for config import
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 
 try:
     from config import Config
@@ -164,8 +164,13 @@ CITIES = [
     {"name": "Kitchener", "lat": 43.4501, "lng": -80.4829, "radius": 15}
 ]
 
-# Venue data for realistic venue generation
+# Venue data for realistic venue generation - Updated for polymorphic schema
 VENUE_TYPES = [
+    "conference_center", "park", "restaurant", "virtual_space", "stadium", "theater"
+]
+
+# Legacy venue types for backward compatibility
+LEGACY_VENUE_TYPES = [
     "Conference Center", "Convention Center", "Hotel Ballroom", "Community Center",
     "University Auditorium", "Museum", "Gallery", "Theater", "Concert Hall",
     "Sports Arena", "Stadium", "Gymnasium", "Park", "Outdoor Venue",
@@ -173,7 +178,35 @@ VENUE_TYPES = [
     "Warehouse", "Studio", "Church", "Temple", "School", "Campus"
 ]
 
+# Event types for polymorphic schema
+EVENT_TYPES = ["in_person", "virtual", "hybrid", "recurring"]
+
 VENUE_NAMES = {
+    "conference_center": [
+        "Grand Conference Center", "Metro Convention Hall", "Business Center Plaza",
+        "Professional Development Center", "Executive Conference Center"
+    ],
+    "park": [
+        "Central Park", "City Park", "Memorial Park", "Riverside Park",
+        "Community Park", "Recreation Park"
+    ],
+    "restaurant": [
+        "Fine Dining Restaurant", "Bistro", "Cafe", "Steakhouse", "Italian Restaurant",
+        "Asian Fusion", "Mediterranean Restaurant", "Farm-to-Table Restaurant"
+    ],
+    "virtual_space": [
+        "Virtual Conference Center", "Online Meeting Space", "Digital Venue",
+        "Virtual Event Platform", "Remote Gathering Space"
+    ],
+    "stadium": [
+        "Sports Stadium", "Arena", "Athletic Complex", "Sports Center",
+        "Multi-Purpose Stadium", "Convention Stadium"
+    ],
+    "theater": [
+        "Community Theater", "Regional Theater", "Performing Arts Center",
+        "Drama Theater", "Black Box Theater", "Historic Theater"
+    ],
+    # Legacy support
     "Conference Center": [
         "Grand Conference Center", "Metro Convention Hall", "Business Center Plaza",
         "Professional Development Center", "Executive Conference Center"
@@ -240,6 +273,14 @@ VENUE_AMENITIES = [
 ]
 
 VENUE_CAPACITIES = {
+    # New polymorphic types
+    "conference_center": (50, 2000),
+    "park": (50, 5000),
+    "restaurant": (10, 100),
+    "virtual_space": (10, 10000),
+    "stadium": (1000, 100000),
+    "theater": (50, 800),
+    # Legacy types for backward compatibility
     "Conference Center": (50, 2000),
     "Convention Center": (200, 10000),
     "Hotel Ballroom": (20, 500),
@@ -357,7 +398,7 @@ def generate_random_coordinates(city: Dict[str, Any]) -> tuple[float, float]:
     return lng, lat  # MongoDB expects [longitude, latitude]
 
 def generate_venue() -> Dict[str, Any]:
-    """Generate a single venue with realistic data"""
+    """Generate a single venue with realistic data using polymorphic schema"""
     venue_type = random.choice(VENUE_TYPES)
     city = random.choice(CITIES)
     lng, lat = generate_random_coordinates(city)
@@ -366,7 +407,7 @@ def generate_venue() -> Dict[str, Any]:
     if venue_type in VENUE_NAMES:
         base_name = random.choice(VENUE_NAMES[venue_type])
     else:
-        base_name = f"{venue_type}"
+        base_name = f"{venue_type.replace('_', ' ').title()}"
     
     # Add city name to venue
     venue_name = f"{base_name} - {city['name']}"
@@ -395,8 +436,10 @@ def generate_venue() -> Dict[str, Any]:
     
     venue = {
         "name": venue_name,
-        "type": venue_type,
-        "description": f"A {venue_type.lower()} located in {city['name']}, perfect for various events and gatherings.",
+        "venue_type": venue_type,  # Polymorphic discriminator
+        "schemaVersion": "1.0",    # Schema versioning
+        "type": venue_type.replace('_', ' ').title(),  # Legacy type field
+        "description": f"A {venue_type.replace('_', ' ')} located in {city['name']}, perfect for various events and gatherings.",
         "location": {
             "type": "Point",
             "coordinates": [lng, lat]
@@ -433,6 +476,46 @@ def generate_venue() -> Dict[str, Any]:
         "review_count": random.randint(0, 200),
         "created_at": datetime.now(timezone.utc) - timedelta(days=random.randint(30, 365)),
         "updated_at": datetime.now(timezone.utc) - timedelta(days=random.randint(1, 30))
+    }
+    
+    # Add polymorphic type-specific details
+    if venue_type == "conference_center":
+        venue["conference_center_details"] = {
+            "breakout_rooms": random.randint(2, 12),
+            "a_v_equipment": random.sample(["Projectors", "Microphones", "Video Conferencing", "Whiteboards", "Sound System"], random.randint(2, 4)),
+            "catering_available": random.choice([True, False])
+        }
+    elif venue_type == "park":
+        venue["park_details"] = {
+            "outdoor_space": True,
+            "parking_spaces": random.randint(50, 500),
+            "restroom_facilities": random.choice([True, False])
+        }
+    elif venue_type == "virtual_space":
+        venue["virtual_space_details"] = {
+            "platform": random.choice(["Zoom", "Teams", "WebEx", "Custom Platform"]),
+            "max_concurrent_users": random.randint(100, 10000),
+            "recording_capability": random.choice([True, False])
+        }
+    
+    # Add computed stats (Computed Pattern)
+    total_events_hosted = random.randint(0, 100)
+    # Fix: Ensure average_attendance is always valid
+    if capacity and capacity > 20:
+        average_attendance = random.randint(20, capacity)
+    elif capacity and capacity <= 20:
+        average_attendance = random.randint(1, capacity)  # Use full capacity range for small venues
+    else:
+        average_attendance = random.randint(20, 200)  # Default range when no capacity
+    revenue_generated = random.randint(5000, 50000)
+    last_event_date = datetime.now(timezone.utc) - timedelta(days=random.randint(1, 90))
+    
+    venue["computed_stats"] = {
+        "total_events_hosted": total_events_hosted,
+        "average_attendance": average_attendance,
+        "revenue_generated": revenue_generated,
+        "last_event_date": last_event_date,
+        "last_updated": datetime.now(timezone.utc)
     }
     
     return venue
@@ -473,42 +556,23 @@ def generate_user() -> Dict[str, Any]:
     join_date = datetime.now(timezone.utc) - timedelta(days=random.randint(1, 730))
     
     user = {
-        "first_name": first_name,
-        "last_name": last_name,
         "email": email,
-        "username": f"{first_name.lower()}{last_name.lower()}{random.randint(10, 99)}",
-        "age": age,
-        "occupation": random.choice(USER_OCCUPATIONS),
-        "interests": user_interests,
-        "location": {
-            "type": "Point",
-            "coordinates": [lng, lat]
+        "schemaVersion": "1.0",  # Schema versioning
+        "profile": {
+            "first_name": first_name,
+            "last_name": last_name,
+            "preferences": {
+                "categories": user_interests[:5],  # Top 5 interests as preferred event types
+                "location": {
+                    "type": "Point",
+                    "coordinates": [lng, lat]
+                },
+                "radius_km": random.randint(5, 50)
+            }
         },
-        "city": city["name"],
-        "bio": f"Hi! I'm {first_name}, a {random.choice(USER_OCCUPATIONS).lower()} interested in {', '.join(random.sample(user_interests, min(3, len(user_interests))))}.",
-        "profile_picture": f"https://api.dicebear.com/7.x/avataaars/svg?seed={first_name}{last_name}",
-        "preferences": {
-            "notifications": {
-                "email": random.choice([True, False]),
-                "push": random.choice([True, False]),
-                "sms": random.choice([True, False])
-            },
-            "privacy": {
-                "profile_visibility": random.choice(["public", "friends", "private"]),
-                "location_sharing": random.choice([True, False])
-            },
-            "event_types": user_interests[:5]  # Top 5 interests as preferred event types
-        },
-        "stats": {
-            "events_attended": random.randint(0, 50),
-            "events_organized": random.randint(0, 10),
-            "reviews_written": random.randint(0, 30),
-            "friends_count": random.randint(0, 200)
-        },
-        "is_verified": random.random() < 0.1,  # 10% verified users
-        "is_active": random.random() < 0.8,  # 80% active users
         "created_at": join_date,
-        "updated_at": join_date + timedelta(days=random.randint(1, 30))
+        "updated_at": join_date,  # Initially same as created_at
+        "last_login": join_date + timedelta(days=random.randint(1, 30)) if random.random() < 0.8 else None
     }
     
     return user
@@ -557,28 +621,25 @@ def generate_checkin(user_id: str, event_id: str, event_start: datetime, event_e
         checkin_lat = random.uniform(-90, 90)
     
     checkin = {
-        "user_id": ObjectId(user_id),
         "event_id": ObjectId(event_id),
-        "status": status,
+        "user_id": ObjectId(user_id),
+        "venue_id": ObjectId(),  # Placeholder - would need actual venue_id
         "checkin_time": checkin_time,
+        "qr_code": f"QR-{random.randint(100000, 999999)}",
+        "schemaVersion": "1.0",  # Schema versioning
+        "ticket_tier": random.choice(["General Admission", "VIP", "Early Bird"]) if random.random() < 0.7 else None,
+        "check_in_method": random.choice(["qr_code", "manual", "mobile_app"]),
         "location": {
             "type": "Point",
             "coordinates": [checkin_lng, checkin_lat]
         },
-        "notes": random.choice([
-            "Great event so far!",
-            "Having a wonderful time",
-            "Amazing speakers",
-            "Good networking opportunities",
-            "Excellent venue",
-            "Love the atmosphere",
-            "Great food and drinks",
-            "Met some interesting people",
-            None, None, None  # 30% chance of no notes
-        ]),
-        "rating": random.randint(1, 5) if random.random() < 0.3 else None,  # 30% have ratings
+        "metadata": {
+            "device_info": random.choice(["iPhone", "Android", "Web Browser", "Tablet"]) if random.random() < 0.8 else None,
+            "ip_address": f"{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}" if random.random() < 0.5 else None,
+            "staff_verified": random.choice([True, False])
+        },
         "created_at": checkin_time,
-        "updated_at": checkin_time
+        "updated_at": checkin_time  # Initially same as created_at
     }
     
     return checkin
@@ -628,9 +689,10 @@ def generate_event_times() -> tuple[datetime, datetime]:
     
     return start_date, end_date
 
-def generate_event(venue_id: str = None) -> Dict[str, Any]:
-    """Generate a single event with realistic data"""
+def generate_event(venue_id: str = None, venue_data: Dict[str, Any] = None) -> Dict[str, Any]:
+    """Generate a single event with realistic data using polymorphic schema"""
     category = random.choice(CATEGORIES)
+    event_type = random.choice(EVENT_TYPES)  # Polymorphic discriminator
     city = random.choice(CITIES)
     lng, lat = generate_random_coordinates(city)
     start_date, end_date = generate_event_times()
@@ -668,11 +730,19 @@ def generate_event(venue_id: str = None) -> Dict[str, Any]:
         "title": title,
         "description": random.choice(DESCRIPTIONS),
         "category": category,
+        "event_type": event_type,  # Polymorphic discriminator
+        "schemaVersion": "1.0",    # Schema versioning
         "location": {
             "type": "Point",
             "coordinates": [lng, lat]
         },
         "venueId": ObjectId(venue_id) if venue_id else None,
+        "venue_reference": {
+            "name": venue_data["name"],
+            "city": venue_data["address"]["city"],
+            "capacity": venue_data["capacity"],
+            "venue_type": venue_data["venue_type"]
+        } if venue_data else None,
         "start_date": start_date,
         "end_date": end_date,
         "organizer": random.choice(ORGANIZERS),
@@ -681,10 +751,55 @@ def generate_event(venue_id: str = None) -> Dict[str, Any]:
         "price": price,
         "currency": "USD",
         "is_free": is_free,
-        "tags": list(set(event_tags)),  # Remove duplicates
         "status": random.choice(["draft", "published", "cancelled", "completed"]),
+        "tags": list(set(event_tags)),  # Remove duplicates
         "created_at": start_date - timedelta(days=random.randint(1, 30)),
         "updated_at": start_date - timedelta(days=random.randint(1, 30))
+    }
+    
+    # Add polymorphic type-specific details
+    if event_type == "virtual":
+        event["virtual_details"] = {
+            "platform": random.choice(["Zoom", "Teams", "WebEx", "YouTube Live", "Twitch"]),
+            "meeting_url": f"https://{random.choice(['zoom.us', 'teams.microsoft.com', 'webex.com'])}/j/{random.randint(100000000, 999999999)}",
+            "recording_available": random.choice([True, False]),
+            "timezone": random.choice(["UTC", "EST", "PST", "CST", "MST"])
+        }
+    elif event_type == "hybrid":
+        event["hybrid_details"] = {
+            "virtual_capacity": random.randint(50, 1000),
+            "in_person_capacity": random.randint(20, 500),
+            "virtual_meeting_url": f"https://{random.choice(['zoom.us', 'teams.microsoft.com'])}/j/{random.randint(100000000, 999999999)}"
+        }
+    elif event_type == "recurring":
+        event["recurring_details"] = {
+            "frequency": random.choice(["daily", "weekly", "monthly", "yearly"]),
+            "end_recurrence": start_date + timedelta(days=random.randint(30, 365)),
+            "exceptions": [start_date + timedelta(days=random.randint(1, 30)) for _ in range(random.randint(0, 3))]
+        }
+    
+    # Add general metadata
+    event["metadata"] = {
+        "age_restriction": random.choice(["All Ages", "18+", "21+", "13+"]) if random.random() < 0.3 else None,
+        "dress_code": random.choice(["Casual", "Business Casual", "Formal", "Black Tie"]) if random.random() < 0.2 else None,
+        "accessibility_features": random.sample(["Wheelchair Accessible", "Sign Language Interpreter", "Live Captioning", "Audio Description"], random.randint(0, 2)) if random.random() < 0.4 else []
+    }
+    
+    # Add computed stats (Computed Pattern)
+    max_attendees = event.get("max_attendees", 100)  # Default to 100 if not set
+    if max_attendees is None:
+        max_attendees = 100  # Ensure we have a valid number
+    total_tickets_sold = random.randint(0, max_attendees)
+    total_revenue = total_tickets_sold * price if not is_free else 0
+    attendance_rate = (total_tickets_sold / max_attendees * 100) if max_attendees > 0 else 0
+    
+    event["computed_stats"] = {
+        "total_tickets_sold": total_tickets_sold,
+        "total_revenue": total_revenue,
+        "attendance_rate": round(attendance_rate, 2),
+        "review_count": random.randint(0, 50),
+        "average_rating": round(random.uniform(3.0, 5.0), 1),
+        "last_updated": datetime.now(timezone.utc)
     }
     
     # Generate embedded tickets for the event
@@ -706,11 +821,12 @@ def generate_events(count: int = 10000, venues: List[Dict[str, Any]] = None) -> 
         
         # 70% of events have venues, 30% are at custom locations
         venue_id = None
+        selected_venue = None
         if venues and random.random() < 0.7:
-            venue = random.choice(venues)
-            venue_id = venue["_id"]  # Use actual venue _id
+            selected_venue = random.choice(venues)
+            venue_id = selected_venue["_id"]  # Use actual venue _id
         
-        event = generate_event(venue_id)
+        event = generate_event(venue_id, selected_venue)
         
         # For the first few events, ensure they're at specific coordinates
         if i < specific_events_count:
@@ -783,11 +899,8 @@ def generate_review(event_id: str, user_id: str, event_date: datetime) -> Dict[s
         "event_id": ObjectId(event_id),
         "user_id": ObjectId(user_id),
         "rating": rating,
-        "review_text": review_text,
-        "title": title if random.random() < 0.7 else None,  # 70% have titles
-        "helpful_votes": helpful_votes,
-        "verified_attendee": verified_attendee,
-        "tags": review_tags,
+        "comment": review_text,
+        "schemaVersion": "1.0",  # Schema versioning
         "created_at": review_date,
         "updated_at": review_date if random.random() < 0.1 else None  # 10% have updates
     }
@@ -831,9 +944,31 @@ def save_to_json(events: List[Dict[str, Any]], filename: str = "test_events.json
         if event.get("venueId"):
             json_event["venueId"] = str(event["venueId"])
         json_event["start_date"] = event["start_date"].isoformat()
-        json_event["end_date"] = event["end_date"].isoformat()
+        if event.get("end_date"):
+            json_event["end_date"] = event["end_date"].isoformat()
         json_event["created_at"] = event["created_at"].isoformat()
         json_event["updated_at"] = event["updated_at"].isoformat()
+        
+        # Convert any other datetime fields that might exist (including nested ones)
+        def convert_datetime_to_iso(obj):
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            elif isinstance(obj, dict):
+                return {k: convert_datetime_to_iso(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_datetime_to_iso(item) for item in obj]
+            else:
+                return obj
+        
+        # Apply datetime conversion to the entire event
+        json_event = convert_datetime_to_iso(json_event)
+        
+        # Convert computed_stats datetime fields
+        if "computed_stats" in event and event["computed_stats"]:
+            json_event["computed_stats"] = event["computed_stats"].copy()
+            if "last_updated" in json_event["computed_stats"]:
+                json_event["computed_stats"]["last_updated"] = json_event["computed_stats"]["last_updated"].isoformat()
+        
         json_events.append(json_event)
     
     with open(filename, 'w') as f:
@@ -873,6 +1008,15 @@ def save_venues_to_json(venues: List[Dict[str, Any]], filename: str = "test_venu
         json_venue["_id"] = str(venue["_id"])
         json_venue["created_at"] = venue["created_at"].isoformat()
         json_venue["updated_at"] = venue["updated_at"].isoformat()
+        
+        # Convert computed_stats datetime fields
+        if "computed_stats" in venue and venue["computed_stats"]:
+            json_venue["computed_stats"] = venue["computed_stats"].copy()
+            if "last_event_date" in json_venue["computed_stats"]:
+                json_venue["computed_stats"]["last_event_date"] = json_venue["computed_stats"]["last_event_date"].isoformat()
+            if "last_updated" in json_venue["computed_stats"]:
+                json_venue["computed_stats"]["last_updated"] = json_venue["computed_stats"]["last_updated"].isoformat()
+        
         json_venues.append(json_venue)
     
     with open(filename, 'w') as f:
@@ -891,6 +1035,8 @@ def save_users_to_json(users: List[Dict[str, Any]], filename: str = "test_users.
         json_user["_id"] = str(user["_id"])
         json_user["created_at"] = user["created_at"].isoformat()
         json_user["updated_at"] = user["updated_at"].isoformat()
+        if user.get("last_login"):
+            json_user["last_login"] = user["last_login"].isoformat()
         json_users.append(json_user)
     
     with open(filename, 'w') as f:
@@ -909,6 +1055,8 @@ def save_checkins_to_json(checkins: List[Dict[str, Any]], filename: str = "test_
         json_checkin["_id"] = str(checkin["_id"])
         json_checkin["user_id"] = str(checkin["user_id"])
         json_checkin["event_id"] = str(checkin["event_id"])
+        if checkin.get("venue_id"):
+            json_checkin["venue_id"] = str(checkin["venue_id"])
         json_checkin["checkin_time"] = checkin["checkin_time"].isoformat()
         json_checkin["created_at"] = checkin["created_at"].isoformat()
         json_checkin["updated_at"] = checkin["updated_at"].isoformat()
@@ -1184,10 +1332,8 @@ def main():
     
     # User statistics
     print(f"\nUsers: {len(users)}")
-    verified_users = sum(1 for user in users if user["is_verified"])
-    active_users = sum(1 for user in users if user["is_active"])
-    print(f"Verified users: {verified_users} ({verified_users/len(users)*100:.1f}%)")
-    print(f"Active users: {active_users} ({active_users/len(users)*100:.1f}%)")
+    users_with_login = sum(1 for user in users if user.get("last_login"))
+    print(f"Users with login activity: {users_with_login} ({users_with_login/len(users)*100:.1f}%)")
     
     # Event statistics
     print(f"\nEvents: {len(events)}")
@@ -1246,20 +1392,20 @@ def main():
         percentage = (count / len(reviews)) * 100
         print(f"  {rating} stars: {count} ({percentage:.1f}%)")
     
-    verified_reviews = sum(1 for review in reviews if review["verified_attendee"])
-    print(f"Verified attendee reviews: {verified_reviews} ({verified_reviews/len(reviews)*100:.1f}%)")
+    # Note: verified_attendee field not implemented in current review generation
+    print(f"Total reviews: {len(reviews)}")
     
     # Check-in statistics
     print(f"\nCheck-ins: {len(checkins)}")
-    checkin_statuses = {}
+    checkin_methods = {}
     for checkin in checkins:
-        status = checkin["status"]
-        checkin_statuses[status] = checkin_statuses.get(status, 0) + 1
+        method = checkin.get("check_in_method", "unknown")
+        checkin_methods[method] = checkin_methods.get(method, 0) + 1
     
-    print("Check-in status distribution:")
-    for status, count in sorted(checkin_statuses.items(), key=lambda x: x[1], reverse=True):
+    print("Check-in method distribution:")
+    for method, count in sorted(checkin_methods.items(), key=lambda x: x[1], reverse=True):
         percentage = (count / len(checkins)) * 100
-        print(f"  {status}: {count} ({percentage:.1f}%)")
+        print(f"  {method}: {count} ({percentage:.1f}%)")
     
     if args.json_only or not args.seed_db:
         print("\n" + "=" * 60)

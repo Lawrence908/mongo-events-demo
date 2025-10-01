@@ -222,7 +222,7 @@ mongoimport --db events_db --collection reviews --file test_reviews.json --jsonA
 
 #### Environment Setup
 
-Ensure your MongoDB connection is configured in `eventdb/config.py`:
+Ensure your MongoDB connection is configured in `app/config.py`:
 
 ```python
 MONGODB_URI = "mongodb://localhost:27017"

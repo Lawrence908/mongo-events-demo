@@ -29,11 +29,20 @@ This document outlines the comprehensive database design for the MongoDB Events 
   "title": String,           // Event title (indexed for text search) - REQUIRED
   "description": String,     // Event description (indexed for text search) - OPTIONAL
   "category": String,        // Event category (indexed) - REQUIRED
+  "event_type": String,      // Polymorphic discriminator - REQUIRED
+                              // Values: "in_person", "virtual", "hybrid", "recurring"
+  "schemaVersion": String,   // Schema versioning - REQUIRED (currently "1.0")
   "location": {              // GeoJSON Point for geospatial queries - REQUIRED
     "type": "Point",         // Must be "Point"
     "coordinates": [longitude, latitude]  // [lng, lat] with bounds validation
   },
   "venueId": ObjectId,       // Reference to venues collection - OPTIONAL
+  "venue_reference": {       // Extended reference data for performance - OPTIONAL
+    "name": String,          // Venue name for quick display
+    "city": String,          // Venue city for filtering
+    "capacity": Number,      // Venue capacity for sorting
+    "venue_type": String     // Venue type for polymorphic queries
+  },
   "start_date": Date,        // Event start time (indexed) - REQUIRED
   "end_date": Date,          // Event end time - OPTIONAL
   "organizer": String,       // Event organizer (indexed) - OPTIONAL
@@ -43,6 +52,16 @@ This document outlines the comprehensive database design for the MongoDB Events 
   "currency": String,        // Currency code (e.g., "USD") - OPTIONAL
   "is_free": Boolean,        // Whether event is free - OPTIONAL
   "status": String,          // Event status ("draft", "published", "cancelled", "completed") - OPTIONAL
+  
+  // Computed fields for performance
+  "computed_stats": {        // Pre-calculated statistics - OPTIONAL
+    "total_tickets_sold": Number,    // Sum of all sold tickets
+    "total_revenue": Number,         // Calculated from ticket sales
+    "attendance_rate": Number,       // current_attendees / max_attendees
+    "review_count": Number,          // Number of reviews
+    "average_rating": Number,        // Average review rating
+    "last_updated": Date             // When stats were last calculated
+  },
   "tickets": [{              // Embedded subdocuments for performance - OPTIONAL
     "tier": String,          // "General", "VIP", "Early Bird" - REQUIRED
     "price": Number,         // Price >= 0 - REQUIRED
@@ -55,11 +74,28 @@ This document outlines the comprehensive database design for the MongoDB Events 
     "check_in_time": Date    // Check-in timestamp - OPTIONAL
   }],
   "tags": [String],          // Event tags (indexed for text search) - OPTIONAL
-  "metadata": {              // Flexible schema for custom attributes - OPTIONAL
-    "virtual": Boolean,
-    "recurring": Boolean,
+  
+  // Polymorphic type-specific fields
+  "virtual_details": {       // For virtual events - OPTIONAL
+    "platform": String,      // "Zoom", "Teams", "WebEx", etc.
+    "meeting_url": String,   // Virtual meeting URL
+    "recording_available": Boolean,
+    "timezone": String       // Event timezone
+  },
+  "recurring_details": {     // For recurring events - OPTIONAL
+    "frequency": String,     // "daily", "weekly", "monthly", "yearly"
+    "end_recurrence": Date,  // When recurrence ends
+    "exceptions": [Date]     // Dates to skip
+  },
+  "hybrid_details": {        // For hybrid events - OPTIONAL
+    "virtual_capacity": Number,     // Max virtual attendees
+    "in_person_capacity": Number,   // Max in-person attendees
+    "virtual_meeting_url": String   // Virtual meeting URL
+  },
+  "metadata": {              // General metadata - OPTIONAL
     "age_restriction": String,
-    "dress_code": String
+    "dress_code": String,
+    "accessibility_features": [String]
   },
   "created_at": Date,        // Document creation time (indexed) - REQUIRED
   "updated_at": Date         // Last update time - REQUIRED
@@ -73,7 +109,10 @@ This document outlines the comprehensive database design for the MongoDB Events 
 {
   "_id": ObjectId,
   "name": String,            // Venue name - REQUIRED
-  "type": String,            // Venue type (e.g., "Conference Center", "Restaurant") - OPTIONAL
+  "venue_type": String,      // Polymorphic discriminator - REQUIRED
+                              // Values: "conference_center", "park", "restaurant", 
+                              //         "virtual_space", "stadium", "theater"
+  "schemaVersion": String,   // Schema versioning - REQUIRED (currently "1.0")
   "description": String,     // Venue description - OPTIONAL
   "address": {               // Complete address - REQUIRED
     "street": String,        // Street address - REQUIRED
@@ -105,6 +144,35 @@ This document outlines the comprehensive database design for the MongoDB Events 
   },
   "rating": Number,          // Venue rating (1-5) - OPTIONAL
   "review_count": Number,    // Number of reviews - OPTIONAL
+  
+  // Computed fields for performance
+  "computed_stats": {        // Pre-calculated statistics - OPTIONAL
+    "total_events_hosted": Number,    // Number of events at this venue
+    "average_attendance": Number,     // Average attendance per event
+    "revenue_generated": Number,      // Total revenue from events
+    "last_event_date": Date,          // Most recent event date
+    "last_updated": Date              // When stats were last calculated
+  },
+  
+  // Polymorphic type-specific fields
+  "conference_center_details": {  // For conference centers - OPTIONAL
+    "meeting_rooms": Number,      // Number of meeting rooms
+    "exhibition_space": Number,   // Exhibition space in sq ft
+    "catering_available": Boolean,
+    "av_equipment": [String]      // Available AV equipment
+  },
+  "park_details": {              // For parks - OPTIONAL
+    "park_type": String,         // "national", "state", "city", "recreation"
+    "activities": [String],      // Available activities
+    "permit_required": Boolean,  // Whether permits are needed
+    "seasonal_hours": Boolean    // Whether hours change seasonally
+  },
+  "virtual_space_details": {     // For virtual spaces - OPTIONAL
+    "platform": String,          // "Zoom", "Teams", "WebEx", etc.
+    "max_participants": Number,  // Max virtual participants
+    "recording_capability": Boolean,
+    "breakout_rooms": Number     // Number of breakout rooms
+  },
   "created_at": Date,        // Document creation time - REQUIRED
   "updated_at": Date         // Last update time - REQUIRED
 }
@@ -130,6 +198,7 @@ This document outlines the comprehensive database design for the MongoDB Events 
     "ip_address": String,    // For security/analytics
     "staff_verified": Boolean // Manual verification by staff
   },
+  "schemaVersion": String,   // Schema versioning - REQUIRED (currently "1.0")
   "created_at": Date         // Record creation time - REQUIRED
 }
 ```
@@ -139,6 +208,7 @@ This document outlines the comprehensive database design for the MongoDB Events 
 {
   "_id": ObjectId,
   "email": String,           // Unique identifier - REQUIRED
+  "schemaVersion": String,   // Schema versioning - REQUIRED (currently "1.0")
   "profile": {               // User profile - REQUIRED
     "first_name": String,    // First name - REQUIRED
     "last_name": String,     // Last name - REQUIRED
@@ -165,9 +235,207 @@ This document outlines the comprehensive database design for the MongoDB Events 
   "user_id": ObjectId,       // Reference to users - REQUIRED
   "rating": Number,          // Rating 1-5 - REQUIRED
   "comment": String,         // Review text - OPTIONAL
+  "schemaVersion": String,   // Schema versioning - REQUIRED (currently "1.0")
   "created_at": Date,        // Review creation time - REQUIRED
   "updated_at": Date         // Last update time - REQUIRED
 }
+```
+
+## Advanced Design Patterns
+
+### Computed Pattern Implementation
+
+The database implements the **Computed Pattern** to pre-calculate frequently accessed statistics, improving query performance and reducing real-time computation overhead.
+
+#### Event Computed Statistics
+Events include `computed_stats` with pre-calculated metrics:
+- **`total_tickets_sold`**: Sum of all sold tickets across tiers
+- **`total_revenue`**: Calculated revenue from ticket sales
+- **`attendance_rate`**: Percentage of capacity filled
+- **`review_count`**: Number of reviews received
+- **`average_rating`**: Average review rating
+- **`last_updated`**: Timestamp of last calculation
+
+#### Venue Computed Statistics
+Venues include `computed_stats` with performance metrics:
+- **`total_events_hosted`**: Number of events at this venue
+- **`average_attendance`**: Average attendance per event
+- **`revenue_generated`**: Total revenue from events
+- **`last_event_date`**: Most recent event date
+- **`last_updated`**: Timestamp of last calculation
+
+#### Benefits of Computed Pattern
+- **Performance**: Eliminates expensive aggregations for dashboard queries
+- **Consistency**: Single source of truth for statistics
+- **Scalability**: Reduces database load during peak usage
+- **Real-time Updates**: Statistics updated via application triggers
+
+#### Update Triggers
+Statistics are recalculated when:
+- Tickets are sold/refunded
+- Reviews are added/updated
+- Events are created/completed
+- Check-ins occur
+
+### Bucket Pattern for Time-Series Data
+
+The **Bucket Pattern** is implemented for analytics and time-series data:
+
+#### Event Analytics Buckets
+```javascript
+{
+  "_id": ObjectId,
+  "bucket_type": "daily_analytics",
+  "date": ISODate("2024-01-15"),
+  "events": {
+    "total_created": 25,
+    "by_category": {
+      "Technology": 8,
+      "Music": 12,
+      "Sports": 5
+    },
+    "by_type": {
+      "in_person": 15,
+      "virtual": 7,
+      "hybrid": 3
+    }
+  },
+  "attendance": {
+    "total_checkins": 1250,
+    "average_per_event": 50
+  },
+  "revenue": {
+    "total_generated": 15750.00,
+    "currency": "USD"
+  }
+}
+```
+
+#### Benefits
+- **Reduced Indexes**: Single document per time period
+- **Faster Queries**: Pre-aggregated data for dashboards
+- **Storage Efficiency**: Compressed time-series data
+- **Analytics Ready**: Direct aggregation support
+
+### Extended Reference Pattern
+
+The **Extended Reference Pattern** is implemented for frequently accessed venue data in events:
+
+#### Event-Venue References
+Events store denormalized venue data for performance:
+```javascript
+{
+  "venueId": ObjectId("..."),
+  "venue_reference": {          // Extended reference data
+    "name": "Convention Center",
+    "city": "San Francisco", 
+    "capacity": 5000,
+    "venue_type": "conference_center"
+  }
+}
+```
+
+#### Benefits
+- **Query Performance**: Avoid joins for event listings and venue filtering
+- **Reduced Lookups**: Venue name/city available in event queries without additional database calls
+- **Consistency**: Reference data updated via application logic when venue changes
+- **Filtering**: Enable venue-based filtering without joins (e.g., "events at conference centers")
+
+#### Update Strategy
+Extended reference data is updated when:
+- Venue name, city, capacity, or type changes
+- Event is created with a venue
+- Venue data is modified (via application triggers)
+
+## Polymorphic Design & Schema Versioning
+
+### Polymorphic Design Strategy
+
+The database implements polymorphic design patterns for both `events` and `venues` collections, allowing different types of entities to have specialized attributes while maintaining a common base structure.
+
+#### Event Polymorphism
+Events support four distinct types with type-specific attributes:
+
+- **`in_person`**: Traditional physical events at venues
+- **`virtual`**: Online-only events with virtual meeting details
+- **`hybrid`**: Events with both physical and virtual components
+- **`recurring`**: Events that repeat on a schedule
+
+**Discriminator Field**: `event_type` determines which polymorphic fields are populated
+**Type-Specific Fields**:
+- `virtual_details`: Platform, meeting URL, recording availability
+- `hybrid_details`: Separate capacities and virtual meeting URL
+- `recurring_details`: Frequency, end date, exception dates
+
+#### Venue Polymorphism
+Venues support six distinct types with specialized attributes:
+
+- **`conference_center`**: Meeting rooms, exhibition space, AV equipment
+- **`park`**: Outdoor spaces with activities and permit requirements
+- **`restaurant`**: Dining venues with menu and reservation details
+- **`virtual_space`**: Online platforms with participant limits
+- **`stadium`**: Large venues with seating and event facilities
+- **`theater`**: Performance venues with stage and seating details
+
+**Discriminator Field**: `venue_type` determines which polymorphic fields are populated
+**Type-Specific Fields**:
+- `conference_center_details`: Meeting rooms, exhibition space, catering
+- `park_details`: Park type, activities, permits, seasonal hours
+- `virtual_space_details`: Platform, participant limits, recording capability
+
+### Schema Versioning Strategy
+
+All collections include a `schemaVersion` field to support future schema evolution:
+
+- **Current Version**: "1.0" for all collections
+- **Migration Support**: Version field enables gradual schema updates
+- **Backward Compatibility**: Legacy data remains accessible during transitions
+- **Validation**: JSON Schema validation includes version-specific rules
+
+**Benefits**:
+- **Safe Evolution**: Add new fields without breaking existing data
+- **Gradual Migration**: Update documents in batches by version
+- **Rollback Capability**: Revert to previous schema if needed
+- **Analytics**: Track adoption of new schema versions
+
+### Polymorphic Query Examples
+
+```javascript
+// Find all virtual events
+db.events.find({ event_type: "virtual" })
+
+// Find conference centers with meeting rooms
+db.venues.find({ 
+  venue_type: "conference_center",
+  "conference_center_details.meeting_rooms": { $gt: 5 }
+})
+
+// Find hybrid events with virtual capacity
+db.events.find({ 
+  event_type: "hybrid",
+  "hybrid_details.virtual_capacity": { $gt: 100 }
+})
+
+// Find recurring events ending this year
+db.events.find({
+  event_type: "recurring",
+  "recurring_details.end_recurrence": { $gte: ISODate("2024-01-01") }
+})
+```
+
+### Schema Versioning Query Examples
+
+```javascript
+// Find all documents using schema version 1.0
+db.events.find({ schemaVersion: "1.0" })
+
+// Count documents by schema version
+db.events.aggregate([
+  { $group: { _id: "$schemaVersion", count: { $sum: 1 } } }
+])
+
+// Find documents that need migration (older versions)
+db.events.find({ schemaVersion: { $ne: "1.0" } })
 ```
 
 ## Schema Validation & Relationships
@@ -216,11 +484,11 @@ All collections enforce comprehensive JSON Schema validation with the following 
 - **Coordinate Arrays**: Must contain exactly 2 elements [longitude, latitude]
 
 #### Required Fields Enforcement
-- **Events**: `title`, `category`, `location`, `start_date`, `created_at`, `updated_at`
-- **Venues**: `name`, `location`, `address`, `created_at`
-- **Users**: `email`, `profile`, `created_at`
-- **Checkins**: `event_id`, `user_id`, `venue_id`, `check_in_time`, `qr_code`, `created_at`
-- **Reviews**: `user_id`, `rating`, `created_at`, `updated_at` (plus either `event_id` OR `venue_id`)
+- **Events**: `title`, `category`, `event_type`, `schemaVersion`, `location`, `start_date`, `created_at`, `updated_at`
+- **Venues**: `name`, `venue_type`, `schemaVersion`, `location`, `address`, `created_at`
+- **Users**: `email`, `schemaVersion`, `profile`, `created_at`
+- **Checkins**: `event_id`, `user_id`, `venue_id`, `check_in_time`, `qr_code`, `schemaVersion`, `created_at`
+- **Reviews**: `user_id`, `rating`, `schemaVersion`, `created_at`, `updated_at` (plus either `event_id` OR `venue_id`)
 
 #### Data Type and Range Validation
 - **String Lengths**: Enforced min/max lengths for all text fields
@@ -236,12 +504,18 @@ All collections enforce comprehensive JSON Schema validation with the following 
 {
   $jsonSchema: {
     bsonType: "object",
-    required: ["title", "category", "location", "start_date", "created_at", "updated_at"],
+    required: ["title", "category", "event_type", "schemaVersion", "location", "start_date", "created_at", "updated_at"],
     properties: {
       title: {
         bsonType: "string",
         minLength: 1,
         maxLength: 200
+      },
+      event_type: {
+        enum: ["in_person", "virtual", "hybrid", "recurring"]
+      },
+      schemaVersion: {
+        enum: ["1.0"]
       },
       location: {
         bsonType: "object",
@@ -257,7 +531,35 @@ All collections enforce comprehensive JSON Schema validation with the following 
         }
       },
       start_date: { bsonType: "date" },
-      max_attendees: { bsonType: "int", minimum: 1 }
+      max_attendees: { bsonType: "int", minimum: 1 },
+      virtual_details: {
+        bsonType: "object",
+        properties: {
+          platform: { bsonType: "string" },
+          meeting_url: { bsonType: "string" },
+          recording_available: { bsonType: "bool" },
+          timezone: { bsonType: "string" }
+        }
+      },
+      hybrid_details: {
+        bsonType: "object",
+        properties: {
+          virtual_capacity: { bsonType: "int", minimum: 0 },
+          in_person_capacity: { bsonType: "int", minimum: 0 },
+          virtual_meeting_url: { bsonType: "string" }
+        }
+      },
+      recurring_details: {
+        bsonType: "object",
+        properties: {
+          frequency: { enum: ["daily", "weekly", "monthly", "yearly"] },
+          end_recurrence: { bsonType: "date" },
+          exceptions: {
+            bsonType: "array",
+            items: { bsonType: "date" }
+          }
+        }
+      }
     }
   }
 }
@@ -300,7 +602,28 @@ db.events.createIndex({"created_at": 1})
 **Purpose**: Efficient date range queries and sorting
 **Queries**: Upcoming events, date filtering, chronological sorting
 
-### 4. Compound Indexes for Common Query Patterns
+### 4. Polymorphic Indexes
+```javascript
+// Event type + Date filtering
+db.events.createIndex({"event_type": 1, "start_date": 1})
+
+// Event type + Category filtering
+db.events.createIndex({"event_type": 1, "category": 1})
+
+// Venue type + Capacity filtering
+db.venues.createIndex({"venue_type": 1, "capacity": 1})
+
+// Venue type + Rating filtering
+db.venues.createIndex({"venue_type": 1, "rating": 1})
+
+// Schema version filtering
+db.events.createIndex({"schemaVersion": 1})
+db.venues.createIndex({"schemaVersion": 1})
+```
+**Purpose**: Optimize polymorphic queries and schema version filtering
+**Queries**: "Virtual events this month", "Conference centers with high capacity"
+
+### 5. Compound Indexes for Common Query Patterns
 ```javascript
 // Category + Date filtering
 db.events.createIndex({"category": 1, "start_date": 1})
@@ -318,14 +641,14 @@ db.events.createIndex({"start_date": 1, "category": 1})
 **Purpose**: Optimize compound queries without index intersection
 **Queries**: "Tech events this weekend", "Events near me next month"
 
-### 5. Cursor-based Pagination Support
+### 6. Cursor-based Pagination Support
 ```javascript
 db.events.createIndex({"_id": 1, "start_date": 1})
 ```
 **Purpose**: Efficient cursor-based pagination
 **Queries**: Large result set pagination without performance degradation
 
-### 6. Array and Filtering Indexes
+### 7. Array and Filtering Indexes
 ```javascript
 db.events.createIndex({"tags": 1})        // Tag filtering
 db.events.createIndex({"max_attendees": 1}) // Capacity filtering
@@ -334,7 +657,7 @@ db.events.createIndex({"end_date": 1})     // End date queries
 **Purpose**: Support filtering and aggregation queries
 **Queries**: Events by tags, capacity-based filtering
 
-### 7. Reviews Collection Indexes
+### 8. Reviews Collection Indexes
 ```javascript
 db.reviews.createIndex({"event_id": 1})     // Reviews by event
 db.reviews.createIndex({"venue_id": 1})     // Reviews by venue
@@ -347,7 +670,7 @@ db.reviews.createIndex({"venue_id": 1, "rating": 1}) // Venue rating aggregation
 **Purpose**: Support review queries and aggregations
 **Queries**: Reviews by event/venue, rating statistics, user review history
 
-### 8. Check-ins Collection Indexes
+### 9. Check-ins Collection Indexes
 ```javascript
 db.checkins.createIndex({"event_id": 1})           // Check-ins by event
 db.checkins.createIndex({"user_id": 1})            // User attendance history
@@ -390,7 +713,36 @@ db.events.find(
 **Index Used**: Text index on title, description, category, tags
 **Performance**: O(log n) with relevance scoring
 
-### 3. Compound Queries
+### 3. Polymorphic Queries
+```javascript
+// Find all virtual events this month
+db.events.find({
+  "event_type": "virtual",
+  "start_date": { $gte: startOfMonth, $lte: endOfMonth }
+})
+
+// Find conference centers with high capacity
+db.venues.find({
+  "venue_type": "conference_center",
+  "capacity": { $gt: 500 }
+})
+
+// Find hybrid events with virtual capacity
+db.events.find({
+  "event_type": "hybrid",
+  "hybrid_details.virtual_capacity": { $gt: 100 }
+})
+
+// Find recurring events ending this year
+db.events.find({
+  "event_type": "recurring",
+  "recurring_details.end_recurrence": { $gte: ISODate("2024-01-01") }
+})
+```
+**Index Used**: `{"event_type": 1, "start_date": 1}`, `{"venue_type": 1, "capacity": 1}`
+**Performance**: O(log n) with polymorphic filtering
+
+### 4. Compound Queries
 ```javascript
 // Tech events this weekend near location
 db.events.find({
@@ -407,7 +759,7 @@ db.events.find({
 **Index Used**: `{"location": "2dsphere", "start_date": 1}`
 **Performance**: Single index scan, very efficient
 
-### 4. Cursor-based Pagination
+### 5. Cursor-based Pagination
 ```javascript
 // First page
 db.events.find().sort({"_id": 1}).limit(50)
@@ -418,7 +770,7 @@ db.events.find({"_id": {$gt: lastId}}).sort({"_id": 1}).limit(50)
 **Index Used**: `{"_id": 1, "start_date": 1}`
 **Performance**: O(log n) regardless of page number
 
-### 5. Analytics Aggregations
+### 6. Analytics Aggregations
 ```javascript
 // Peak event times
 db.events.aggregate([
@@ -437,7 +789,7 @@ db.events.aggregate([
 **Index Used**: `{"start_date": 1}`
 **Performance**: Efficient with proper date indexing
 
-### 6. Reviews Queries
+### 7. Reviews Queries
 ```javascript
 // Get reviews for a specific event
 db.reviews.find({"event_id": ObjectId("...")}).sort({"created_at": -1})
@@ -461,7 +813,7 @@ db.reviews.aggregate([
 **Index Used**: `{"event_id": 1}`, `{"user_id": 1}`, `{"event_id": 1, "rating": 1}`
 **Performance**: O(log n) with proper indexing
 
-### 7. Check-ins Analytics Queries
+### 8. Check-ins Analytics Queries
 ```javascript
 // Get all check-ins for an event
 db.checkins.find({"event_id": ObjectId("...")}).sort({"check_in_time": -1})

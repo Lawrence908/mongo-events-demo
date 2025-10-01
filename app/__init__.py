@@ -9,7 +9,7 @@ from .database import mongodb
 from .models import EventCreate, EventsNearbyQuery, EventUpdate, CheckinCreate, CheckinUpdate
 from .services import get_event_service, get_checkin_service
 from .realtime import init_realtime
-from eventdb.config import Config
+from .config import Config
 
 load_dotenv()
 

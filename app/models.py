@@ -5,7 +5,7 @@ from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic_core import core_schema
 
-from eventdb.config import Config
+from .config import Config
 
 
 class PyObjectId(ObjectId):
@@ -97,18 +97,34 @@ class EventBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     category: str = Field(..., min_length=1, max_length=50)
+    event_type: Literal["in_person", "virtual", "hybrid", "recurring"] = Field(..., description="Polymorphic discriminator")
+    schemaVersion: str = Field(default="1.0", description="Schema versioning")
     location: EventLocation
     address: Optional[EventAddress] = None
     directions_url: Optional[str] = Field(None, max_length=500, description="Google Maps directions URL")
     venue_id: Optional[PyObjectId] = None
+    venue_reference: Optional[dict] = Field(None, description="Extended reference data for performance")
     start_date: datetime
     end_date: Optional[datetime] = None
     organizer: Optional[str] = Field(None, max_length=100)
     max_attendees: Optional[int] = Field(None, gt=0)
+    current_attendees: Optional[int] = Field(None, ge=0)
+    price: Optional[float] = Field(None, ge=0)
+    currency: Optional[str] = Field(None, max_length=3)
+    is_free: Optional[bool] = Field(None)
+    status: Optional[Literal["draft", "published", "cancelled", "completed"]] = Field(None)
     tickets: Optional[List[EventTicket]] = None
     attendees: Optional[List[EventAttendee]] = None
     tags: List[str] = Field(default_factory=list)
-    metadata: Optional[EventMetadata] = None
+    
+    # Polymorphic type-specific fields
+    virtual_details: Optional[dict] = Field(None, description="Virtual event specific details")
+    recurring_details: Optional[dict] = Field(None, description="Recurring event specific details") 
+    hybrid_details: Optional[dict] = Field(None, description="Hybrid event specific details")
+    metadata: Optional[dict] = Field(None, description="General metadata")
+    
+    # Computed pattern fields
+    computed_stats: Optional[dict] = Field(None, description="Pre-calculated statistics")
 
     @field_validator("end_date")
     @classmethod
@@ -130,18 +146,29 @@ class EventUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     category: Optional[str] = Field(None, min_length=1, max_length=50)
+    event_type: Optional[Literal["in_person", "virtual", "hybrid", "recurring"]] = None
     location: Optional[EventLocation] = None
     address: Optional[EventAddress] = None
     directions_url: Optional[str] = Field(None, max_length=500, description="Google Maps directions URL")
     venue_id: Optional[PyObjectId] = None
+    venue_reference: Optional[dict] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     organizer: Optional[str] = Field(None, max_length=100)
     max_attendees: Optional[int] = Field(None, gt=0)
+    current_attendees: Optional[int] = Field(None, ge=0)
+    price: Optional[float] = Field(None, ge=0)
+    currency: Optional[str] = Field(None, max_length=3)
+    is_free: Optional[bool] = None
+    status: Optional[Literal["draft", "published", "cancelled", "completed"]] = None
     tickets: Optional[List[EventTicket]] = None
     attendees: Optional[List[EventAttendee]] = None
     tags: Optional[List[str]] = None
-    metadata: Optional[EventMetadata] = None
+    virtual_details: Optional[dict] = None
+    recurring_details: Optional[dict] = None
+    hybrid_details: Optional[dict] = None
+    metadata: Optional[dict] = None
+    computed_stats: Optional[dict] = None
 
 
 class Event(EventBase):
@@ -179,11 +206,23 @@ class VenueContact(BaseModel):
 class VenueBase(BaseModel):
     """Base venue model"""
     name: str = Field(..., min_length=1, max_length=200)
+    venue_type: Literal["conference_center", "park", "restaurant", "virtual_space", "stadium", "theater"] = Field(..., description="Polymorphic discriminator")
+    schemaVersion: str = Field(default="1.0", description="Schema versioning")
     location: EventLocation
     address: VenueAddress
     capacity: Optional[int] = Field(None, gt=0)
     amenities: List[str] = Field(default_factory=list)
     contact: Optional[VenueContact] = None
+    rating: Optional[float] = Field(None, ge=0, le=5)
+    review_count: Optional[int] = Field(None, ge=0)
+    
+    # Polymorphic type-specific fields
+    conference_center_details: Optional[dict] = Field(None, description="Conference center specific details")
+    park_details: Optional[dict] = Field(None, description="Park specific details")
+    virtual_space_details: Optional[dict] = Field(None, description="Virtual space specific details")
+    
+    # Computed pattern fields
+    computed_stats: Optional[dict] = Field(None, description="Pre-calculated statistics")
 
 
 class VenueCreate(VenueBase):
@@ -231,6 +270,7 @@ class UserProfile(BaseModel):
 class UserBase(BaseModel):
     """Base user model"""
     email: str = Field(..., min_length=1, max_length=255)
+    schemaVersion: str = Field(default="1.0", description="Schema versioning")
     profile: UserProfile
 
 
@@ -272,6 +312,7 @@ class CheckinBase(BaseModel):
     user_id: PyObjectId
     venue_id: Optional[PyObjectId] = Field(None, description="Reference to venues (denormalized for analytics)")
     qr_code: str = Field(..., min_length=1, max_length=100)
+    schemaVersion: str = Field(default="1.0", description="Schema versioning")
     ticket_tier: Optional[str] = Field(None, max_length=50)
     check_in_method: Optional[str] = Field(None, max_length=50, description="qr_code, manual, mobile_app")
     location: Optional[EventLocation] = None
@@ -313,6 +354,7 @@ class ReviewBase(BaseModel):
     user_id: PyObjectId = Field(..., description="Reference to users collection")
     rating: int = Field(..., ge=1, le=5, description="Rating from 1 to 5 stars")
     comment: Optional[str] = Field(None, max_length=1000, description="Review comment text")
+    schemaVersion: str = Field(default="1.0", description="Schema versioning")
 
     @model_validator(mode="after")
     def validate_review_target(self):
