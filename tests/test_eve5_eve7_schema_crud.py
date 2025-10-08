@@ -72,7 +72,7 @@ class TestModels:
             "title": "Test Event",
             "category": "conference",
             "location": {"coordinates": [-74.0060, 40.7128]},
-            "start_date": datetime.now(),
+            "startDate": datetime.now(),
         }
 
         event = EventCreate(**event_data)
@@ -127,7 +127,7 @@ class TestAPI:
             "title": "API Test Event",
             "category": "test",
             "location": {"coordinates": [-74.0060, 40.7128]},
-            "start_date": "2024-12-01T10:00:00",
+            "startDate": "2024-12-01T10:00:00",
         }
 
         response = client.post(
@@ -172,7 +172,7 @@ class TestDatabase:
             title="Test DB Event",
             category="test",
             location=EventLocation(coordinates=[-74.0060, 40.7128]),
-            start_date=datetime.now(),
+            startDate=datetime.now(),
         )
 
         # Create event
@@ -196,14 +196,14 @@ class TestDatabase:
             title="Nearby Test Event",
             category="test",
             location=EventLocation(coordinates=[-74.0060, 40.7128]),  # NYC
-            start_date=datetime.now(),
+            startDate=datetime.now(),
         )
 
         event_service = get_event_service()
         event_service.create_event(event_data)
 
         # Search for nearby events
-        query = EventsNearbyQuery(longitude=-74.0060, latitude=40.7128, radius_km=1)
+        query = EventsNearbyQuery(longitude=-74.0060, latitude=40.7128, radiusKm=1)
 
         result = event_service.get_events_nearby(query)
 
@@ -225,7 +225,7 @@ class TestEventServiceCRUD:
             title="Test Event",
             category="conference",
             location=EventLocation(coordinates=[-74.0060, 40.7128]),
-            start_date=datetime.now(),
+            startDate=datetime.now(),
             description="A test event",
             organizer="Test Organizer"
         )
@@ -237,8 +237,8 @@ class TestEventServiceCRUD:
         assert created_event.title == "Test Event"
         assert created_event.category == "conference"
         assert created_event.organizer == "Test Organizer"
-        assert created_event.created_at is not None
-        assert created_event.updated_at is not None
+        assert created_event.createdAt is not None
+        assert created_event.updatedAt is not None
 
     def test_get_event_happy_path(self, db):
         """Test retrieving an event successfully"""
@@ -307,7 +307,7 @@ class TestEventServiceCRUD:
         assert updated_event is not None
         assert updated_event.title == "Updated Title"
         assert updated_event.description == "Updated description"
-        assert updated_event.updated_at.timestamp() > created_event.updated_at.timestamp()
+        assert updated_event.updatedAt.timestamp() > created_event.updatedAt.timestamp()
 
     def test_update_event_partial_update(self, db):
         """Test partial update of an event"""
@@ -318,7 +318,7 @@ class TestEventServiceCRUD:
             title="Original Title",
             category="conference",
             location=EventLocation(coordinates=[-74.0060, 40.7128]),
-            start_date=datetime.now(),
+            startDate=datetime.now(),
             description="Original description"
         )
         
@@ -428,7 +428,7 @@ class TestVenueServiceCRUD:
         assert created_venue.name == "Test Venue"
         assert created_venue.capacity == 100
         assert "WiFi" in created_venue.amenities
-        assert created_venue.created_at is not None
+        assert created_venue.createdAt is not None
 
     def test_get_venue_happy_path(self, db):
         """Test retrieving a venue successfully"""
@@ -538,12 +538,12 @@ class TestUserServiceCRUD:
         user_data = UserCreate(
             email="test@example.com",
             profile=UserProfile(
-                first_name="John",
-                last_name="Doe",
+                firstName="John",
+                lastName="Doe",
                 preferences=UserPreferences(
                     categories=["tech", "music"],
                     location=EventLocation(coordinates=[-74.0060, 40.7128]),
-                    radius_km=10.0
+                    radiusKm=10.0
                 )
             )
         )
@@ -553,9 +553,9 @@ class TestUserServiceCRUD:
         
         assert created_user.id is not None
         assert created_user.email == "test@example.com"
-        assert created_user.profile.first_name == "John"
-        assert created_user.profile.last_name == "Doe"
-        assert created_user.created_at is not None
+        assert created_user.profile.firstName == "John"
+        assert created_user.profile.lastName == "Doe"
+        assert created_user.createdAt is not None
 
     def test_get_user_happy_path(self, db):
         """Test retrieving a user successfully"""
@@ -565,8 +565,8 @@ class TestUserServiceCRUD:
         user_data = UserCreate(
             email="test@example.com",
             profile=UserProfile(
-                first_name="John",
-                last_name="Doe"
+                firstName="John",
+                lastName="Doe"
             )
         )
         
@@ -588,8 +588,8 @@ class TestUserServiceCRUD:
         user_data = UserCreate(
             email="test@example.com",
             profile=UserProfile(
-                first_name="John",
-                last_name="Doe"
+                firstName="John",
+                lastName="Doe"
             )
         )
         
@@ -611,8 +611,8 @@ class TestUserServiceCRUD:
         user_data = UserCreate(
             email="test@example.com",
             profile=UserProfile(
-                first_name="John",
-                last_name="Doe"
+                firstName="John",
+                lastName="Doe"
             )
         )
         
@@ -622,16 +622,16 @@ class TestUserServiceCRUD:
         # Update the user
         update_data = UserUpdate(
             profile=UserProfile(
-                first_name="Jane",
-                last_name="Smith"
+                firstName="Jane",
+                lastName="Smith"
             )
         )
         
         updated_user = service.update_user(str(created_user.id), update_data)
         
         assert updated_user is not None
-        assert updated_user.profile.first_name == "Jane"
-        assert updated_user.profile.last_name == "Smith"
+        assert updated_user.profile.firstName == "Jane"
+        assert updated_user.profile.lastName == "Smith"
 
     def test_delete_user_happy_path(self, db):
         """Test deleting a user successfully"""
@@ -641,8 +641,8 @@ class TestUserServiceCRUD:
         user_data = UserCreate(
             email="test@example.com",
             profile=UserProfile(
-                first_name="John",
-                last_name="Doe"
+                firstName="John",
+                lastName="Doe"
             )
         )
         
@@ -678,8 +678,8 @@ class TestCheckinServiceCRUD:
         user_data = UserCreate(
             email="test@example.com",
             profile=UserProfile(
-                first_name="John",
-                last_name="Doe"
+                firstName="John",
+                lastName="Doe"
             )
         )
         
@@ -692,20 +692,20 @@ class TestCheckinServiceCRUD:
         
         # Create a checkin
         checkin_data = CheckinCreate(
-            event_id=created_event.id,
-            user_id=created_user.id,
-            qr_code="QR123456",
-            ticket_tier="VIP"
+            eventId=created_event.id,
+            userId=created_user.id,
+            qrCode="QR123456",
+            ticketTier="VIP"
         )
         
         created_checkin = checkin_service.create_checkin(checkin_data)
         
         assert created_checkin.id is not None
-        assert created_checkin.event_id == created_event.id
-        assert created_checkin.user_id == created_user.id
-        assert created_checkin.qr_code == "QR123456"
-        assert created_checkin.ticket_tier == "VIP"
-        assert created_checkin.check_in_time is not None
+        assert created_checkin.eventId == created_event.id
+        assert created_checkin.userId == created_user.id
+        assert created_checkin.qrCode == "QR123456"
+        assert created_checkin.ticketTier == "VIP"
+        assert created_checkin.checkInTime is not None
 
     def test_get_checkin_happy_path(self, db):
         """Test retrieving a checkin successfully"""
@@ -722,8 +722,8 @@ class TestCheckinServiceCRUD:
         user_data = UserCreate(
             email="test@example.com",
             profile=UserProfile(
-                first_name="John",
-                last_name="Doe"
+                firstName="John",
+                lastName="Doe"
             )
         )
         
@@ -736,9 +736,9 @@ class TestCheckinServiceCRUD:
         
         # Create a checkin
         checkin_data = CheckinCreate(
-            event_id=created_event.id,
-            user_id=created_user.id,
-            qr_code="QR123456"
+            eventId=created_event.id,
+            userId=created_user.id,
+            qrCode="QR123456"
         )
         
         created_checkin = checkin_service.create_checkin(checkin_data)
@@ -748,7 +748,7 @@ class TestCheckinServiceCRUD:
         
         assert retrieved_checkin is not None
         assert retrieved_checkin.id == created_checkin.id
-        assert retrieved_checkin.qr_code == "QR123456"
+        assert retrieved_checkin.qrCode == "QR123456"
 
     def test_get_checkins_by_event(self, db):
         """Test retrieving checkins by event"""
@@ -773,16 +773,16 @@ class TestCheckinServiceCRUD:
             user_data = UserCreate(
                 email=f"user{i}@example.com",
                 profile=UserProfile(
-                    first_name=f"User{i}",
-                    last_name="Doe"
+                    firstName=f"User{i}",
+                    lastName="Doe"
                 )
             )
             created_user = user_service.create_user(user_data)
             
             checkin_data = CheckinCreate(
-                event_id=created_event.id,
-                user_id=created_user.id,
-                qr_code=f"QR{i}123456"
+                eventId=created_event.id,
+                userId=created_user.id,
+                qrCode=f"QR{i}123456"
             )
             checkin_service.create_checkin(checkin_data)
         
@@ -800,8 +800,8 @@ class TestCheckinServiceCRUD:
         user_data = UserCreate(
             email="test@example.com",
             profile=UserProfile(
-                first_name="John",
-                last_name="Doe"
+                firstName="John",
+                lastName="Doe"
             )
         )
         
@@ -817,14 +817,14 @@ class TestCheckinServiceCRUD:
                 title=f"Test Event {i}",
                 category="conference",
                 location=EventLocation(coordinates=[-74.0060, 40.7128]),
-                start_date=datetime.now()
+                startDate=datetime.now()
             )
             created_event = event_service.create_event(event_data)
             
             checkin_data = CheckinCreate(
-                event_id=created_event.id,
-                user_id=created_user.id,
-                qr_code=f"QR{i}123456"
+                eventId=created_event.id,
+                userId=created_user.id,
+                qrCode=f"QR{i}123456"
             )
             checkin_service.create_checkin(checkin_data)
         
@@ -849,8 +849,8 @@ class TestCheckinServiceCRUD:
         user_data = UserCreate(
             email="test@example.com",
             profile=UserProfile(
-                first_name="John",
-                last_name="Doe"
+                firstName="John",
+                lastName="Doe"
             )
         )
         
@@ -863,24 +863,24 @@ class TestCheckinServiceCRUD:
         
         # Create a checkin
         checkin_data = CheckinCreate(
-            event_id=created_event.id,
-            user_id=created_user.id,
-            qr_code="QR123456",
-            ticket_tier="General"
+            eventId=created_event.id,
+            userId=created_user.id,
+            qrCode="QR123456",
+            ticketTier="General"
         )
         
         created_checkin = checkin_service.create_checkin(checkin_data)
         
         # Update the checkin
         update_data = CheckinUpdate(
-            ticket_tier="VIP"
+            ticketTier="VIP"
         )
         
         updated_checkin = checkin_service.update_checkin(str(created_checkin.id), update_data)
         
         assert updated_checkin is not None
-        assert updated_checkin.ticket_tier == "VIP"
-        assert updated_checkin.qr_code == "QR123456"  # Should remain unchanged
+        assert updated_checkin.ticketTier == "VIP"
+        assert updated_checkin.qrCode == "QR123456"  # Should remain unchanged
 
     def test_delete_checkin_happy_path(self, db):
         """Test deleting a checkin successfully"""
@@ -897,8 +897,8 @@ class TestCheckinServiceCRUD:
         user_data = UserCreate(
             email="test@example.com",
             profile=UserProfile(
-                first_name="John",
-                last_name="Doe"
+                firstName="John",
+                lastName="Doe"
             )
         )
         
@@ -911,9 +911,9 @@ class TestCheckinServiceCRUD:
         
         # Create a checkin
         checkin_data = CheckinCreate(
-            event_id=created_event.id,
-            user_id=created_user.id,
-            qr_code="QR123456"
+            eventId=created_event.id,
+            userId=created_user.id,
+            qrCode="QR123456"
         )
         
         created_checkin = checkin_service.create_checkin(checkin_data)

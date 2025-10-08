@@ -96,11 +96,11 @@ def create_app():
                             float(request.form["latitude"]),
                         ],
                     },
-                    "start_date": request.form["start_date"],
-                    "end_date": request.form.get("end_date") or None,
+                    "startDate": request.form["startDate"],
+                    "endDate": request.form.get("endDate") or None,
                     "organizer": request.form.get("organizer"),
-                    "max_attendees": int(request.form["max_attendees"])
-                    if request.form.get("max_attendees")
+                    "maxAttendees": int(request.form["maxAttendees"])
+                    if request.form.get("maxAttendees")
                     else None,
                     "tags": [
                         tag.strip()
@@ -168,13 +168,13 @@ def create_app():
                         "description": event.description,
                         "category": event.category,
                         "location": event.location.model_dump() if event.location else None,
-                        "start_date": event.start_date.isoformat() if event.start_date else None,
-                        "end_date": event.end_date.isoformat() if event.end_date else None,
+                        "startDate": event.startDate.isoformat() if event.startDate else None,
+                        "endDate": event.endDate.isoformat() if event.endDate else None,
                         "organizer": event.organizer,
-                        "max_attendees": event.max_attendees,
+                        "maxAttendees": event.maxAttendees,
                         "tags": event.tags,
-                        "created_at": event.created_at.isoformat() if event.created_at else None,
-                        "updated_at": event.updated_at.isoformat() if event.updated_at else None,
+                        "createdAt": event.createdAt.isoformat() if event.createdAt else None,
+                        "updatedAt": event.updatedAt.isoformat() if event.updatedAt else None,
                         "score": getattr(event, 'score', None)
                     }
                     events_data.append(event_dict)
@@ -325,23 +325,23 @@ def create_app():
         try:
             from datetime import datetime
             
-            start_date = datetime.fromisoformat(request.args.get("start_date"))
-            end_date = datetime.fromisoformat(request.args.get("end_date"))
+            startDate = datetime.fromisoformat(request.args.get("startDate"))
+            endDate = datetime.fromisoformat(request.args.get("endDate"))
             category = request.args.get("category")
             longitude = request.args.get("lng", type=float)
             latitude = request.args.get("lat", type=float)
             radius_km = request.args.get("radius", type=float)
             
             events = get_event_service().get_events_by_date_range(
-                start_date, end_date, category, longitude, latitude, radius_km
+                startDate, endDate, category, longitude, latitude, radius_km
             )
             
             return jsonify({
                 "events": [event.model_dump() for event in events],
                 "count": len(events),
                 "date_range": {
-                    "start": start_date.isoformat(),
-                    "end": end_date.isoformat()
+                    "start": startDate.isoformat(),
+                    "end": endDate.isoformat()
                 }
             })
             
@@ -457,13 +457,13 @@ def create_app():
         try:
             from datetime import datetime
             
-            start_date = request.args.get("start_date")
-            end_date = request.args.get("end_date")
+            startDate = request.args.get("startDate")
+            endDate = request.args.get("endDate")
             
-            start_date = datetime.fromisoformat(start_date) if start_date else None
-            end_date = datetime.fromisoformat(end_date) if end_date else None
+            startDate = datetime.fromisoformat(startDate) if startDate else None
+            endDate = datetime.fromisoformat(endDate) if endDate else None
             
-            stats = get_checkin_service().get_venue_attendance_stats(venue_id, start_date, end_date)
+            stats = get_checkin_service().get_venue_attendance_stats(venue_id, startDate, endDate)
             return jsonify(stats)
             
         except Exception as e:

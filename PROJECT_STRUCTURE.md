@@ -84,16 +84,16 @@ python run.py
 ## 📊 Database Design Highlights
 
 ### Polymorphic Event Types
-- `in_person` - Traditional physical events
+- `inPerson` - Traditional physical events
 - `virtual` - Online events with meeting details
 - `hybrid` - Mixed virtual/in-person events
 - `recurring` - Repeat events with scheduling
 
 ### Polymorphic Venue Types
-- `conference_center` - Meeting rooms, A/V equipment
+- `conferenceCenter` - Meeting rooms, A/V equipment
 - `park` - Outdoor spaces, activities
 - `restaurant` - Dining venues
-- `virtual_space` - Online platforms
+- `virtualSpace` - Online platforms
 - `stadium` - Large venues
 - `theater` - Performance venues
 
@@ -120,13 +120,13 @@ Environment variables:
 db.events.find({ event_type: "virtual" })
 
 // Find conference centers
-db.venues.find({ venue_type: "conference_center" })
+db.venues.find({ venue_type: "conferenceCenter" })
 ```
 
 ### Extended Reference Queries
 ```javascript
 // Find events at conference centers (no join needed)
-db.events.find({ "venue_reference.venue_type": "conference_center" })
+db.events.find({ "venue_reference.venue_type": "conferenceCenter" })
 
 // Find events in specific city
 db.events.find({ "venue_reference.city": "San Francisco" })

@@ -133,29 +133,29 @@ class MongoDB:
                 [("title", "text"), ("description", "text"), ("category", "text"), ("tags", "text")],
                 name="text_search",
             )
-            self.events.create_index([("start_date", 1)], name="start_date")
-            self.events.create_index([("created_at", 1)], name="created_at")
-            self.events.create_index([("category", 1), ("start_date", 1)], name="category_start_date")
-            self.events.create_index([("organizer", 1), ("start_date", 1)], name="organizer_start_date")
-            self.events.create_index([("_id", 1), ("start_date", 1)], name="id_start_date")
-            self.events.create_index([("category", 1), ("created_at", 1)], name="category_created_at")
-            self.events.create_index([("start_date", 1), ("category", 1)], name="start_date_category")
+            self.events.create_index([("startDate", 1)], name="startDate")
+            self.events.create_index([("createdAt", 1)], name="createdAt")
+            self.events.create_index([("category", 1), ("startDate", 1)], name="category_startDate")
+            self.events.create_index([("organizer", 1), ("startDate", 1)], name="organizer_startDate")
+            self.events.create_index([("_id", 1), ("startDate", 1)], name="id_startDate")
+            self.events.create_index([("category", 1), ("createdAt", 1)], name="category_createdAt")
+            self.events.create_index([("startDate", 1), ("category", 1)], name="startDate_category")
             self.events.create_index([("tags", 1)], name="tags")
-            self.events.create_index([("max_attendees", 1)], name="max_attendees")
-            self.events.create_index([("end_date", 1)], name="end_date")
+            self.events.create_index([("maxAttendees", 1)], name="maxAttendees")
+            self.events.create_index([("endDate", 1)], name="endDate")
             print("✓ Event indexes created")
 
             # Venues indexes
             self.venues.create_index([("location", GEOSPHERE)], name="venue_location_2dsphere")
             self.venues.create_index([("name", 1)], name="venue_name")
             self.venues.create_index([("address.city", 1)], name="venue_city")
-            self.venues.create_index([("created_at", 1)], name="venue_created_at")
+            self.venues.create_index([("createdAt", 1)], name="venue_createdAt")
             print("✓ Venue indexes created")
 
             # Users indexes
             self.users.create_index([("email", 1)], name="user_email", unique=True)
-            self.users.create_index([("profile.first_name", 1), ("profile.last_name", 1)], name="user_name")
-            self.users.create_index([("created_at", 1)], name="user_created_at")
+            self.users.create_index([("profile.firstName", 1), ("profile.lastName", 1)], name="user_name")
+            self.users.create_index([("createdAt", 1)], name="user_createdAt")
             self.users.create_index([("profile.preferences.location", GEOSPHERE)], name="user_pref_location_2dsphere")
             print("✓ User indexes created")
 
@@ -174,37 +174,37 @@ class MongoDB:
             print("Creating check-ins indexes...")
             
             # 1. Basic reference indexes
-            self.checkins.create_index([("event_id", 1)], name="event_id")
-            self.checkins.create_index([("user_id", 1)], name="user_id")
-            self.checkins.create_index([("venue_id", 1)], name="venue_id")
+            self.checkins.create_index([("eventId", 1)], name="eventId")
+            self.checkins.create_index([("userId", 1)], name="userId")
+            self.checkins.create_index([("venueId", 1)], name="venueId")
             print("✓ Basic reference indexes created")
             
             # 2. Time-based indexes for analytics
-            self.checkins.create_index([("check_in_time", 1)], name="check_in_time")
-            self.checkins.create_index([("created_at", 1)], name="created_at")
+            self.checkins.create_index([("checkInTime", 1)], name="checkInTime")
+            self.checkins.create_index([("createdAt", 1)], name="createdAt")
             print("✓ Time-based indexes created")
             
             # 3. Unique constraint for duplicate prevention (event_id + user_id)
-            self.checkins.create_index([("event_id", 1), ("user_id", 1)], name="event_user_unique", unique=True)
+            self.checkins.create_index([("eventId", 1), ("userId", 1)], name="event_user_unique", unique=True)
             print("✓ Unique constraint index created")
             
             # 4. Analytics compound indexes
-            self.checkins.create_index([("venue_id", 1), ("check_in_time", 1)], name="venue_time_analytics")
-            self.checkins.create_index([("user_id", 1), ("check_in_time", 1)], name="user_time_analytics")
-            self.checkins.create_index([("event_id", 1), ("check_in_time", 1)], name="event_time_analytics")
+            self.checkins.create_index([("venueId", 1), ("checkInTime", 1)], name="venue_time_analytics")
+            self.checkins.create_index([("userId", 1), ("checkInTime", 1)], name="user_time_analytics")
+            self.checkins.create_index([("eventId", 1), ("checkInTime", 1)], name="event_time_analytics")
             print("✓ Analytics compound indexes created")
             
             # 5. Check-in method and ticket tier indexes
-            self.checkins.create_index([("check_in_method", 1)], name="check_in_method")
-            self.checkins.create_index([("ticket_tier", 1)], name="ticket_tier")
+            self.checkins.create_index([("checkInMethod", 1)], name="checkInMethod")
+            self.checkins.create_index([("ticketTier", 1)], name="ticketTier")
             print("✓ Check-in method and ticket tier indexes created")
             
             # 6. QR code index for lookups
-            self.checkins.create_index([("qr_code", 1)], name="qr_code")
+            self.checkins.create_index([("qrCode", 1)], name="qrCode")
             print("✓ QR code index created")
             
             # 7. Metadata indexes for analytics
-            self.checkins.create_index([("metadata.staff_verified", 1)], name="staff_verified")
+            self.checkins.create_index([("metadata.staffVerified", 1)], name="staffVerified")
             print("✓ Metadata indexes created")
             
             # 8. Geospatial index for check-in location (if different from event)
@@ -222,14 +222,14 @@ class MongoDB:
             print("Creating reviews indexes...")
             
             # 1. Basic reference indexes
-            self.reviews.create_index([("event_id", 1)], name="event_id")
-            self.reviews.create_index([("venue_id", 1)], name="venue_id")
-            self.reviews.create_index([("user_id", 1)], name="user_id")
+            self.reviews.create_index([("eventId", 1)], name="eventId")
+            self.reviews.create_index([("venueId", 1)], name="venueId")
+            self.reviews.create_index([("userId", 1)], name="userId")
             print("✓ Basic reference indexes created")
             
             # 2. Time-based indexes for sorting and analytics
-            self.reviews.create_index([("created_at", 1)], name="created_at")
-            self.reviews.create_index([("updated_at", 1)], name="updated_at")
+            self.reviews.create_index([("createdAt", 1)], name="createdAt")
+            self.reviews.create_index([("updatedAt", 1)], name="updatedAt")
             print("✓ Time-based indexes created")
             
             # 3. Rating-based indexes for analytics
@@ -237,14 +237,14 @@ class MongoDB:
             print("✓ Rating index created")
             
             # 4. Compound indexes for common query patterns
-            self.reviews.create_index([("event_id", 1), ("created_at", -1)], name="event_created_desc")
-            self.reviews.create_index([("venue_id", 1), ("created_at", -1)], name="venue_created_desc")
-            self.reviews.create_index([("user_id", 1), ("created_at", -1)], name="user_created_desc")
+            self.reviews.create_index([("eventId", 1), ("createdAt", -1)], name="event_created_desc")
+            self.reviews.create_index([("venueId", 1), ("createdAt", -1)], name="venue_created_desc")
+            self.reviews.create_index([("userId", 1), ("createdAt", -1)], name="user_created_desc")
             print("✓ Compound indexes created")
             
             # 5. Rating analytics indexes
-            self.reviews.create_index([("event_id", 1), ("rating", 1)], name="event_rating")
-            self.reviews.create_index([("venue_id", 1), ("rating", 1)], name="venue_rating")
+            self.reviews.create_index([("eventId", 1), ("rating", 1)], name="event_rating")
+            self.reviews.create_index([("venueId", 1), ("rating", 1)], name="venue_rating")
             print("✓ Rating analytics indexes created")
             
             # 6. Text search index for comments

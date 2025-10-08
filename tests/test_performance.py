@@ -38,11 +38,11 @@ def generate_test_events(count: int = 1000) -> List[Dict[str, Any]]:
         lng = city["lng"] + random.uniform(-0.1, 0.1)
         
         # Generate dates from 1 month ago to 3 months in the future
-        start_date = datetime.now(timezone.utc) + timedelta(
+        startDate = datetime.now(timezone.utc) + timedelta(
             days=random.randint(-30, 90),
             hours=random.randint(0, 23)
         )
-        end_date = start_date + timedelta(hours=random.randint(1, 8))
+        endDate = startDate + timedelta(hours=random.randint(1, 8))
         
         event = {
             "title": f"Test Event {i+1}",
@@ -52,13 +52,13 @@ def generate_test_events(count: int = 1000) -> List[Dict[str, Any]]:
                 "type": "Point",
                 "coordinates": [lng, lat]
             },
-            "start_date": start_date,
-            "end_date": end_date,
+            "startDate": startDate,
+            "endDate": endDate,
             "organizer": f"Organizer {i+1}",
-            "max_attendees": random.randint(10, 500),
+            "maxAttendees": random.randint(10, 500),
             "tags": [f"tag{i%10}", f"category{random.randint(1,5)}"],
-            "created_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc)
+            "createdAt": datetime.now(timezone.utc),
+            "updatedAt": datetime.now(timezone.utc)
         }
         events.append(event)
     
@@ -157,9 +157,9 @@ def test_bulk_insert_performance(metrics: PerformanceMetrics, event_counts: List
                     "type": "Point",
                     "coordinates": [random.uniform(-180, 180), random.uniform(-90, 90)]
                 },
-                "start_date": datetime.now(timezone.utc) + timedelta(days=random.randint(1, 30)),
+                "startDate": datetime.now(timezone.utc) + timedelta(days=random.randint(1, 30)),
                 "organizer": f"Bulk Organizer {i+1}",
-                "created_at": datetime.now(timezone.utc)
+                "createdAt": datetime.now(timezone.utc)
             }
             test_events.append(event)
         
@@ -228,7 +228,7 @@ def test_query_performance(metrics: PerformanceMetrics):
         duration, geojson = run_performance_test("geospatial_query", service.get_events_nearby, {
             "longitude": -74.0060,  # NYC
             "latitude": 40.7128,
-            "radius_km": 50,
+            "radiusKm": 50,
             "limit": 100
         })
         geo_times.append(duration)
@@ -250,11 +250,11 @@ def test_query_performance(metrics: PerformanceMetrics):
     
     # Test 5: Date range query
     print("\n📊 Test 5: Date Range Query Performance")
-    start_date = datetime.now(timezone.utc)
-    end_date = start_date + timedelta(days=30)
+    startDate = datetime.now(timezone.utc)
+    endDate = startDate + timedelta(days=30)
     date_times = []
     for i in range(5):
-        duration, date_events = run_performance_test("date_range", service.get_events_by_date_range, start_date, end_date, "Technology")
+        duration, date_events = run_performance_test("date_range", service.get_events_by_date_range, startDate, endDate, "Technology")
         date_times.append(duration)
         metrics.add_metric("date_range", duration, len(date_events))
     
@@ -304,8 +304,8 @@ def test_query_performance(metrics: PerformanceMetrics):
         # Test compound index usage
         compound_explain = db.events.find({
             "category": "Technology",
-            "start_date": {"$gte": datetime.now(timezone.utc)}
-        }).sort("start_date", 1).explain()
+            "startDate": {"$gte": datetime.now(timezone.utc)}
+        }).sort("startDate", 1).explain()
         
         compound_stats = compound_explain.get('executionStats', {})
         metrics.add_explain_snapshot("compound_query_explain", compound_explain)
@@ -352,8 +352,8 @@ def test_index_effectiveness(metrics: PerformanceMetrics):
         # This should use the compound index (category, start_date)
         explain_result = db.events.find({
             "category": "Technology",
-            "start_date": {"$gte": datetime.now(timezone.utc)}
-        }).sort("start_date", 1).explain()
+            "startDate": {"$gte": datetime.now(timezone.utc)}
+        }).sort("startDate", 1).explain()
         
         execution_stats = explain_result.get('executionStats', {})
         metrics.add_explain_snapshot("compound_index_test", explain_result)

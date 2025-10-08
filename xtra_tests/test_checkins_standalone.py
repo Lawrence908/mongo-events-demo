@@ -32,33 +32,33 @@ def test_checkin_models():
     
     # Test with all fields
     sample_data = {
-        "event_id": str(ObjectId()),
-        "user_id": str(ObjectId()),
-        "venue_id": str(ObjectId()),
-        "qr_code": "QR123456789",
-        "ticket_tier": "VIP",
-        "check_in_method": "qr_code",
+        "eventId": str(ObjectId()),
+        "userId": str(ObjectId()),
+        "venueId": str(ObjectId()),
+        "qrCode": "QR123456789",
+        "ticketTier": "VIP",
+        "checkInMethod": "qr_code",
         "location": {
             "type": "Point",
             "coordinates": [-74.0060, 40.7128]
         },
         "metadata": {
-            "device_info": "iPhone 13 Pro",
-            "ip_address": "192.168.1.100",
-            "staff_verified": True
+            "deviceInfo": "iPhone 13 Pro",
+            "ipAddress": "192.168.1.100",
+            "staffVerified": True
         }
     }
     
     checkin = CheckinCreate(**sample_data)
-    assert checkin.event_id == ObjectId(sample_data["event_id"])
-    assert checkin.user_id == ObjectId(sample_data["user_id"])
-    assert checkin.venue_id == ObjectId(sample_data["venue_id"])
-    assert checkin.qr_code == sample_data["qr_code"]
-    assert checkin.ticket_tier == sample_data["ticket_tier"]
-    assert checkin.check_in_method == sample_data["check_in_method"]
+    assert checkin.eventId == ObjectId(sample_data["eventId"])
+    assert checkin.userId == ObjectId(sample_data["userId"])
+    assert checkin.venueId == ObjectId(sample_data["venueId"])
+    assert checkin.qrCode == sample_data["qrCode"]
+    assert checkin.ticketTier == sample_data["ticketTier"]
+    assert checkin.checkInMethod == sample_data["checkInMethod"]
     assert checkin.location.type == "Point"
-    assert checkin.metadata.device_info == "iPhone 13 Pro"
-    assert checkin.metadata.staff_verified is True
+    assert checkin.metadata.deviceInfo == "iPhone 13 Pro"
+    assert checkin.metadata.staffVerified is True
     print("✅ CheckinCreate model validation passed")
     
     # Test with minimal fields

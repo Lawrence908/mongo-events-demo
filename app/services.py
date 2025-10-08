@@ -50,8 +50,8 @@ class EventService:
             # If geocoding service is not available (no API key), continue without it
             print(f"Info: Geocoding service not available: {str(e)}")
         
-        event_dict["created_at"] = datetime.now(timezone.utc)
-        event_dict["updated_at"] = datetime.now(timezone.utc)
+        event_dict["createdAt"] = datetime.now(timezone.utc)
+        event_dict["updatedAt"] = datetime.now(timezone.utc)
 
         result = db.events.insert_one(event_dict)
         event_dict["_id"] = result.inserted_id
@@ -107,7 +107,7 @@ class EventService:
             sort_criteria = [("score", {"$meta": "textScore"})]
 
         if upcoming_only:
-            query["start_date"] = {"$gte": datetime.now(timezone.utc)}
+            query["startDate"] = {"$gte": datetime.now(timezone.utc)}
 
         # Cursor-based pagination (preferred)
         if cursor_id is None or (cursor_id and ObjectId.is_valid(cursor_id)):
@@ -142,9 +142,9 @@ class EventService:
         
         # Fallback to offset-based pagination for invalid cursor_id
         else:
-            # Use textScore sorting if search is provided, otherwise use start_date
+            # Use textScore sorting if search is provided, otherwise use startDate
             if not sort_criteria:
-                sort_criteria = [("start_date", 1)]
+                sort_criteria = [("startDate", 1)]
             
             cursor = db.events.find(query, projection).skip(skip).limit(limit).sort(sort_criteria)
             events = list(cursor)
@@ -190,7 +190,7 @@ class EventService:
                     current_dict.update(update_dict)
                     updated_dict = geocoding_service.validate_and_geocode_event(current_dict)
                     # Only update the fields that were actually changed
-                    for key in ["location", "address", "directions_url"]:
+                    for key in ["location", "address", "directionsUrl"]:
                         if key in updated_dict:
                             update_dict[key] = updated_dict[key]
             except GeocodingError as e:
@@ -198,7 +198,7 @@ class EventService:
             except Exception as e:
                 print(f"Info: Geocoding service not available: {str(e)}")
 
-        update_dict["updated_at"] = datetime.now(timezone.utc)
+        update_dict["updatedAt"] = datetime.now(timezone.utc)
 
         result = db.events.update_one(
             {"_id": ObjectId(event_id)}, {"$set": update_dict}
@@ -232,7 +232,7 @@ class EventService:
                         "coordinates": [query.longitude, query.latitude],
                     },
                     "distanceField": "distance",
-                    "maxDistance": query.radius_km * 1000,  # Convert to meters
+                    "maxDistance": query.radiusKm * 1000,  # Convert to meters
                     "spherical": True,
                     "key": "location"  # Specify which 2dsphere index to use
                 }
@@ -262,7 +262,7 @@ class EventService:
                     "title": event["title"],
                     "description": event.get("description", ""),
                     "category": event["category"],
-                    "start_date": event["start_date"].isoformat(),
+                    "startDate": event["startDate"].isoformat(),
                     "organizer": event.get("organizer"),
                     "distance": round(event["distance"], 2),
                 },
@@ -291,14 +291,14 @@ class EventService:
                         "coordinates": [longitude, latitude],
                     },
                     "distanceField": "distance",
-                    "maxDistance": radius_km * 1000,  # Convert to meters
+                    "maxDistance": radiusKm * 1000,  # Convert to meters
                     "spherical": True,
                     "key": "location"  # Specify which 2dsphere index to use
                 }
             },
             {
                 "$match": {
-                    "start_date": {
+                    "startDate": {
                         "$gte": friday,
                         "$lte": sunday
                     }
@@ -312,7 +312,7 @@ class EventService:
         
         pipeline.extend([
             {
-                "$sort": {"start_date": 1}
+                "$sort": {"startDate": 1}
             },
             {
                 "$limit": limit
@@ -332,8 +332,8 @@ class EventService:
                     "title": event["title"],
                     "description": event.get("description", ""),
                     "category": event["category"],
-                    "start_date": event["start_date"].isoformat(),
-                    "end_date": event.get("end_date", "").isoformat() if event.get("end_date") else "",
+                    "startDate": event["startDate"].isoformat(),
+                    "endDate": event.get("endDate", "").isoformat() if event.get("endDate") else "",
                     "organizer": event.get("organizer", ""),
                     "distance": round(event["distance"], 2),
                     "tags": event.get("tags", []),
@@ -360,8 +360,8 @@ class EventService:
             {
                 "$group": {
                     "_id": {
-                        "hour": {"$hour": "$start_date"},
-                        "dayOfWeek": {"$dayOfWeek": "$start_date"}
+                        "hour": {"$hour": "$startDate"},
+                        "dayOfWeek": {"$dayOfWeek": "$startDate"}
                     },
                     "count": {"$sum": 1}
                 }
@@ -380,7 +380,7 @@ class EventService:
                 "$group": {
                     "_id": "$category",
                     "count": {"$sum": 1},
-                    "avg_attendees": {"$avg": "$max_attendees"}
+                    "avg_attendees": {"$avg": "$maxAttendees"}
                 }
             },
             {
@@ -393,8 +393,8 @@ class EventService:
             {
                 "$group": {
                     "_id": {
-                        "year": {"$year": "$start_date"},
-                        "month": {"$month": "$start_date"}
+                        "year": {"$year": "$startDate"},
+                        "month": {"$month": "$startDate"}
                     },
                     "count": {"$sum": 1}
                 }
@@ -413,13 +413,13 @@ class EventService:
             "category_popularity": category_stats,
             "monthly_trends": monthly_trends,
             "total_events": db.events.count_documents({}),
-            "upcoming_events": db.events.count_documents({"start_date": {"$gte": datetime.now(timezone.utc)}})
+            "upcoming_events": db.events.count_documents({"startDate": {"$gte": datetime.now(timezone.utc)}})
         }
 
     def get_events_by_date_range(
         self, 
-        start_date: datetime, 
-        end_date: datetime,
+        startDate: datetime, 
+        endDate: datetime,
         category: Optional[str] = None,
         longitude: Optional[float] = None,
         latitude: Optional[float] = None,
@@ -428,9 +428,9 @@ class EventService:
         """Get events within a specific date range with optional location filtering"""
         db = self._ensure_db()
         query = {
-            "start_date": {
-                "$gte": start_date,
-                "$lte": end_date
+            "startDate": {
+                "$gte": startDate,
+                "$lte": endDate
             }
         }
         
@@ -453,14 +453,14 @@ class EventService:
                 },
                 {
                     "$match": {
-                        "start_date": {
-                            "$gte": start_date,
-                            "$lte": end_date
+                        "startDate": {
+                            "$gte": startDate,
+                            "$lte": endDate
                         }
                     }
                 },
                 {
-                    "$sort": {"start_date": 1}
+                    "$sort": {"startDate": 1}
                 }
             ]
             
@@ -471,7 +471,7 @@ class EventService:
             return [Event(**event) for event in events]
         else:
             # Regular date range query
-            cursor = db.events.find(query).sort("start_date", 1)
+            cursor = db.events.find(query).sort("startDate", 1)
             return [Event(**event) for event in cursor]
 
 
@@ -491,7 +491,7 @@ class VenueService:
         """Create a new venue"""
         db = self._ensure_db()
         venue_dict = venue_data.model_dump()
-        venue_dict["created_at"] = datetime.now(timezone.utc)
+        venue_dict["createdAt"] = datetime.now(timezone.utc)
 
         result = db.venues.insert_one(venue_dict)
         venue_dict["_id"] = result.inserted_id
@@ -512,7 +512,7 @@ class VenueService:
     def get_venues(self, skip: int = 0, limit: int = 50) -> dict[str, Any]:
         """Get venues with pagination"""
         db = self._ensure_db()
-        cursor = db.venues.find().skip(skip).limit(limit).sort("created_at", -1)
+        cursor = db.venues.find().skip(skip).limit(limit).sort("createdAt", -1)
         venues = [Venue(**venue) for venue in cursor]
 
         return {
@@ -569,7 +569,7 @@ class UserService:
         """Create a new user"""
         db = self._ensure_db()
         user_dict = user_data.model_dump()
-        user_dict["created_at"] = datetime.now(timezone.utc)
+        user_dict["createdAt"] = datetime.now(timezone.utc)
 
         result = db.users.insert_one(user_dict)
         user_dict["_id"] = result.inserted_id
@@ -598,7 +598,7 @@ class UserService:
     def get_users(self, skip: int = 0, limit: int = 50) -> dict[str, Any]:
         """Get users with pagination"""
         db = self._ensure_db()
-        cursor = db.users.find().skip(skip).limit(limit).sort("created_at", -1)
+        cursor = db.users.find().skip(skip).limit(limit).sort("createdAt", -1)
         users = [User(**user) for user in cursor]
 
         return {
@@ -655,18 +655,18 @@ class CheckinService:
         """Create a new checkin with duplicate prevention"""
         db = self._ensure_db()
         checkin_dict = checkin_data.model_dump()
-        checkin_dict["check_in_time"] = datetime.now(timezone.utc)
-        checkin_dict["created_at"] = datetime.now(timezone.utc)
+        checkin_dict["checkInTime"] = datetime.now(timezone.utc)
+        checkin_dict["createdAt"] = datetime.now(timezone.utc)
         
         # Convert string IDs to ObjectId instances for MongoDB
-        checkin_dict["event_id"] = ObjectId(checkin_dict["event_id"])
-        checkin_dict["user_id"] = ObjectId(checkin_dict["user_id"])
-        checkin_dict["venue_id"] = ObjectId(checkin_dict["venue_id"])
+        checkin_dict["eventId"] = ObjectId(checkin_dict["eventId"])
+        checkin_dict["userId"] = ObjectId(checkin_dict["userId"])
+        checkin_dict["venueId"] = ObjectId(checkin_dict["venueId"])
 
         # Check for duplicate check-in (event_id + user_id unique constraint)
         existing_checkin = db.checkins.find_one({
-            "event_id": checkin_dict["event_id"],
-            "user_id": checkin_dict["user_id"]
+            "eventId": checkin_dict["eventId"],
+            "userId": checkin_dict["userId"]
         })
         
         if existing_checkin:
@@ -695,8 +695,8 @@ class CheckinService:
 
         db = self._ensure_db()
         checkin_data = db.checkins.find_one({
-            "event_id": ObjectId(event_id),
-            "user_id": ObjectId(user_id)
+            "eventId": ObjectId(event_id),
+            "userId": ObjectId(user_id)
         })
         if checkin_data:
             return Checkin(**checkin_data)
@@ -708,7 +708,7 @@ class CheckinService:
             return {"checkins": [], "has_more": False, "offset": 0}
 
         db = self._ensure_db()
-        cursor = db.checkins.find({"event_id": ObjectId(event_id)}).skip(skip).limit(limit).sort("check_in_time", -1)
+        cursor = db.checkins.find({"eventId": ObjectId(event_id)}).skip(skip).limit(limit).sort("checkInTime", -1)
         checkins = [Checkin(**checkin) for checkin in cursor]
 
         return {
@@ -723,7 +723,7 @@ class CheckinService:
             return {"checkins": [], "has_more": False, "offset": 0}
 
         db = self._ensure_db()
-        cursor = db.checkins.find({"user_id": ObjectId(user_id)}).skip(skip).limit(limit).sort("check_in_time", -1)
+        cursor = db.checkins.find({"userId": ObjectId(user_id)}).skip(skip).limit(limit).sort("checkInTime", -1)
         checkins = [Checkin(**checkin) for checkin in cursor]
 
         return {
@@ -738,7 +738,7 @@ class CheckinService:
             return {"checkins": [], "has_more": False, "offset": 0}
 
         db = self._ensure_db()
-        cursor = db.checkins.find({"venue_id": ObjectId(venue_id)}).skip(skip).limit(limit).sort("check_in_time", -1)
+        cursor = db.checkins.find({"venueId": ObjectId(venue_id)}).skip(skip).limit(limit).sort("checkInTime", -1)
         checkins = [Checkin(**checkin) for checkin in cursor]
 
         return {
@@ -787,14 +787,14 @@ class CheckinService:
         db = self._ensure_db()
         
         pipeline = [
-            {"$match": {"event_id": ObjectId(event_id)}},
+            {"$match": {"eventId": ObjectId(event_id)}},
             {
                 "$group": {
                     "_id": None,
                     "total_checkins": {"$sum": 1},
-                    "unique_users": {"$addToSet": "$user_id"},
-                    "checkin_methods": {"$push": "$check_in_method"},
-                    "avg_checkin_time": {"$avg": "$check_in_time"}
+                    "unique_users": {"$addToSet": "$userId"},
+                    "checkin_methods": {"$push": "$checkInMethod"},
+                    "avg_checkin_time": {"$avg": "$checkInTime"}
                 }
             },
             {
@@ -827,21 +827,21 @@ class CheckinService:
             return result[0]
         return {"total_checkins": 0, "unique_users": 0, "checkin_methods": {}}
 
-    def get_venue_attendance_stats(self, venue_id: str, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None) -> dict[str, Any]:
+    def get_venue_attendance_stats(self, venue_id: str, startDate: Optional[datetime] = None, endDate: Optional[datetime] = None) -> dict[str, Any]:
         """Get attendance statistics for a specific venue"""
         if not ObjectId.is_valid(venue_id):
             return {"total_checkins": 0, "unique_users": 0, "events_attended": 0, "monthly_breakdown": []}
 
         db = self._ensure_db()
         
-        match_filter = {"venue_id": ObjectId(venue_id)}
-        if start_date:
-            match_filter["check_in_time"] = {"$gte": start_date}
-        if end_date:
-            if "check_in_time" in match_filter:
-                match_filter["check_in_time"]["$lte"] = end_date
+        match_filter = {"venueId": ObjectId(venue_id)}
+        if startDate:
+            match_filter["checkInTime"] = {"$gte": startDate}
+        if endDate:
+            if "checkInTime" in match_filter:
+                match_filter["checkInTime"]["$lte"] = endDate
             else:
-                match_filter["check_in_time"] = {"$lte": end_date}
+                match_filter["checkInTime"] = {"$lte": endDate}
 
         pipeline = [
             {"$match": match_filter},
@@ -849,12 +849,12 @@ class CheckinService:
                 "$group": {
                     "_id": None,
                     "total_checkins": {"$sum": 1},
-                    "unique_users": {"$addToSet": "$user_id"},
-                    "events_attended": {"$addToSet": "$event_id"},
+                    "unique_users": {"$addToSet": "$userId"},
+                    "events_attended": {"$addToSet": "$eventId"},
                     "monthly_data": {
                         "$push": {
-                            "month": {"$dateToString": {"format": "%Y-%m", "date": "$check_in_time"}},
-                            "checkin_time": "$check_in_time"
+                            "month": {"$dateToString": {"format": "%Y-%m", "date": "$checkInTime"}},
+                            "checkin_time": "$checkInTime"
                         }
                     }
                 }
@@ -896,12 +896,12 @@ class CheckinService:
         pipeline = [
             {
                 "$group": {
-                    "_id": "$user_id",
+                    "_id": "$userId",
                     "event_count": {"$sum": 1},
                     "events": {"$addToSet": "$event_id"},
-                    "venues": {"$addToSet": "$venue_id"},
-                    "first_checkin": {"$min": "$check_in_time"},
-                    "last_checkin": {"$max": "$check_in_time"}
+                    "venues": {"$addToSet": "$venueId"},
+                    "first_checkin": {"$min": "$checkInTime"},
+                    "last_checkin": {"$max": "$checkInTime"}
                 }
             },
             {"$match": {"event_count": {"$gte": min_events}}},
@@ -928,15 +928,15 @@ class CheckinService:
         
         match_filter = {}
         if venue_id and ObjectId.is_valid(venue_id):
-            match_filter["venue_id"] = ObjectId(venue_id)
+            match_filter["venueId"] = ObjectId(venue_id)
         
         pipeline = [
             {"$match": match_filter},
             {
                 "$group": {
                     "_id": {
-                        "hour": {"$hour": "$check_in_time"},
-                        "dayOfWeek": {"$dayOfWeek": "$check_in_time"}
+                        "hour": {"$hour": "$checkInTime"},
+                        "dayOfWeek": {"$dayOfWeek": "$checkInTime"}
                     },
                     "count": {"$sum": 1}
                 }
@@ -966,11 +966,11 @@ class CheckinService:
         
         # Get check-ins with event and venue details
         pipeline = [
-            {"$match": {"user_id": ObjectId(user_id)}},
+            {"$match": {"userId": ObjectId(user_id)}},
             {
                 "$lookup": {
                     "from": "events",
-                    "localField": "event_id",
+                    "localField": "eventId",
                     "foreignField": "_id",
                     "as": "event"
                 }
@@ -978,23 +978,23 @@ class CheckinService:
             {
                 "$lookup": {
                     "from": "venues",
-                    "localField": "venue_id",
+                    "localField": "venueId",
                     "foreignField": "_id",
                     "as": "venue"
                 }
             },
             {"$unwind": "$event"},
             {"$unwind": "$venue"},
-            {"$sort": {"check_in_time": -1}},
+            {"$sort": {"checkInTime": -1}},
             {"$limit": limit},
             {
                 "$project": {
                     "_id": 1,
                     "event_id": 1,
                     "venue_id": 1,
-                    "check_in_time": 1,
-                    "check_in_method": 1,
-                    "ticket_tier": 1,
+                    "checkInTime": 1,
+                    "checkInMethod": 1,
+                    "ticketTier": 1,
                     "event_title": "$event.title",
                     "event_category": "$event.category",
                     "venue_name": "$venue.name",
@@ -1007,15 +1007,15 @@ class CheckinService:
         
         # Get summary statistics
         summary_pipeline = [
-            {"$match": {"user_id": ObjectId(user_id)}},
+            {"$match": {"userId": ObjectId(user_id)}},
             {
                 "$group": {
                     "_id": None,
                     "total_events": {"$sum": 1},
-                    "unique_venues": {"$addToSet": "$venue_id"},
+                    "unique_venues": {"$addToSet": "$venueId"},
                     "categories": {"$addToSet": "$event.category"},
-                    "first_checkin": {"$min": "$check_in_time"},
-                    "last_checkin": {"$max": "$check_in_time"}
+                    "first_checkin": {"$min": "$checkInTime"},
+                    "last_checkin": {"$max": "$checkInTime"}
                 }
             },
             {
@@ -1054,8 +1054,8 @@ class ReviewService:
         """Create a new review"""
         db = self._ensure_db()
         review_dict = review_data.model_dump()
-        review_dict["created_at"] = datetime.now(timezone.utc)
-        review_dict["updated_at"] = datetime.now(timezone.utc)
+        review_dict["createdAt"] = datetime.now(timezone.utc)
+        review_dict["updatedAt"] = datetime.now(timezone.utc)
 
         # Convert string IDs to ObjectId instances for MongoDB
         if review_dict.get("event_id"):
@@ -1086,7 +1086,7 @@ class ReviewService:
             return {"reviews": [], "has_more": False, "offset": 0}
 
         db = self._ensure_db()
-        cursor = db.reviews.find({"event_id": ObjectId(event_id)}).skip(skip).limit(limit).sort("created_at", -1)
+        cursor = db.reviews.find({"eventId": ObjectId(event_id)}).skip(skip).limit(limit).sort("createdAt", -1)
         reviews = [Review(**review) for review in cursor]
 
         return {
@@ -1101,7 +1101,7 @@ class ReviewService:
             return {"reviews": [], "has_more": False, "offset": 0}
 
         db = self._ensure_db()
-        cursor = db.reviews.find({"venue_id": ObjectId(venue_id)}).skip(skip).limit(limit).sort("created_at", -1)
+        cursor = db.reviews.find({"venueId": ObjectId(venue_id)}).skip(skip).limit(limit).sort("createdAt", -1)
         reviews = [Review(**review) for review in cursor]
 
         return {
@@ -1116,7 +1116,7 @@ class ReviewService:
             return {"reviews": [], "has_more": False, "offset": 0}
 
         db = self._ensure_db()
-        cursor = db.reviews.find({"user_id": ObjectId(user_id)}).skip(skip).limit(limit).sort("created_at", -1)
+        cursor = db.reviews.find({"userId": ObjectId(user_id)}).skip(skip).limit(limit).sort("createdAt", -1)
         reviews = [Review(**review) for review in cursor]
 
         return {
@@ -1139,7 +1139,7 @@ class ReviewService:
         if not update_dict:
             return self.get_review(review_id)
 
-        update_dict["updated_at"] = datetime.now(timezone.utc)
+        update_dict["updatedAt"] = datetime.now(timezone.utc)
 
         result = db.reviews.update_one(
             {"_id": ObjectId(review_id)}, {"$set": update_dict}
@@ -1166,7 +1166,7 @@ class ReviewService:
         db = self._ensure_db()
         
         pipeline = [
-            {"$match": {"event_id": ObjectId(event_id)}},
+            {"$match": {"eventId": ObjectId(event_id)}},
             {
                 "$group": {
                     "_id": None,

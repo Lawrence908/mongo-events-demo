@@ -52,13 +52,13 @@ def sample_event(db):
         description="A test event for reviews",
         category="Music",
         location=EventLocation(coordinates=[-122.4194, 37.7749]),  # San Francisco
-        start_date=datetime(2024, 6, 15, 19, 0),
+        startDate=datetime(2024, 6, 15, 19, 0),
         organizer="Test Organizer"
     )
     
     event_dict = event_data.model_dump()
-    event_dict["created_at"] = datetime.now(timezone.utc)
-    event_dict["updated_at"] = datetime.now(timezone.utc)
+    event_dict["createdAt"] = datetime.now(timezone.utc)
+    event_dict["updatedAt"] = datetime.now(timezone.utc)
     
     result = db.events.insert_one(event_dict)
     event_dict["_id"] = result.inserted_id
@@ -82,7 +82,7 @@ def sample_venue(db):
     )
     
     venue_dict = venue_data.model_dump()
-    venue_dict["created_at"] = datetime.now(timezone.utc)
+    venue_dict["createdAt"] = datetime.now(timezone.utc)
     
     result = db.venues.insert_one(venue_dict)
     venue_dict["_id"] = result.inserted_id
@@ -95,13 +95,13 @@ def sample_user(db):
     user_data = UserCreate(
         email="test@example.com",
         profile=UserProfile(
-            first_name="Test",
-            last_name="User"
+            firstName="Test",
+            lastName="User"
         )
     )
     
     user_dict = user_data.model_dump()
-    user_dict["created_at"] = datetime.now(timezone.utc)
+    user_dict["createdAt"] = datetime.now(timezone.utc)
     
     result = db.users.insert_one(user_dict)
     user_dict["_id"] = result.inserted_id
@@ -114,8 +114,8 @@ class TestReviewModels:
     def test_review_create_valid_event_review(self):
         """Test creating a valid event review"""
         review_data = ReviewCreate(
-            event_id="507f1f77bcf86cd799439011",
-            user_id="507f1f77bcf86cd799439012",
+            eventId="507f1f77bcf86cd799439011",
+            userId="507f1f77bcf86cd799439012",
             rating=5,
             comment="Great event!"
         )

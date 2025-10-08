@@ -15,7 +15,7 @@
                             <span class="badge" style="background-color: var(--mdb-accent); color:#00150a;">{{ event.category }}</span>
                         </div>
                         <div class="text-end">
-                            <small class="text-muted">Created: {{ event.created_at.strftime('%Y-%m-%d') }}</small>
+                            <small class="text-muted">Created: {{ event.createdAt.strftime('%Y-%m-%d') }}</small>
                         </div>
                     </div>
                     
@@ -32,12 +32,12 @@
                             <ul class="list-unstyled">
                                 <li class="mb-2">
                                     <i class="bi bi-calendar text-success me-2"></i>
-                                    <strong>Start:</strong> {{ event.start_date.strftime('%Y-%m-%d %H:%M') }}
+                                    <strong>Start:</strong> {{ event.startDate.strftime('%Y-%m-%d %H:%M') }}
                                 </li>
-                                {% if event.end_date %}
+                                {% if event.endDate %}
                                     <li class="mb-2">
                                         <i class="bi bi-calendar-check text-success me-2"></i>
-                                        <strong>End:</strong> {{ event.end_date.strftime('%Y-%m-%d %H:%M') }}
+                                        <strong>End:</strong> {{ event.endDate.strftime('%Y-%m-%d %H:%M') }}
                                     </li>
                                 {% endif %}
                                 {% if event.organizer %}
@@ -46,10 +46,10 @@
                                         <strong>Organizer:</strong> {{ event.organizer }}
                                     </li>
                                 {% endif %}
-                                {% if event.max_attendees %}
+                                {% if event.maxAttendees %}
                                     <li class="mb-2">
                                         <i class="bi bi-people text-success me-2"></i>
-                                        <strong>Max Attendees:</strong> {{ event.max_attendees }}
+                                        <strong>Max Attendees:</strong> {{ event.maxAttendees }}
                                     </li>
                                 {% endif %}
                             </ul>
@@ -175,8 +175,8 @@ function eventDetail() {
         },
         
         addToCalendar() {
-            const startDate = new Date('{{ event.start_date.isoformat() }}');
-            const endDate = new Date('{{ event.end_date.isoformat() if event.end_date else event.start_date.isoformat() }}');
+            const startDate = new Date('{{ event.startDate.isoformat() }}');
+            const endDate = new Date('{{ event.endDate.isoformat() if event.endDate else event.startDate.isoformat() }}');
             
             const formatDate = (date) => {
                 return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';

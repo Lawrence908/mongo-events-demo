@@ -79,7 +79,7 @@
                                     </div>
                                     <p class="card-text text-muted small" x-text="event.properties.description"></p>
                                     <div class="small text-muted">
-                                        <div><strong>Date:</strong> <span x-text="formatDate(event.properties.start_date)"></span></div>
+                                        <div><strong>Date:</strong> <span x-text="formatDate(event.properties.startDate)"></span></div>
                                         <div x-show="event.properties.organizer"><strong>Organizer:</strong> <span x-text="event.properties.organizer"></span></div>
                                         <div><strong>Distance:</strong> <span x-text="event.properties.distance"></span>m</div>
                                     </div>
@@ -214,7 +214,7 @@ function eventsMap() {
                         <p class="small mb-2">${event.properties.description || ''}</p>
                         <div class="small text-muted">
                             <div><strong>Category:</strong> <span class="badge" style="background-color: ${this.getCategoryColor(event.properties.category)}">${event.properties.category}</span></div>
-                            <div><strong>Date:</strong> ${this.formatDate(event.properties.start_date)}</div>
+                            <div><strong>Date:</strong> ${this.formatDate(event.properties.startDate)}</div>
                             ${event.properties.organizer ? `<div><strong>Organizer:</strong> ${event.properties.organizer}</div>` : ''}
                             <div><strong>Distance:</strong> ${event.properties.distance}m</div>
                         </div>

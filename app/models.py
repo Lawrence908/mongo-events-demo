@@ -78,17 +78,17 @@ class EventTicket(BaseModel):
 
 class EventAttendee(BaseModel):
     """Event attendee information"""
-    user_id: PyObjectId
-    checked_in: bool = Field(default=False)
-    check_in_time: Optional[datetime] = None
+    userId: PyObjectId
+    checkedIn: bool = Field(default=False)
+    checkInTime: Optional[datetime] = None
 
 
 class EventMetadata(BaseModel):
     """Event metadata for custom attributes"""
     virtual: Optional[bool] = None
     recurring: Optional[bool] = None
-    age_restriction: Optional[str] = None
-    dress_code: Optional[str] = None
+    ageRestriction: Optional[str] = None
+    dressCode: Optional[str] = None
 
 
 class EventBase(BaseModel):
@@ -97,39 +97,39 @@ class EventBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     category: str = Field(..., min_length=1, max_length=50)
-    event_type: Literal["in_person", "virtual", "hybrid", "recurring"] = Field(..., description="Polymorphic discriminator")
+    eventType: Literal["inPerson", "virtual", "hybrid", "recurring"] = Field(..., description="Polymorphic discriminator")
     schemaVersion: str = Field(default="1.0", description="Schema versioning")
     location: EventLocation
     address: Optional[EventAddress] = None
-    directions_url: Optional[str] = Field(None, max_length=500, description="Google Maps directions URL")
-    venue_id: Optional[PyObjectId] = None
-    venue_reference: Optional[dict] = Field(None, description="Extended reference data for performance")
-    start_date: datetime
-    end_date: Optional[datetime] = None
+    directionsUrl: Optional[str] = Field(None, max_length=500, description="Google Maps directions URL")
+    venueId: Optional[PyObjectId] = None
+    venueReference: Optional[dict] = Field(None, description="Extended reference data for performance")
+    startDate: datetime
+    endDate: Optional[datetime] = None
     organizer: Optional[str] = Field(None, max_length=100)
-    max_attendees: Optional[int] = Field(None, gt=0)
-    current_attendees: Optional[int] = Field(None, ge=0)
+    maxAttendees: Optional[int] = Field(None, gt=0)
+    currentAttendees: Optional[int] = Field(None, ge=0)
     price: Optional[float] = Field(None, ge=0)
     currency: Optional[str] = Field(None, max_length=3)
-    is_free: Optional[bool] = Field(None)
+    isFree: Optional[bool] = Field(None)
     status: Optional[Literal["draft", "published", "cancelled", "completed"]] = Field(None)
     tickets: Optional[List[EventTicket]] = None
     attendees: Optional[List[EventAttendee]] = None
     tags: List[str] = Field(default_factory=list)
     
     # Polymorphic type-specific fields
-    virtual_details: Optional[dict] = Field(None, description="Virtual event specific details")
-    recurring_details: Optional[dict] = Field(None, description="Recurring event specific details") 
-    hybrid_details: Optional[dict] = Field(None, description="Hybrid event specific details")
+    virtualDetails: Optional[dict] = Field(None, description="Virtual event specific details")
+    recurringDetails: Optional[dict] = Field(None, description="Recurring event specific details") 
+    hybridDetails: Optional[dict] = Field(None, description="Hybrid event specific details")
     metadata: Optional[dict] = Field(None, description="General metadata")
     
     # Computed pattern fields
-    computed_stats: Optional[dict] = Field(None, description="Pre-calculated statistics")
+    computedStats: Optional[dict] = Field(None, description="Pre-calculated statistics")
 
-    @field_validator("end_date")
+    @field_validator("endDate")
     @classmethod
-    def validate_end_date(cls, v, info):
-        if v and info.data.get("start_date") and v <= info.data["start_date"]:
+    def validate_endDate(cls, v, info):
+        if v and info.data.get("startDate") and v <= info.data["startDate"]:
             raise ValueError("End date must be after start date")
         return v
 
@@ -146,37 +146,37 @@ class EventUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     category: Optional[str] = Field(None, min_length=1, max_length=50)
-    event_type: Optional[Literal["in_person", "virtual", "hybrid", "recurring"]] = None
+    eventType: Optional[Literal["inPerson", "virtual", "hybrid", "recurring"]] = None
     location: Optional[EventLocation] = None
     address: Optional[EventAddress] = None
-    directions_url: Optional[str] = Field(None, max_length=500, description="Google Maps directions URL")
-    venue_id: Optional[PyObjectId] = None
-    venue_reference: Optional[dict] = None
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    directionsUrl: Optional[str] = Field(None, max_length=500, description="Google Maps directions URL")
+    venueId: Optional[PyObjectId] = None
+    venueReference: Optional[dict] = None
+    startDate: Optional[datetime] = None
+    endDate: Optional[datetime] = None
     organizer: Optional[str] = Field(None, max_length=100)
-    max_attendees: Optional[int] = Field(None, gt=0)
-    current_attendees: Optional[int] = Field(None, ge=0)
+    maxAttendees: Optional[int] = Field(None, gt=0)
+    currentAttendees: Optional[int] = Field(None, ge=0)
     price: Optional[float] = Field(None, ge=0)
     currency: Optional[str] = Field(None, max_length=3)
-    is_free: Optional[bool] = None
+    isFree: Optional[bool] = None
     status: Optional[Literal["draft", "published", "cancelled", "completed"]] = None
     tickets: Optional[List[EventTicket]] = None
     attendees: Optional[List[EventAttendee]] = None
     tags: Optional[List[str]] = None
-    virtual_details: Optional[dict] = None
-    recurring_details: Optional[dict] = None
-    hybrid_details: Optional[dict] = None
+    virtualDetails: Optional[dict] = None
+    recurringDetails: Optional[dict] = None
+    hybridDetails: Optional[dict] = None
     metadata: Optional[dict] = None
-    computed_stats: Optional[dict] = None
+    computedStats: Optional[dict] = None
 
 
 class Event(EventBase):
     """Complete event model with database fields"""
 
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updatedAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     score: Optional[float] = Field(None, description="Text search relevance score")
 
     model_config = ConfigDict(
@@ -206,7 +206,7 @@ class VenueContact(BaseModel):
 class VenueBase(BaseModel):
     """Base venue model"""
     name: str = Field(..., min_length=1, max_length=200)
-    venue_type: Literal["conference_center", "park", "restaurant", "virtual_space", "stadium", "theater"] = Field(..., description="Polymorphic discriminator")
+    venueType: Literal["conferenceCenter", "park", "restaurant", "virtualSpace", "stadium", "theater"] = Field(..., description="Polymorphic discriminator")
     schemaVersion: str = Field(default="1.0", description="Schema versioning")
     location: EventLocation
     address: VenueAddress
@@ -214,15 +214,15 @@ class VenueBase(BaseModel):
     amenities: List[str] = Field(default_factory=list)
     contact: Optional[VenueContact] = None
     rating: Optional[float] = Field(None, ge=0, le=5)
-    review_count: Optional[int] = Field(None, ge=0)
+    reviewCount: Optional[int] = Field(None, ge=0)
     
     # Polymorphic type-specific fields
-    conference_center_details: Optional[dict] = Field(None, description="Conference center specific details")
-    park_details: Optional[dict] = Field(None, description="Park specific details")
-    virtual_space_details: Optional[dict] = Field(None, description="Virtual space specific details")
+    conferenceCenterDetails: Optional[dict] = Field(None, description="Conference center specific details")
+    parkDetails: Optional[dict] = Field(None, description="Park specific details")
+    virtualSpaceDetails: Optional[dict] = Field(None, description="Virtual space specific details")
     
     # Computed pattern fields
-    computed_stats: Optional[dict] = Field(None, description="Pre-calculated statistics")
+    computedStats: Optional[dict] = Field(None, description="Pre-calculated statistics")
 
 
 class VenueCreate(VenueBase):
@@ -243,7 +243,7 @@ class VenueUpdate(BaseModel):
 class Venue(VenueBase):
     """Complete venue model with database fields"""
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -257,13 +257,13 @@ class UserPreferences(BaseModel):
     """User preferences"""
     categories: List[str] = Field(default_factory=list)
     location: Optional[EventLocation] = None
-    radius_km: Optional[float] = Field(None, ge=0.1, le=1000)
+    radiusKm: Optional[float] = Field(None, ge=0.1, le=1000)
 
 
 class UserProfile(BaseModel):
     """User profile information"""
-    first_name: str = Field(..., min_length=1, max_length=100)
-    last_name: str = Field(..., min_length=1, max_length=100)
+    firstName: str = Field(..., min_length=1, max_length=100)
+    lastName: str = Field(..., min_length=1, max_length=100)
     preferences: Optional[UserPreferences] = None
 
 
@@ -288,8 +288,8 @@ class UserUpdate(BaseModel):
 class User(UserBase):
     """Complete user model with database fields"""
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    last_login: Optional[datetime] = None
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    lastLogin: Optional[datetime] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -301,20 +301,20 @@ class User(UserBase):
 # Checkin Models
 class CheckinMetadata(BaseModel):
     """Check-in metadata for additional context"""
-    device_info: Optional[str] = Field(None, max_length=200, description="Mobile device or browser info")
-    ip_address: Optional[str] = Field(None, max_length=45, description="IP address for security/analytics")
-    staff_verified: Optional[bool] = Field(None, description="Manual verification by staff")
+    deviceInfo: Optional[str] = Field(None, max_length=200, description="Mobile device or browser info")
+    ipAddress: Optional[str] = Field(None, max_length=45, description="IP address for security/analytics")
+    staffVerified: Optional[bool] = Field(None, description="Manual verification by staff")
 
 
 class CheckinBase(BaseModel):
     """Base checkin model"""
-    event_id: PyObjectId
-    user_id: PyObjectId
-    venue_id: Optional[PyObjectId] = Field(None, description="Reference to venues (denormalized for analytics)")
-    qr_code: str = Field(..., min_length=1, max_length=100)
+    eventId: PyObjectId
+    userId: PyObjectId
+    venueId: Optional[PyObjectId] = Field(None, description="Reference to venues (denormalized for analytics)")
+    qrCode: str = Field(..., min_length=1, max_length=100)
     schemaVersion: str = Field(default="1.0", description="Schema versioning")
-    ticket_tier: Optional[str] = Field(None, max_length=50)
-    check_in_method: Optional[str] = Field(None, max_length=50, description="qr_code, manual, mobile_app")
+    ticketTier: Optional[str] = Field(None, max_length=50)
+    checkInMethod: Optional[str] = Field(None, max_length=50, description="qr_code, manual, mobile_app")
     location: Optional[EventLocation] = None
     metadata: Optional[CheckinMetadata] = None
 
@@ -327,7 +327,7 @@ class CheckinCreate(CheckinBase):
 class CheckinUpdate(BaseModel):
     """Model for updating checkins"""
     qr_code: Optional[str] = Field(None, min_length=1, max_length=100)
-    ticket_tier: Optional[str] = Field(None, max_length=50)
+    ticketTier: Optional[str] = Field(None, max_length=50)
     check_in_method: Optional[str] = Field(None, max_length=50)
     location: Optional[EventLocation] = None
     metadata: Optional[CheckinMetadata] = None
@@ -336,8 +336,8 @@ class CheckinUpdate(BaseModel):
 class Checkin(CheckinBase):
     """Complete checkin model with database fields"""
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    check_in_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    checkInTime: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -349,9 +349,9 @@ class Checkin(CheckinBase):
 # Review Models
 class ReviewBase(BaseModel):
     """Base review model"""
-    event_id: Optional[PyObjectId] = Field(None, description="Reference to events collection (if reviewing event)")
-    venue_id: Optional[PyObjectId] = Field(None, description="Reference to venues collection (if reviewing venue)")
-    user_id: PyObjectId = Field(..., description="Reference to users collection")
+    eventId: Optional[PyObjectId] = Field(None, description="Reference to events collection (if reviewing event)")
+    venueId: Optional[PyObjectId] = Field(None, description="Reference to venues collection (if reviewing venue)")
+    userId: PyObjectId = Field(..., description="Reference to users collection")
     rating: int = Field(..., ge=1, le=5, description="Rating from 1 to 5 stars")
     comment: Optional[str] = Field(None, max_length=1000, description="Review comment text")
     schemaVersion: str = Field(default="1.0", description="Schema versioning")
@@ -359,9 +359,9 @@ class ReviewBase(BaseModel):
     @model_validator(mode="after")
     def validate_review_target(self):
         """Ensure at least one of event_id or venue_id is provided"""
-        if not self.event_id and not self.venue_id:
+        if not self.eventId and not self.venueId:
             raise ValueError("Either event_id or venue_id must be provided")
-        if self.event_id and self.venue_id:
+        if self.eventId and self.venueId:
             raise ValueError("Cannot review both event and venue in the same review")
         return self
 
@@ -380,8 +380,8 @@ class ReviewUpdate(BaseModel):
 class Review(ReviewBase):
     """Complete review model with database fields"""
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updatedAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(
         populate_by_name=True,

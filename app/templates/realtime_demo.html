@@ -178,7 +178,7 @@
             });
             
             eventsSocket.on('event_deleted', function(data) {
-                addEventToList({title: 'Event Deleted', id: data.event_id}, 'deleted', 'Event Deleted');
+                addEventToList({title: 'Event Deleted', id: data.eventId}, 'deleted', 'Event Deleted');
             });
             
             eventsSocket.on('joined_location', function(data) {
@@ -294,8 +294,8 @@
             const analyticsDiv = document.getElementById('analytics');
             analyticsDiv.innerHTML = `
                 <h4>📈 Real-time Analytics</h4>
-                <p><strong>Total Events:</strong> ${analytics.total_events}</p>
-                <p><strong>Upcoming Events:</strong> ${analytics.upcoming_events}</p>
+                <p><strong>Total Events:</strong> ${analytics.totalEvents}</p>
+                <p><strong>Upcoming Events:</strong> ${analytics.upcomingEvents}</p>
                 <p><strong>Last Updated:</strong> ${new Date().toLocaleTimeString()}</p>
             `;
         }

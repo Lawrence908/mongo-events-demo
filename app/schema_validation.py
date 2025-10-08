@@ -12,7 +12,7 @@ def get_events_schema() -> Dict[str, Any]:
     return {
         "$jsonSchema": {
             "bsonType": "object",
-            "required": ["title", "category", "location", "start_date", "created_at", "updated_at"],
+            "required": ["title", "category", "location", "startDate", "createdAt", "updatedAt"],
             "properties": {
                 "title": {
                     "bsonType": "string",
@@ -87,20 +87,20 @@ def get_events_schema() -> Dict[str, Any]:
                     "additionalProperties": False,
                     "description": "Event address information"
                 },
-                "directions_url": {
+                "directionsUrl": {
                     "bsonType": ["string", "null"],
                     "maxLength": 500,
                     "description": "Google Maps directions URL"
                 },
-                "venue_id": {
+                "venueId": {
                     "bsonType": ["objectId", "null"],
                     "description": "Reference to venues collection"
                 },
-                "start_date": {
+                "startDate": {
                     "bsonType": "date",
                     "description": "Event start date and time"
                 },
-                "end_date": {
+                "endDate": {
                     "bsonType": ["date", "null"],
                     "description": "Event end date and time"
                 },
@@ -109,7 +109,7 @@ def get_events_schema() -> Dict[str, Any]:
                     "maxLength": 100,
                     "description": "Event organizer"
                 },
-                "max_attendees": {
+                "maxAttendees": {
                     "bsonType": ["int", "null"],
                     "minimum": 1,
                     "description": "Maximum number of attendees"
@@ -146,15 +146,15 @@ def get_events_schema() -> Dict[str, Any]:
                     "bsonType": ["array", "null"],
                     "items": {
                         "bsonType": "object",
-                        "required": ["user_id", "checked_in"],
+                        "required": ["userId", "checkedIn"],
                         "properties": {
-                            "user_id": {
+                            "userId": {
                                 "bsonType": "objectId"
                             },
-                            "checked_in": {
+                            "checkedIn": {
                                 "bsonType": "bool"
                             },
-                            "check_in_time": {
+                            "checkInTime": {
                                 "bsonType": ["date", "null"]
                             }
                         },
@@ -182,11 +182,11 @@ def get_events_schema() -> Dict[str, Any]:
                     "additionalProperties": True,
                     "description": "Flexible metadata for custom attributes"
                 },
-                "created_at": {
+                "createdAt": {
                     "bsonType": "date",
                     "description": "Document creation timestamp"
                 },
-                "updated_at": {
+                "updatedAt": {
                     "bsonType": "date",
                     "description": "Last update timestamp"
                 }
@@ -207,7 +207,7 @@ def get_venues_schema() -> Dict[str, Any]:
     return {
         "$jsonSchema": {
             "bsonType": "object",
-            "required": ["name", "location", "address", "created_at"],
+            "required": ["name", "location", "address", "createdAt"],
             "properties": {
                 "name": {
                     "bsonType": "string",
@@ -300,7 +300,7 @@ def get_venues_schema() -> Dict[str, Any]:
                     "additionalProperties": False,
                     "description": "Contact information"
                 },
-                "created_at": {
+                "createdAt": {
                     "bsonType": "date",
                     "description": "Document creation timestamp"
                 }
@@ -321,7 +321,7 @@ def get_users_schema() -> Dict[str, Any]:
     return {
         "$jsonSchema": {
             "bsonType": "object",
-            "required": ["email", "profile", "created_at"],
+            "required": ["email", "profile", "createdAt"],
             "properties": {
                 "email": {
                     "bsonType": "string",
@@ -334,12 +334,12 @@ def get_users_schema() -> Dict[str, Any]:
                     "bsonType": "object",
                     "required": ["first_name", "last_name"],
                     "properties": {
-                        "first_name": {
+                        "firstName": {
                             "bsonType": "string",
                             "minLength": 1,
                             "maxLength": 100
                         },
-                        "last_name": {
+                        "lastName": {
                             "bsonType": "string",
                             "minLength": 1,
                             "maxLength": 100
@@ -371,7 +371,7 @@ def get_users_schema() -> Dict[str, Any]:
                                     },
                                     "additionalProperties": False
                                 },
-                                "radius_km": {
+                                "radiusKm": {
                                     "bsonType": ["double", "null"],
                                     "minimum": 0.1,
                                     "maximum": 1000
@@ -383,11 +383,11 @@ def get_users_schema() -> Dict[str, Any]:
                     "additionalProperties": False,
                     "description": "User profile information"
                 },
-                "created_at": {
+                "createdAt": {
                     "bsonType": "date",
                     "description": "Account creation timestamp"
                 },
-                "last_login": {
+                "lastLogin": {
                     "bsonType": ["date", "null"],
                     "description": "Last login timestamp"
                 }
@@ -408,36 +408,36 @@ def get_checkins_schema() -> Dict[str, Any]:
     return {
         "$jsonSchema": {
             "bsonType": "object",
-            "required": ["event_id", "user_id", "venue_id", "check_in_time", "qr_code", "created_at"],
+            "required": ["eventId", "userId", "venueId", "checkInTime", "qrCode", "createdAt"],
             "properties": {
-                "event_id": {
+                "eventId": {
                     "bsonType": "objectId",
                     "description": "Reference to events collection"
                 },
-                "user_id": {
+                "userId": {
                     "bsonType": "objectId",
                     "description": "Reference to users collection"
                 },
-                "venue_id": {
+                "venueId": {
                     "bsonType": "objectId",
                     "description": "Reference to venues collection (denormalized for analytics)"
                 },
-                "check_in_time": {
+                "checkInTime": {
                     "bsonType": "date",
                     "description": "Check-in timestamp"
                 },
-                "qr_code": {
+                "qrCode": {
                     "bsonType": "string",
                     "minLength": 1,
                     "maxLength": 100,
                     "description": "Unique QR code for check-in"
                 },
-                "ticket_tier": {
+                "ticketTier": {
                     "bsonType": ["string", "null"],
                     "maxLength": 50,
                     "description": "Ticket tier used for check-in"
                 },
-                "check_in_method": {
+                "checkInMethod": {
                     "bsonType": ["string", "null"],
                     "maxLength": 50,
                     "enum": ["qr_code", "manual", "mobile_app", None],
@@ -465,18 +465,18 @@ def get_checkins_schema() -> Dict[str, Any]:
                 "metadata": {
                     "bsonType": ["object", "null"],
                     "properties": {
-                        "device_info": {
+                        "deviceInfo": {
                             "bsonType": ["string", "null"],
                             "maxLength": 200,
                             "description": "Mobile device or browser info"
                         },
-                        "ip_address": {
+                        "ipAddress": {
                             "bsonType": ["string", "null"],
                             "maxLength": 45,
                             "pattern": "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$|^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$",
                             "description": "IP address for security/analytics"
                         },
-                        "staff_verified": {
+                        "staffVerified": {
                             "bsonType": ["bool", "null"],
                             "description": "Manual verification by staff"
                         }
@@ -484,7 +484,7 @@ def get_checkins_schema() -> Dict[str, Any]:
                     "additionalProperties": False,
                     "description": "Additional check-in context"
                 },
-                "created_at": {
+                "createdAt": {
                     "bsonType": "date",
                     "description": "Record creation timestamp"
                 }
@@ -532,17 +532,17 @@ def get_reviews_schema() -> Dict[str, Any]:
     return {
         "$jsonSchema": {
             "bsonType": "object",
-            "required": ["user_id", "rating", "created_at", "updated_at"],
+            "required": ["userId", "rating", "createdAt", "updatedAt"],
             "properties": {
-                "event_id": {
+                "eventId": {
                     "bsonType": ["objectId", "null"],
                     "description": "Reference to events collection (if reviewing event)"
                 },
-                "venue_id": {
+                "venueId": {
                     "bsonType": ["objectId", "null"],
                     "description": "Reference to venues collection (if reviewing venue)"
                 },
-                "user_id": {
+                "userId": {
                     "bsonType": "objectId",
                     "description": "Reference to users collection"
                 },
@@ -558,11 +558,11 @@ def get_reviews_schema() -> Dict[str, Any]:
                     "maxLength": 1000,
                     "description": "Review comment text"
                 },
-                "created_at": {
+                "createdAt": {
                     "bsonType": "date",
                     "description": "Review creation timestamp"
                 },
-                "updated_at": {
+                "updatedAt": {
                     "bsonType": ["date", "null"],
                     "description": "Last update timestamp"
                 }
