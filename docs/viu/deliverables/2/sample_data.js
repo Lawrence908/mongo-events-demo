@@ -1,207 +1,415 @@
-// Insert realistic sample data demonstrating relationships
+// Sample Data for EventSphere
 
-// Users
-const userAliceId = ObjectId();
-const userBobId = ObjectId();
-db.users.insertMany([
-  {
-    _id: userAliceId,
-    email: "alice@example.com",
-    schemaVersion: "1.0",
-    profile: { first_name: "Alice", last_name: "Nguyen", preferences: { categories: ["Technology", "Music"], radius_km: 25 } },
-    created_at: new Date(),
-    last_login: new Date()
-  },
-  {
-    _id: userBobId,
-    email: "bob@example.com",
-    schemaVersion: "1.0",
-    profile: { first_name: "Bob", last_name: "Martinez", preferences: { categories: ["Sports"], radius_km: 10 } },
-    created_at: new Date(),
-    last_login: new Date()
-  }
+// Events
+db.events.insertMany([
+    {
+        _id: ObjectId("68ddb640c00b1dff057fbefc"),
+        title: "Entertainment Event",
+        description:
+            "Experience something new and exciting in a welcoming and inclusive atmosphere.",
+        category: "Entertainment",
+        event_type: "hybrid",
+        schemaVersion: "1.0",
+        location: {
+            type: "Point",
+            coordinates: [-123.93446771957665, 49.10036536726016],
+        },
+        venueId: null,
+        venue_reference: null,
+        start_date: ISODate("2025-10-09T18:37:26.047Z"),
+        end_date: ISODate("2025-10-09T22:37:26.047Z"),
+        organizer: "Art Gallery",
+        max_attendees: 990,
+        current_attendees: 25,
+        price: 135,
+        currency: "CAD",
+        is_free: false,
+        status: "cancelled",
+        tags: ["creative", "networking", "adults-only", "outdoor", "educational"],
+        created_at: ISODate("2025-09-22T18:37:26.047Z"),
+        updated_at: ISODate("2025-09-22T18:37:26.047Z"),
+        hybrid_details: {
+            virtual_capacity: 877,
+            in_person_capacity: 50,
+            virtual_meeting_url: "https://teams.microsoft.com/j/321999401",
+        },
+        metadata: {
+            age_restriction: "21+",
+            dress_code: null,
+            accessibility_features: [],
+        },
+        computed_stats: {
+            total_tickets_sold: 945,
+            total_revenue: 127575,
+            attendance_rate: 95.45,
+            review_count: 39,
+            average_rating: 4.1,
+            last_updated: ISODate("2025-10-01T23:16:16.047Z"),
+        },
+        tickets: [
+            {
+                tier: "General Admission",
+                price: 135,
+                available: 115,
+                sold: 51,
+            },
+        ],
+    },
+    {
+        _id: ObjectId("68ddb640c00b1dff057fbe02"),
+        title: "Entertainment Event",
+        description:
+            "A unique experience that brings together like-minded individuals in a collaborative environment.",
+        category: "Entertainment",
+        event_type: "recurring",
+        schemaVersion: "1.0",
+        location: {
+            type: "Point",
+            coordinates: [-123.94587590269735, 49.06591877134164],
+        },
+        venueId: ObjectId("68ddb63fc00b1dff057fb35f"),
+        venue_reference: {
+            name: "Remote Gathering Space - Nanaimo",
+            city: "Nanaimo",
+            capacity: 5823,
+            venue_type: "virtual_space",
+        },
+        start_date: ISODate("2025-09-07T05:40:23.040Z"),
+        end_date: ISODate("2025-09-07T08:40:23.040Z"),
+        organizer: "Conference Center",
+        max_attendees: null,
+        current_attendees: 28,
+        price: 181,
+        currency: "CAD",
+        is_free: false,
+        status: "completed",
+        tags: ["creative", "adults-only", "educational", "free", "interactive"],
+        created_at: ISODate("2025-08-18T05:40:23.040Z"),
+        updated_at: ISODate("2025-08-16T05:40:23.040Z"),
+        recurring_details: {
+            frequency: "daily",
+            end_recurrence: ISODate("2025-11-25T05:40:23.040Z"),
+            exceptions: [ISODate("2025-09-17T05:40:23.040Z")],
+        },
+        metadata: {
+            age_restriction: "All Ages",
+            dress_code: null,
+            accessibility_features: [],
+        },
+        computed_stats: {
+            total_tickets_sold: 95,
+            total_revenue: 17195,
+            attendance_rate: 95.2,
+            review_count: 46,
+            average_rating: 4.1,
+            last_updated: ISODate("2025-10-01T23:16:16.040Z"),
+        },
+        tickets: [
+            {
+                tier: "General Admission",
+                price: 181,
+                available: 35,
+                sold: 38,
+            },
+        ],
+    },
 ]);
 
 // Venues
-const venue1Id = ObjectId();
-const venue2Id = ObjectId();
 db.venues.insertMany([
-  {
-    _id: venue1Id,
-    name: "Grand Conference Center - San Jose",
-    venue_type: "conference_center",
-    schemaVersion: "1.0",
-    type: "Conference Center",
-    description: "A conference center located in San Jose.",
-    address: { street: "123 Main St", city: "San Jose", state: "CA", zip_code: "95112", country: "USA" },
-    location: { type: "Point", coordinates: [-121.8863, 37.3382] },
-    capacity: 800,
-    amenities: ["WiFi", "Parking", "A/V"],
-    contact: { phone: "(408) 555-1234", email: "info@grandcc.com", website: "https://grandcc.com" },
-    pricing: { hourly_rate: 200, daily_rate: 1500, currency: "USD" },
-    availability: { monday: { open: "09:00", close: "22:00" } },
-    conference_center_details: {
-      breakout_rooms: 8,
-      a_v_equipment: ["Projectors", "Microphones", "Video Conferencing"],
-      catering_available: true
+    {
+        _id: ObjectId("68ddb63fc00b1dff057fb398"),
+        name: "Business Center Plaza - Nanaimo",
+        venue_type: "conference_center",
+        schemaVersion: "1.0",
+        type: "Conference Center",
+        description:
+            "A conference center located in Nanaimo, perfect for various events and gatherings.",
+        location: {
+            type: "Point",
+            coordinates: [-124.0050633506158, 49.082833644770226],
+        },
+        address: {
+            street: "5744 Main St",
+            city: "Nanaimo",
+            state: "BC",
+            zip_code: "V9T 6N3",
+            country: "Canada",
+        },
+        capacity: 596,
+        amenities: [
+            "Heating",
+            "Storage",
+            "Audio/Visual Equipment",
+            "Catering",
+            "Balcony",
+            "Bar",
+            "Dressing Rooms",
+        ],
+        contact: {
+            phone: "(906) 231-6324",
+            email: "info@businesscenterplaza.com",
+            website: "https://www.businesscenterplaza.com",
+        },
+        pricing: { hourly_rate: 146, daily_rate: 342, currency: "CAD" },
+        availability: {
+            monday: { open: "09:00", close: "22:00" },
+            tuesday: { open: "09:00", close: "22:00" },
+            wednesday: { open: "09:00", close: "22:00" },
+            thursday: { open: "09:00", close: "22:00" },
+            friday: { open: "09:00", close: "23:00" },
+            saturday: { open: "10:00", close: "23:00" },
+            sunday: { open: "10:00", close: "20:00" },
+        },
+        rating: 4.2,
+        review_count: 17,
+        created_at: ISODate("2024-12-28T23:16:15.999Z"),
+        updated_at: ISODate("2025-09-20T23:16:15.999Z"),
+        conference_center_details: {
+            breakout_rooms: 12,
+            a_v_equipment: [
+                "Video Conferencing",
+                "Projectors",
+                "Whiteboards",
+                "Sound System",
+            ],
+            catering_available: false,
+        },
+        computed_stats: {
+            total_events_hosted: 70,
+            average_attendance: 478,
+            revenue_generated: 41490,
+            last_event_date: ISODate("2025-09-13T23:16:15.999Z"),
+            last_updated: ISODate("2025-10-01T23:16:15.999Z"),
+        },
     },
-    rating: 4.5,
-    review_count: 12,
-    created_at: new Date(),
-    updated_at: new Date()
-  },
-  {
-    _id: venue2Id,
-    name: "City Park - Austin",
-    venue_type: "park",
-    schemaVersion: "1.0",
-    type: "Park",
-    description: "Outdoor venue in Austin.",
-    address: { street: "200 Park Ave", city: "Austin", state: "TX", zip_code: "73301", country: "USA" },
-    location: { type: "Point", coordinates: [-97.7431, 30.2672] },
-    capacity: 1500,
-    amenities: ["Parking", "Outdoor Space"],
-    contact: { phone: "(512) 555-2000", email: "contact@cityparkaustin.org", website: "https://cityparkaustin.org" },
-    pricing: { hourly_rate: 50, daily_rate: 300, currency: "USD" },
-    park_details: {
-      outdoor_space: true,
-      parking_spaces: 200,
-      restroom_facilities: true
+    {
+        _id: ObjectId("68ddb640c00b1dff057fb3b4"),
+        name: "City Park - Nanaimo",
+        venue_type: "park",
+        schemaVersion: "1.0",
+        type: "Park",
+        description:
+            "A park located in Nanaimo, perfect for various events and gatherings.",
+        location: {
+            type: "Point",
+            coordinates: [-123.87792727192632, 49.05384388261788],
+        },
+        address: {
+            street: "1419 Elm St",
+            city: "Nanaimo",
+            state: "BC",
+            zip_code: "V9T 6N3",
+            country: "Canada",
+        },
+        capacity: 4406,
+        amenities: [
+            "Audio/Visual Equipment",
+            "Air Conditioning",
+            "Reception Area",
+            "Catering",
+            "Balcony",
+            "Parking",
+            "Security",
+        ],
+        contact: {
+            phone: "(727) 445-7006",
+            email: "info@citypark.com",
+            website: "https://www.citypark.com",
+        },
+        pricing: { hourly_rate: 135, daily_rate: 1112, currency: "CAD" },
+        availability: {
+            monday: { open: "09:00", close: "22:00" },
+            tuesday: { open: "09:00", close: "22:00" },
+            wednesday: { open: "09:00", close: "22:00" },
+            thursday: { open: "09:00", close: "22:00" },
+            friday: { open: "09:00", close: "23:00" },
+            saturday: { open: "10:00", close: "23:00" },
+            sunday: { open: "10:00", close: "20:00" },
+        },
+        rating: 3.2,
+        review_count: 63,
+        created_at: ISODate("2024-12-12T23:16:16.000Z"),
+        updated_at: ISODate("2025-09-12T23:16:16.000Z"),
+        park_details: {
+            outdoor_space: true,
+            parking_spaces: 238,
+            restroom_facilities: true,
+        },
+        computed_stats: {
+            total_events_hosted: 53,
+            average_attendance: 97,
+            revenue_generated: 36100,
+            last_event_date: ISODate("2025-08-19T23:16:16.000Z"),
+            last_updated: ISODate("2025-10-01T23:16:16.000Z"),
+        },
     },
-    rating: 4.1,
-    review_count: 5,
-    created_at: new Date(),
-    updated_at: new Date()
-  }
 ]);
 
-// Events
-const eventTechId = ObjectId();
-const eventMusicId = ObjectId();
-db.events.insertMany([
-  {
-    _id: eventTechId,
-    title: "AI Workshop 2025",
-    description: "Hands-on machine learning bootcamp.",
-    category: "Technology",
-    event_type: "in_person",
-    schemaVersion: "1.0",
-    location: { type: "Point", coordinates: [-121.8863, 37.3382] },
-    venueId: venue1Id,
-    venue_reference: {
-      name: "Grand Conference Center - San Jose",
-      city: "San Jose",
-      capacity: 800,
-      venue_type: "conference_center"
+// Users
+db.users.insertMany([
+    {
+        _id: ObjectId("68ddb640c00b1dff057fb511"),
+        email: "barbara.williams@yahoo.com",
+        schemaVersion: "1.0",
+        profile: {
+            first_name: "Barbara",
+            last_name: "Williams",
+            preferences: {
+                categories: ["Fitness", "Politics", "Health & Wellness", "Meditation"],
+                location: {
+                    type: "Point",
+                    coordinates: [-80.48434831242973, 43.52343446108092],
+                },
+                radius_km: 38,
+            },
+        },
+        created_at: ISODate("2025-04-09T23:16:16.008Z"),
+        updated_at: ISODate("2025-04-09T23:16:16.008Z"),
+        last_login: ISODate("2025-04-16T23:16:16.008Z"),
     },
-    start_date: new Date(Date.now() + 7*24*60*60*1000),
-    end_date: new Date(Date.now() + 7*24*60*60*1000 + 3*60*60*1000),
-    organizer: "TechCorp Events",
-    max_attendees: 300,
-    current_attendees: 25,
-    price: 99,
-    currency: "USD",
-    is_free: false,
-    status: "published",
-    tickets: [
-      { tier: "Early Bird", price: 79.2, available: 50, sold: 50 },
-      { tier: "General Admission", price: 99, available: 200, sold: 0 },
-      { tier: "VIP", price: 148.5, available: 20, sold: 0 }
-    ],
-    tags: ["learning", "technical", "workshop"],
-    metadata: {
-      age_restriction: "18+",
-      dress_code: "Business Casual",
-      accessibility_features: ["Wheelchair Accessible", "Sign Language Interpreter Available"]
+    {
+        _id: ObjectId("68ddb640c00b1dff057fb51e"),
+        email: "richard.davis@outlook.com",
+        schemaVersion: "1.0",
+        profile: {
+            first_name: "Richard",
+            last_name: "Davis",
+            preferences: {
+                categories: [
+                    "Health & Wellness",
+                    "Swimming",
+                    "Music",
+                    "Photography",
+                    "Theater",
+                ],
+                location: {
+                    type: "Point",
+                    coordinates: [-83.33081084065205, 40.17509883954208],
+                },
+                radius_km: 39,
+            },
+        },
+        created_at: ISODate("2024-02-01T23:16:16.008Z"),
+        updated_at: ISODate("2024-02-01T23:16:16.008Z"),
+        last_login: null,
     },
-    created_at: new Date(),
-    updated_at: new Date()
-  },
-  {
-    _id: eventMusicId,
-    title: "Jazz Night Downtown",
-    description: "Live jazz with local artists.",
-    category: "Music",
-    event_type: "hybrid",
-    schemaVersion: "1.0",
-    location: { type: "Point", coordinates: [-97.7431, 30.2672] },
-    venueId: venue2Id,
-    venue_reference: {
-      name: "City Park - Austin",
-      city: "Austin",
-      capacity: 1500,
-      venue_type: "park"
-    },
-    start_date: new Date(Date.now() + 14*24*60*60*1000),
-    end_date: new Date(Date.now() + 14*24*60*60*1000 + 4*60*60*1000),
-    organizer: "City Arts",
-    max_attendees: 500,
-    current_attendees: 120,
-    price: 25,
-    currency: "USD",
-    is_free: false,
-    status: "published",
-    tickets: [ { tier: "General Admission", price: 25, available: 350, sold: 150 } ],
-    tags: ["music", "live", "entertainment"],
-    hybrid_details: {
-      virtual_capacity: 200,
-      in_person_capacity: 300,
-      virtual_meeting_url: "https://zoom.us/j/123456789"
-    },
-    metadata: {
-      age_restriction: "All Ages",
-      accessibility_features: ["Live Captioning", "Audio Description"]
-    },
-    created_at: new Date(),
-    updated_at: new Date()
-  }
 ]);
 
 // Reviews (event and venue)
 db.reviews.insertMany([
-  { user_id: userAliceId, event_id: eventTechId, rating: 5, comment: "Fantastic content!", schemaVersion: "1.0", created_at: new Date(), updated_at: new Date() },
-  { user_id: userBobId, venue_id: venue2Id, rating: 4, comment: "Great outdoor vibe", schemaVersion: "1.0", created_at: new Date(), updated_at: new Date() }
+    {
+        _id: ObjectId("68ddb640c00b1dff057ff76a"),
+        event_id: ObjectId("68ddb640c00b1dff057fbcc5"),
+        user_id: ObjectId("68ddb640c00b1dff057fb5a2"),
+        rating: 5,
+        comment:
+            "This was one of the best events I've attended this year. Highly recommend to anyone interested in this topic.",
+        schemaVersion: "1.0",
+        created_at: ISODate("2026-03-17T09:04:00.028Z"),
+        updated_at: null,
+    },
+    {
+        _id: ObjectId("68ddb640c00b1dff057ff771"),
+        event_id: ObjectId("68ddb640c00b1dff057fbcc6"),
+        user_id: ObjectId("68ddb640c00b1dff057fb8e0"),
+        rating: 3,
+        comment:
+            "This event was a waste of time. Poor organization and the speakers were not engaging at all.",
+        schemaVersion: "1.0",
+        created_at: ISODate("2026-03-28T17:36:52.028Z"),
+        updated_at: null,
+    },
 ]);
 
 // Check-ins (bridge demonstrates many:many)
 db.checkins.insertMany([
-  {
-    event_id: eventTechId,
-    user_id: userAliceId,
-    venue_id: venue1Id,
-    check_in_time: new Date(Date.now() + 7*24*60*60*1000 + 10*60*1000),
-    qr_code: "QR-ALICE-TECH",
-    schemaVersion: "1.0",
-    ticket_tier: "General Admission",
-    check_in_method: "qr_code",
-    location: { type: "Point", coordinates: [-121.8862, 37.3383] },
-    metadata: { device_info: "iPhone", staff_verified: true },
-    created_at: new Date()
-  },
-  {
-    event_id: eventMusicId,
-    user_id: userAliceId,
-    venue_id: venue2Id,
-    check_in_time: new Date(Date.now() + 14*24*60*60*1000 + 5*60*1000),
-    qr_code: "QR-ALICE-MUSIC",
-    schemaVersion: "1.0",
-    ticket_tier: "General Admission",
-    check_in_method: "mobile_app",
-    location: { type: "Point", coordinates: [-97.7432, 30.2671] },
-    created_at: new Date()
-  },
-  {
-    event_id: eventMusicId,
-    user_id: userBobId,
-    venue_id: venue2Id,
-    check_in_time: new Date(Date.now() + 14*24*60*60*1000 + 15*60*1000),
-    qr_code: "QR-BOB-MUSIC",
-    schemaVersion: "1.0",
-    ticket_tier: "General Admission",
-    check_in_method: "qr_code",
-    location: { type: "Point", coordinates: [-97.7430, 30.2673] },
-    created_at: new Date()
-  }
+    {
+        _id: ObjectId("68ddb640c00b1dff05809406"),
+        event_id: ObjectId("68ddb640c00b1dff057fc4e3"),
+        user_id: ObjectId("68ddb640c00b1dff057fb507"),
+        venue_id: ObjectId("68ddb640c00b1dff05809405"),
+        checkin_time: ISODate("2025-12-17T16:23:09.091Z"),
+        qr_code: "QR-554361",
+        schemaVersion: "1.0",
+        ticket_tier: "VIP",
+        check_in_method: "manual",
+        location: {
+            type: "Point",
+            coordinates: [-121.88338526503668, 37.2974440040109],
+        },
+        metadata: {
+            device_info: "iPhone",
+            ip_address: "112.24.5.114",
+            staff_verified: true,
+        },
+        created_at: ISODate("2025-12-17T16:23:09.091Z"),
+        updated_at: ISODate("2025-12-17T16:23:09.091Z"),
+    },
+    {
+        _id: ObjectId("68ddb640c00b1dff05809432"),
+        event_id: ObjectId("68ddb640c00b1dff057fe216"),
+        user_id: ObjectId("68ddb640c00b1dff057fb510"),
+        venue_id: ObjectId("68ddb640c00b1dff05809431"),
+        checkin_time: ISODate("2026-02-24T08:20:35.348Z"),
+        qr_code: "QR-502727",
+        schemaVersion: "1.0",
+        ticket_tier: null,
+        check_in_method: "qr_code",
+        location: {
+            type: "Point",
+            coordinates: [-73.68308130512068, 40.60712176280241],
+        },
+        metadata: {
+            device_info: "Web Browser",
+            ip_address: null,
+            staff_verified: true,
+        },
+        created_at: ISODate("2026-02-24T08:20:35.348Z"),
+        updated_at: ISODate("2026-02-24T08:20:35.348Z"),
+    },
+    {
+        _id: ObjectId("68ddb640c00b1dff05809458"),
+        event_id: ObjectId("68ddb640c00b1dff057fcbc6"),
+        user_id: ObjectId("68ddb640c00b1dff057fb51a"),
+        venue_id: ObjectId("68ddb640c00b1dff05809457"),
+        checkin_time: ISODate("2026-03-27T21:29:58.159Z"),
+        qr_code: "QR-314172",
+        schemaVersion: "1.0",
+        ticket_tier: null,
+        check_in_method: "manual",
+        location: {
+            type: "Point",
+            coordinates: [-122.42007638105046, 37.77547917977401],
+        },
+        metadata: {
+            device_info: "iPhone",
+            ip_address: "42.103.61.114",
+            staff_verified: true,
+        },
+        created_at: ISODate("2026-03-27T21:29:58.159Z"),
+        updated_at: ISODate("2026-03-27T21:29:58.159Z"),
+    },
+    {
+        _id: ObjectId("68ddb640c00b1dff058094a2"),
+        event_id: ObjectId("68ddb640c00b1dff057fd7b1"),
+        user_id: ObjectId("68ddb640c00b1dff057fb529"),
+        venue_id: ObjectId("68ddb640c00b1dff058094a1"),
+        checkin_time: ISODate("2026-01-12T01:01:17.245Z"),
+        qr_code: "QR-791680",
+        schemaVersion: "1.0",
+        ticket_tier: null,
+        check_in_method: "mobile_app",
+        location: {
+            type: "Point",
+            coordinates: [-74.97324253279388, 40.02768548157515],
+        },
+        metadata: {
+            device_info: "iPhone",
+            ip_address: "161.74.4.101",
+            staff_verified: true,
+        },
+        created_at: ISODate("2026-01-12T01:01:17.245Z"),
+        updated_at: ISODate("2026-01-12T01:01:17.245Z"),
+    },
 ]);
-
-

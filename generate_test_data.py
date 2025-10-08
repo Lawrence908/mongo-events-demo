@@ -595,14 +595,14 @@ def generate_users(count: int = 2000) -> List[Dict[str, Any]]:
 def generate_checkin(user_id: str, event_id: str, event_start: datetime, event_end: datetime, event_location: Dict[str, Any] = None) -> Dict[str, Any]:
     """Generate a single check-in with realistic data"""
     # Check-in time is typically around event start time
-    checkin_time = event_start + timedelta(minutes=random.randint(-30, 60))
+    check_in_time = event_start + timedelta(minutes=random.randint(-30, 60))
     
     # Status based on timing
-    if checkin_time < event_start:
+    if check_in_time < event_start:
         status = "attending"
-    elif checkin_time <= event_start + timedelta(hours=1):
+    elif check_in_time <= event_start + timedelta(hours=1):
         status = "checked_in"
-    elif checkin_time < event_end - timedelta(hours=1):
+    elif check_in_time < event_end - timedelta(hours=1):
         status = "left_early"
     else:
         status = "completed"
@@ -624,7 +624,7 @@ def generate_checkin(user_id: str, event_id: str, event_start: datetime, event_e
         "event_id": ObjectId(event_id),
         "user_id": ObjectId(user_id),
         "venue_id": ObjectId(),  # Placeholder - would need actual venue_id
-        "checkin_time": checkin_time,
+        "check_in_time": check_in_time,
         "qr_code": f"QR-{random.randint(100000, 999999)}",
         "schemaVersion": "1.0",  # Schema versioning
         "ticket_tier": random.choice(["General Admission", "VIP", "Early Bird"]) if random.random() < 0.7 else None,
@@ -638,8 +638,8 @@ def generate_checkin(user_id: str, event_id: str, event_start: datetime, event_e
             "ip_address": f"{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}" if random.random() < 0.5 else None,
             "staff_verified": random.choice([True, False])
         },
-        "created_at": checkin_time,
-        "updated_at": checkin_time  # Initially same as created_at
+        "created_at": check_in_time,
+        "updated_at": check_in_time  # Initially same as created_at
     }
     
     return checkin
@@ -1057,7 +1057,7 @@ def save_checkins_to_json(checkins: List[Dict[str, Any]], filename: str = "test_
         json_checkin["event_id"] = str(checkin["event_id"])
         if checkin.get("venue_id"):
             json_checkin["venue_id"] = str(checkin["venue_id"])
-        json_checkin["checkin_time"] = checkin["checkin_time"].isoformat()
+        json_checkin["check_in_time"] = checkin["check_in_time"].isoformat()
         json_checkin["created_at"] = checkin["created_at"].isoformat()
         json_checkin["updated_at"] = checkin["updated_at"].isoformat()
         json_checkins.append(json_checkin)
