@@ -5,6 +5,7 @@ Generates comprehensive test data including events, venues, users, checkins, and
 Supports both JSON export and direct MongoDB seeding
 
 Usage:
+python generate_test_data.py --seed-db --clear-db
 python generate_test_data.py --seed-db --clear-db --events 10000 --venues 500 --users 2000 --tickets 5000 # this will generate all the data and seed the database
 python generate_test_data.py --json-only # this will generate all the data and save it to json files
 
