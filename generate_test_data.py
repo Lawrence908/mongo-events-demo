@@ -539,7 +539,8 @@ def generate_user() -> Dict[str, Any]:
     """Generate a single user with realistic data"""
     firstName = random.choice(FIRST_NAMES)
     lastName = random.choice(LAST_NAMES)
-    email = f"{firstName.lower()}.{lastName.lower()}@{random.choice(['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com'])}"
+    # Add random number to ensure unique emails
+    email = f"{firstName.lower()}.{lastName.lower()}{random.randint(1, 9999)}@{random.choice(['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com'])}"
     
     # Generate interests
     num_interests = random.randint(3, 8)

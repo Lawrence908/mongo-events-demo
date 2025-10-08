@@ -216,7 +216,7 @@ def create_app():
             query_params = {
                 "longitude": float(request.args.get("lng", 0)),
                 "latitude": float(request.args.get("lat", 0)),
-                "radius_km": float(request.args.get("radius", 10)),
+                "radiusKm": float(request.args.get("radius", 10)),
                 "limit": min(int(request.args.get("limit", 50)), Config.MAX_EVENTS_LIMIT),
             }
             
@@ -299,11 +299,11 @@ def create_app():
         try:
             longitude = float(request.args.get("lng", -74.0060))  # Default to NYC
             latitude = float(request.args.get("lat", 40.7128))
-            radius_km = float(request.args.get("radius", 50))
+            radiusKm = float(request.args.get("radius", 50))
             category = request.args.get("category")  # Optional category filter
             
             weekend_events = get_event_service().get_events_this_weekend(
-                longitude, latitude, radius_km, category=category
+                longitude, latitude, radiusKm, category=category
             )
             return jsonify(weekend_events)
             
@@ -330,10 +330,10 @@ def create_app():
             category = request.args.get("category")
             longitude = request.args.get("lng", type=float)
             latitude = request.args.get("lat", type=float)
-            radius_km = request.args.get("radius", type=float)
+            radiusKm = request.args.get("radius", type=float)
             
             events = get_event_service().get_events_by_date_range(
-                startDate, endDate, category, longitude, latitude, radius_km
+                startDate, endDate, category, longitude, latitude, radiusKm
             )
             
             return jsonify({
@@ -484,8 +484,8 @@ def create_app():
     def api_get_checkin_time_patterns():
         """API: Get check-in time patterns (peak hours, days of week)"""
         try:
-            venue_id = request.args.get("venue_id")
-            patterns = get_checkin_service().get_checkin_time_patterns(venue_id)
+            venueId = request.args.get("venueId")
+            patterns = get_checkin_service().get_checkin_time_patterns(venueId)
             return jsonify(patterns)
             
         except Exception as e:

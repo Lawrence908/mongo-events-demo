@@ -33,13 +33,13 @@ def setup_test_data():
                 "type": "Point",
                 "coordinates": [-73.965355, 40.782865]
             },
-            "start_date": datetime.now(timezone.utc) + timedelta(days=7),
-            "end_date": datetime.now(timezone.utc) + timedelta(days=7, hours=3),
+            "startDate": datetime.now(timezone.utc) + timedelta(days=7),
+            "endDate": datetime.now(timezone.utc) + timedelta(days=7, hours=3),
             "organizer": "Central Park Music Society",
-            "max_attendees": 500,
+            "maxAttendees": 500,
             "tags": ["music", "jazz", "blues", "outdoor", "concert"],
-            "created_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc)
+            "createdAt": datetime.now(timezone.utc),
+            "updatedAt": datetime.now(timezone.utc)
         },
         {
             "title": "Technology Conference 2024",
@@ -49,13 +49,13 @@ def setup_test_data():
                 "type": "Point",
                 "coordinates": [-74.0060, 40.7128]
             },
-            "start_date": datetime.now(timezone.utc) + timedelta(days=14),
-            "end_date": datetime.now(timezone.utc) + timedelta(days=16),
+            "startDate": datetime.now(timezone.utc) + timedelta(days=14),
+            "endDate": datetime.now(timezone.utc) + timedelta(days=16),
             "organizer": "TechCorp Inc",
-            "max_attendees": 1000,
+            "maxAttendees": 1000,
             "tags": ["technology", "AI", "machine learning", "software", "conference"],
-            "created_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc)
+            "createdAt": datetime.now(timezone.utc),
+            "updatedAt": datetime.now(timezone.utc)
         },
         {
             "title": "Jazz Workshop for Beginners",
@@ -65,13 +65,13 @@ def setup_test_data():
                 "type": "Point",
                 "coordinates": [-73.9857, 40.7484]
             },
-            "start_date": datetime.now(timezone.utc) + timedelta(days=21),
-            "end_date": datetime.now(timezone.utc) + timedelta(days=21, hours=2),
+            "startDate": datetime.now(timezone.utc) + timedelta(days=21),
+            "endDate": datetime.now(timezone.utc) + timedelta(days=21, hours=2),
             "organizer": "Music Academy",
-            "max_attendees": 30,
+            "maxAttendees": 30,
             "tags": ["jazz", "workshop", "education", "music", "beginners"],
-            "created_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc)
+            "createdAt": datetime.now(timezone.utc),
+            "updatedAt": datetime.now(timezone.utc)
         },
         {
             "title": "Rock Music Festival",
@@ -81,13 +81,13 @@ def setup_test_data():
                 "type": "Point",
                 "coordinates": [-73.9776, 40.7831]
             },
-            "start_date": datetime.now(timezone.utc) + timedelta(days=30),
-            "end_date": datetime.now(timezone.utc) + timedelta(days=32),
+            "startDate": datetime.now(timezone.utc) + timedelta(days=30),
+            "endDate": datetime.now(timezone.utc) + timedelta(days=32),
             "organizer": "RockFest Productions",
-            "max_attendees": 5000,
+            "maxAttendees": 5000,
             "tags": ["rock", "music", "festival", "outdoor", "multi-day"],
-            "created_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc)
+            "createdAt": datetime.now(timezone.utc),
+            "updatedAt": datetime.now(timezone.utc)
         }
     ]
     

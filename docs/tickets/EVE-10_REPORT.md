@@ -77,7 +77,7 @@ def calculate_weekend_window(reference_date: datetime = None) -> Tuple[datetime,
 
 ### Service Integration
 ```python
-def get_events_this_weekend(self, longitude: float, latitude: float, radius_km: float = 50) -> dict[str, Any]:
+def get_events_this_weekend(self, longitude: float, latitude: float, radiusKm: float = 50) -> dict[str, Any]:
     """Get events this weekend near a location - perfect for your use case!"""
     db = self._ensure_db()
     
@@ -183,7 +183,7 @@ service = get_event_service()
 weekend_events = service.get_events_this_weekend(
     longitude=-74.0060,  # NYC
     latitude=40.7128,
-    radius_km=50
+    radiusKm=50
 )
 ```
 

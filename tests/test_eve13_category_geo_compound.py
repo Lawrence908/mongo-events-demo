@@ -39,49 +39,49 @@ class TestEVE13CategoryGeoCompound:
                 "title": "TEST_EVE13_Music Event NYC",
                 "description": "A music event in New York",
                 "category": "music",
-                "start_date": datetime.now(timezone.utc) + timedelta(days=1),
+                "startDate": datetime.now(timezone.utc) + timedelta(days=1),
                 "location": {
                     "type": "Point",
                     "coordinates": [-74.0060, 40.7128]  # NYC
                 },
                 "organizer": "Test Organizer",
-                "max_attendees": 100
+                "maxAttendees": 100
             },
             {
                 "title": "TEST_EVE13_Tech Event NYC",
                 "description": "A tech event in New York",
                 "category": "tech",
-                "start_date": datetime.now(timezone.utc) + timedelta(days=2),
+                "startDate": datetime.now(timezone.utc) + timedelta(days=2),
                 "location": {
                     "type": "Point",
                     "coordinates": [-74.0060, 40.7128]  # NYC
                 },
                 "organizer": "Test Organizer",
-                "max_attendees": 50
+                "maxAttendees": 50
             },
             {
                 "title": "TEST_EVE13_Music Event SF",
                 "description": "A music event in San Francisco",
                 "category": "music",
-                "start_date": datetime.now(timezone.utc) + timedelta(days=3),
+                "startDate": datetime.now(timezone.utc) + timedelta(days=3),
                 "location": {
                     "type": "Point",
                     "coordinates": [-122.4194, 37.7749]  # SF
                 },
                 "organizer": "Test Organizer",
-                "max_attendees": 75
+                "maxAttendees": 75
             },
             {
                 "title": "TEST_EVE13_Tech Event SF",
                 "description": "A tech event in San Francisco",
                 "category": "tech",
-                "start_date": datetime.now(timezone.utc) + timedelta(days=4),
+                "startDate": datetime.now(timezone.utc) + timedelta(days=4),
                 "location": {
                     "type": "Point",
                     "coordinates": [-122.4194, 37.7749]  # SF
                 },
                 "organizer": "Test Organizer",
-                "max_attendees": 200
+                "maxAttendees": 200
             }
         ]
         
@@ -101,7 +101,7 @@ class TestEVE13CategoryGeoCompound:
         query = EventsNearbyQuery(
             longitude=-74.0060,
             latitude=40.7128,
-            radius_km=100,
+            radiusKm=100,
             limit=10
         )
         
@@ -128,7 +128,7 @@ class TestEVE13CategoryGeoCompound:
         all_weekend_events = self.service.get_events_this_weekend(
             longitude=-74.0060,
             latitude=40.7128,
-            radius_km=100
+            radiusKm=100
         )
         assert len(all_weekend_events["features"]) >= 0  # May or may not be in weekend window
         
@@ -136,7 +136,7 @@ class TestEVE13CategoryGeoCompound:
         music_weekend_events = self.service.get_events_this_weekend(
             longitude=-74.0060,
             latitude=40.7128,
-            radius_km=100,
+            radiusKm=100,
             category="music"
         )
         for feature in music_weekend_events["features"]:
@@ -147,7 +147,7 @@ class TestEVE13CategoryGeoCompound:
         tech_weekend_events = self.service.get_events_this_weekend(
             longitude=-74.0060,
             latitude=40.7128,
-            radius_km=100,
+            radiusKm=100,
             category="tech"
         )
         for feature in tech_weekend_events["features"]:
@@ -160,7 +160,7 @@ class TestEVE13CategoryGeoCompound:
         query = EventsNearbyQuery(
             longitude=-74.0060,
             latitude=40.7128,
-            radius_km=100,
+            radiusKm=100,
             limit=10
         )
         
@@ -246,7 +246,7 @@ class TestEVE13CategoryGeoCompound:
             category="music",
             longitude=-74.0060,
             latitude=40.7128,
-            radius_km=100
+            radiusKm=100
         )
         
         # Should find music events in NYC area within date range
@@ -260,7 +260,7 @@ class TestEVE13CategoryGeoCompound:
             category="tech",
             longitude=-74.0060,
             latitude=40.7128,
-            radius_km=100
+            radiusKm=100
         )
         
         tech_events = [e for e in events if "TEST_EVE13_" in e.title and e.category == "tech"]

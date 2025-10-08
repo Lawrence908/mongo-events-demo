@@ -51,9 +51,9 @@ def test_comprehensive_atlas_connection():
                         "type": "Point",
                         "coordinates": [-74.0060, 40.7128]
                     },
-                    "start_date": datetime.now(timezone.utc),
-                    "created_at": datetime.now(timezone.utc),
-                    "updated_at": datetime.now(timezone.utc)
+                    "startDate": datetime.now(timezone.utc),
+                    "createdAt": datetime.now(timezone.utc),
+                    "updatedAt": datetime.now(timezone.utc)
                 }
             },
             'venues': {
@@ -71,7 +71,7 @@ def test_comprehensive_atlas_connection():
                         "zip": "10001",
                         "country": "USA"
                     },
-                    "created_at": datetime.now(timezone.utc)
+                    "createdAt": datetime.now(timezone.utc)
                 }
             },
             'users': {
@@ -82,20 +82,20 @@ def test_comprehensive_atlas_connection():
                         "first_name": "Test",
                         "last_name": "User"
                     },
-                    "created_at": datetime.now(timezone.utc)
+                    "createdAt": datetime.now(timezone.utc)
                 }
             },
             'checkins': {
                 'description': 'Enhanced check-ins bridge table with analytics',
                 'sample_doc': {
-                    "event_id": ObjectId("507f1f77bcf86cd799439011"),
-                    "user_id": ObjectId("507f1f77bcf86cd799439012"),
-                    "venue_id": ObjectId("507f1f77bcf86cd799439013"),
-                    "qr_code": "TEST_QR_123",
-                    "check_in_method": "qr_code",
-                    "ticket_tier": "VIP",
-                    "check_in_time": datetime.now(timezone.utc),
-                    "created_at": datetime.now(timezone.utc),
+                    "eventId": ObjectId("507f1f77bcf86cd799439011"),
+                    "userId": ObjectId("507f1f77bcf86cd799439012"),
+                    "venueId": ObjectId("507f1f77bcf86cd799439013"),
+                    "qrCode": "TEST_QR_123",
+                    "checkInMethod": "qrCode",
+                    "ticketTier": "VIP",
+                    "checkInTime": datetime.now(timezone.utc),
+                    "createdAt": datetime.now(timezone.utc),
                     "metadata": {
                         "device_info": "iPhone 13 Pro",
                         "ip_address": "192.168.1.100",
@@ -106,12 +106,12 @@ def test_comprehensive_atlas_connection():
             'reviews': {
                 'description': 'User reviews for events and venues',
                 'sample_doc': {
-                    "event_id": ObjectId("507f1f77bcf86cd799439011"),
-                    "user_id": ObjectId("507f1f77bcf86cd799439012"),
+                    "eventId": ObjectId("507f1f77bcf86cd799439011"),
+                    "userId": ObjectId("507f1f77bcf86cd799439012"),
                     "rating": 5,
                     "comment": "Great event! Highly recommended.",
-                    "created_at": datetime.now(timezone.utc),
-                    "updated_at": datetime.now(timezone.utc)
+                    "createdAt": datetime.now(timezone.utc),
+                    "updatedAt": datetime.now(timezone.utc)
                 }
             }
         }
@@ -164,11 +164,11 @@ def test_comprehensive_atlas_connection():
             venues = database.venues
             
             # Count check-ins with venue references
-            venue_checkins = checkins.count_documents({"venue_id": {"$exists": True}})
+            venue_checkins = checkins.count_documents({"venueId": {"$exists": True}})
             print(f"   📊 Check-ins with venue references: {venue_checkins}")
             
             # Count venues with check-ins
-            venue_ids = list(checkins.distinct("venue_id"))
+            venue_ids = list(checkins.distinct("venueId"))
             venues_with_checkins = venues.count_documents({"_id": {"$in": venue_ids}})
             print(f"   📊 Venues with check-ins: {venues_with_checkins}")
         
@@ -177,8 +177,8 @@ def test_comprehensive_atlas_connection():
             print("   Testing reviews targeting...")
             reviews = database.reviews
             
-            event_reviews = reviews.count_documents({"event_id": {"$exists": True}})
-            venue_reviews = reviews.count_documents({"venue_id": {"$exists": True}})
+            event_reviews = reviews.count_documents({"eventId": {"$exists": True}})
+            venue_reviews = reviews.count_documents({"venueId": {"$exists": True}})
             print(f"   📊 Event reviews: {event_reviews}")
             print(f"   📊 Venue reviews: {venue_reviews}")
         

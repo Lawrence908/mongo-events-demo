@@ -129,7 +129,3 @@ Deliverables each milestone: code edits, metrics, explain snapshots, reflection 
 - What trade-offs did you make between embedding and referencing?
 - Where is strong consistency required, and how was it achieved?
 - How would you shard this in production and what are risks?
-
----
-
-Maintained by: Chris Lawrence (CSCI 485)

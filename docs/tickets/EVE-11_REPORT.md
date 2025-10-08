@@ -43,7 +43,7 @@ def get_events_nearby(self, query: EventsNearbyQuery) -> dict[str, Any]:
                     "coordinates": [query.longitude, query.latitude],
                 },
                 "distanceField": "distance",
-                "maxDistance": query.radius_km * 1000,  # Convert to meters
+                "maxDistance": query.radiusKm * 1000,  # Convert to meters
                 "spherical": True,
                 "key": "location"  # Specify which 2dsphere index to use
             }

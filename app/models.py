@@ -314,7 +314,7 @@ class CheckinBase(BaseModel):
     qrCode: str = Field(..., min_length=1, max_length=100)
     schemaVersion: str = Field(default="1.0", description="Schema versioning")
     ticketTier: Optional[str] = Field(None, max_length=50)
-    checkInMethod: Optional[str] = Field(None, max_length=50, description="qr_code, manual, mobile_app")
+    checkInMethod: Optional[str] = Field(None, max_length=50, description="qrCode, manual, mobileApp")
     location: Optional[EventLocation] = None
     metadata: Optional[CheckinMetadata] = None
 
@@ -326,9 +326,9 @@ class CheckinCreate(CheckinBase):
 
 class CheckinUpdate(BaseModel):
     """Model for updating checkins"""
-    qr_code: Optional[str] = Field(None, min_length=1, max_length=100)
+    qrCode: Optional[str] = Field(None, min_length=1, max_length=100)
     ticketTier: Optional[str] = Field(None, max_length=50)
-    check_in_method: Optional[str] = Field(None, max_length=50)
+    checkInMethod: Optional[str] = Field(None, max_length=50)
     location: Optional[EventLocation] = None
     metadata: Optional[CheckinMetadata] = None
 
@@ -358,9 +358,9 @@ class ReviewBase(BaseModel):
 
     @model_validator(mode="after")
     def validate_review_target(self):
-        """Ensure at least one of event_id or venue_id is provided"""
+        """Ensure at least one of eventId or venueId is provided"""
         if not self.eventId and not self.venueId:
-            raise ValueError("Either event_id or venue_id must be provided")
+            raise ValueError("Either eventId or venueId must be provided")
         if self.eventId and self.venueId:
             raise ValueError("Cannot review both event and venue in the same review")
         return self
@@ -399,5 +399,5 @@ class EventsNearbyQuery(BaseModel):
 
     longitude: float = Field(..., ge=-180, le=180)
     latitude: float = Field(..., ge=-90, le=90)
-    radius_km: float = Field(default=10, gt=0, le=20000)
+    radiusKm: float = Field(default=10, gt=0, le=20000)
     limit: int = Field(default=50, gt=0, le=Config.MAX_EVENTS_LIMIT)

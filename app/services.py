@@ -276,7 +276,7 @@ class EventService:
         db = self._ensure_db()
         return db.events.distinct("category")
 
-    def get_events_this_weekend(self, longitude: float, latitude: float, radius_km: float = 50, category: Optional[str] = None, limit: int = 50) -> dict[str, Any]:
+    def get_events_this_weekend(self, longitude: float, latitude: float, radiusKm: float = 50, category: Optional[str] = None, limit: int = 50) -> dict[str, Any]:
         """Get events this weekend near a location with optional category filtering"""
         db = self._ensure_db()
         
@@ -348,7 +348,7 @@ class EventService:
                 "start": friday.isoformat(),
                 "end": sunday.isoformat()
             },
-            "total_events": len(features)
+            "totalEvents": len(features)
         }
 
     def get_analytics(self) -> dict[str, Any]:
@@ -412,8 +412,8 @@ class EventService:
             "peak_event_times": peak_times,
             "category_popularity": category_stats,
             "monthly_trends": monthly_trends,
-            "total_events": db.events.count_documents({}),
-            "upcoming_events": db.events.count_documents({"startDate": {"$gte": datetime.now(timezone.utc)}})
+            "totalEvents": db.events.count_documents({}),
+            "upcomingEvents": db.events.count_documents({"startDate": {"$gte": datetime.now(timezone.utc)}})
         }
 
     def get_events_by_date_range(
@@ -423,7 +423,7 @@ class EventService:
         category: Optional[str] = None,
         longitude: Optional[float] = None,
         latitude: Optional[float] = None,
-        radius_km: Optional[float] = None
+        radiusKm: Optional[float] = None
     ) -> list[Event]:
         """Get events within a specific date range with optional location filtering"""
         db = self._ensure_db()
@@ -437,7 +437,7 @@ class EventService:
         if category:
             query["category"] = category
             
-        if longitude and latitude and radius_km:
+        if longitude and latitude and radiusKm:
             # Use geospatial query with date range
             pipeline = [
                 {
@@ -447,7 +447,7 @@ class EventService:
                             "coordinates": [longitude, latitude],
                         },
                         "distanceField": "distance",
-                        "maxDistance": radius_km * 1000,
+                        "maxDistance": radiusKm * 1000,
                         "spherical": True,
                     }
                 },
@@ -782,7 +782,7 @@ class CheckinService:
     def get_attendance_stats_by_event(self, event_id: str) -> dict[str, Any]:
         """Get attendance statistics for a specific event"""
         if not ObjectId.is_valid(event_id):
-            return {"total_checkins": 0, "unique_users": 0, "checkin_methods": {}}
+            return {"totalCheckins": 0, "uniqueUsers": 0, "checkinMethods": {}}
 
         db = self._ensure_db()
         
@@ -791,19 +791,19 @@ class CheckinService:
             {
                 "$group": {
                     "_id": None,
-                    "total_checkins": {"$sum": 1},
-                    "unique_users": {"$addToSet": "$userId"},
-                    "checkin_methods": {"$push": "$checkInMethod"},
+                    "totalCheckins": {"$sum": 1},
+                    "uniqueUsers": {"$addToSet": "$userId"},
+                    "checkinMethods": {"$push": "$checkInMethod"},
                     "avg_checkin_time": {"$avg": "$checkInTime"}
                 }
             },
             {
                 "$project": {
-                    "total_checkins": 1,
-                    "unique_users": {"$size": "$unique_users"},
-                    "checkin_methods": {
+                    "totalCheckins": 1,
+                    "uniqueUsers": {"$size": "$uniqueUsers"},
+                    "checkinMethods": {
                         "$reduce": {
-                            "input": "$checkin_methods",
+                            "input": "$checkinMethods",
                             "initialValue": {},
                             "in": {
                                 "$mergeObjects": [
@@ -825,12 +825,12 @@ class CheckinService:
         result = list(db.checkins.aggregate(pipeline))
         if result:
             return result[0]
-        return {"total_checkins": 0, "unique_users": 0, "checkin_methods": {}}
+        return {"totalCheckins": 0, "uniqueUsers": 0, "checkinMethods": {}}
 
     def get_venue_attendance_stats(self, venue_id: str, startDate: Optional[datetime] = None, endDate: Optional[datetime] = None) -> dict[str, Any]:
         """Get attendance statistics for a specific venue"""
         if not ObjectId.is_valid(venue_id):
-            return {"total_checkins": 0, "unique_users": 0, "events_attended": 0, "monthly_breakdown": []}
+            return {"totalCheckins": 0, "uniqueUsers": 0, "eventsAttended": 0, "monthlyBreakdown": []}
 
         db = self._ensure_db()
         
@@ -848,9 +848,9 @@ class CheckinService:
             {
                 "$group": {
                     "_id": None,
-                    "total_checkins": {"$sum": 1},
-                    "unique_users": {"$addToSet": "$userId"},
-                    "events_attended": {"$addToSet": "$eventId"},
+                    "totalCheckins": {"$sum": 1},
+                    "uniqueUsers": {"$addToSet": "$userId"},
+                    "eventsAttended": {"$addToSet": "$eventId"},
                     "monthly_data": {
                         "$push": {
                             "month": {"$dateToString": {"format": "%Y-%m", "date": "$checkInTime"}},
@@ -861,10 +861,10 @@ class CheckinService:
             },
             {
                 "$project": {
-                    "total_checkins": 1,
-                    "unique_users": {"$size": "$unique_users"},
-                    "events_attended": {"$size": "$events_attended"},
-                    "monthly_breakdown": {
+                    "totalCheckins": 1,
+                    "uniqueUsers": {"$size": "$uniqueUsers"},
+                    "eventsAttended": {"$size": "$eventsAttended"},
+                    "monthlyBreakdown": {
                         "$reduce": {
                             "input": "$monthly_data",
                             "initialValue": {},
@@ -887,7 +887,7 @@ class CheckinService:
         result = list(db.checkins.aggregate(pipeline))
         if result:
             return result[0]
-        return {"total_checkins": 0, "unique_users": 0, "events_attended": 0, "monthly_breakdown": []}
+        return {"totalCheckins": 0, "uniqueUsers": 0, "eventsAttended": 0, "monthlyBreakdown": []}
 
     def get_repeat_attendees(self, min_events: int = 2) -> list[dict[str, Any]]:
         """Get users who have attended multiple events (repeat attendees)"""
@@ -898,7 +898,7 @@ class CheckinService:
                 "$group": {
                     "_id": "$userId",
                     "event_count": {"$sum": 1},
-                    "events": {"$addToSet": "$event_id"},
+                    "events": {"$addToSet": "$eventId"},
                     "venues": {"$addToSet": "$venueId"},
                     "first_checkin": {"$min": "$checkInTime"},
                     "last_checkin": {"$max": "$checkInTime"}
@@ -908,12 +908,12 @@ class CheckinService:
             {"$sort": {"event_count": -1}},
             {
                 "$project": {
-                    "user_id": "$_id",
-                    "event_count": 1,
-                    "events_attended": {"$size": "$events"},
-                    "venues_visited": {"$size": "$venues"},
-                    "first_checkin": 1,
-                    "last_checkin": 1,
+                    "userId": "$_id",
+                    "eventCount": 1,
+                    "eventsAttended": {"$size": "$events"},
+                    "venuesVisited": {"$size": "$venues"},
+                    "firstCheckin": 1,
+                    "lastCheckin": 1,
                     "events": 1,
                     "venues": 1
                 }
@@ -990,8 +990,8 @@ class CheckinService:
             {
                 "$project": {
                     "_id": 1,
-                    "event_id": 1,
-                    "venue_id": 1,
+                    "eventId": 1,
+                    "venueId": 1,
                     "checkInTime": 1,
                     "checkInMethod": 1,
                     "ticketTier": 1,
@@ -1011,20 +1011,20 @@ class CheckinService:
             {
                 "$group": {
                     "_id": None,
-                    "total_events": {"$sum": 1},
-                    "unique_venues": {"$addToSet": "$venueId"},
+                    "totalEvents": {"$sum": 1},
+                    "uniqueVenues": {"$addToSet": "$venueId"},
                     "categories": {"$addToSet": "$event.category"},
-                    "first_checkin": {"$min": "$checkInTime"},
-                    "last_checkin": {"$max": "$checkInTime"}
+                    "firstCheckin": {"$min": "$checkInTime"},
+                    "lastCheckin": {"$max": "$checkInTime"}
                 }
             },
             {
                 "$project": {
-                    "total_events": 1,
-                    "unique_venues": {"$size": "$unique_venues"},
-                    "categories_attended": {"$size": "$categories"},
-                    "first_checkin": 1,
-                    "last_checkin": 1
+                    "totalEvents": 1,
+                    "uniqueVenues": {"$size": "$uniqueVenues"},
+                    "categoriesAttended": {"$size": "$categories"},
+                    "firstCheckin": 1,
+                    "lastCheckin": 1
                 }
             }
         ]
@@ -1058,11 +1058,11 @@ class ReviewService:
         review_dict["updatedAt"] = datetime.now(timezone.utc)
 
         # Convert string IDs to ObjectId instances for MongoDB
-        if review_dict.get("event_id"):
-            review_dict["event_id"] = ObjectId(review_dict["event_id"])
-        if review_dict.get("venue_id"):
-            review_dict["venue_id"] = ObjectId(review_dict["venue_id"])
-        review_dict["user_id"] = ObjectId(review_dict["user_id"])
+        if review_dict.get("eventId"):
+            review_dict["eventId"] = ObjectId(review_dict["eventId"])
+        if review_dict.get("venueId"):
+            review_dict["venueId"] = ObjectId(review_dict["venueId"])
+        review_dict["userId"] = ObjectId(review_dict["userId"])
 
         result = db.reviews.insert_one(review_dict)
         review_dict["_id"] = result.inserted_id
@@ -1161,7 +1161,7 @@ class ReviewService:
     def get_review_stats_by_event(self, event_id: str) -> dict[str, Any]:
         """Get review statistics for a specific event"""
         if not ObjectId.is_valid(event_id):
-            return {"total_reviews": 0, "average_rating": 0, "rating_distribution": {}}
+            return {"totalReviews": 0, "averageRating": 0, "ratingDistribution": {}}
 
         db = self._ensure_db()
         
@@ -1170,16 +1170,16 @@ class ReviewService:
             {
                 "$group": {
                     "_id": None,
-                    "total_reviews": {"$sum": 1},
-                    "average_rating": {"$avg": "$rating"},
+                    "totalReviews": {"$sum": 1},
+                    "averageRating": {"$avg": "$rating"},
                     "rating_counts": {"$push": "$rating"}
                 }
             },
             {
                 "$project": {
                     "total_reviews": 1,
-                    "average_rating": {"$round": ["$average_rating", 2]},
-                    "rating_distribution": {
+                    "averageRating": {"$round": ["$averageRating", 2]},
+                    "ratingDistribution": {
                         "$reduce": {
                             "input": "$rating_counts",
                             "initialValue": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0},
@@ -1202,30 +1202,30 @@ class ReviewService:
         result = list(db.reviews.aggregate(pipeline))
         if result:
             return result[0]
-        return {"total_reviews": 0, "average_rating": 0, "rating_distribution": {}}
+        return {"totalReviews": 0, "averageRating": 0, "ratingDistribution": {}}
 
     def get_review_stats_by_venue(self, venue_id: str) -> dict[str, Any]:
         """Get review statistics for a specific venue"""
         if not ObjectId.is_valid(venue_id):
-            return {"total_reviews": 0, "average_rating": 0, "rating_distribution": {}}
+            return {"totalReviews": 0, "averageRating": 0, "ratingDistribution": {}}
 
         db = self._ensure_db()
         
         pipeline = [
-            {"$match": {"venue_id": ObjectId(venue_id)}},
+            {"$match": {"venueId": ObjectId(venue_id)}},
             {
                 "$group": {
                     "_id": None,
-                    "total_reviews": {"$sum": 1},
-                    "average_rating": {"$avg": "$rating"},
+                    "totalReviews": {"$sum": 1},
+                    "averageRating": {"$avg": "$rating"},
                     "rating_counts": {"$push": "$rating"}
                 }
             },
             {
                 "$project": {
                     "total_reviews": 1,
-                    "average_rating": {"$round": ["$average_rating", 2]},
-                    "rating_distribution": {
+                    "averageRating": {"$round": ["$averageRating", 2]},
+                    "ratingDistribution": {
                         "$reduce": {
                             "input": "$rating_counts",
                             "initialValue": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0},
@@ -1248,7 +1248,7 @@ class ReviewService:
         result = list(db.reviews.aggregate(pipeline))
         if result:
             return result[0]
-        return {"total_reviews": 0, "average_rating": 0, "rating_distribution": {}}
+        return {"totalReviews": 0, "averageRating": 0, "ratingDistribution": {}}
 
     def search_reviews(self, query: str, skip: int = 0, limit: int = 50) -> dict[str, Any]:
         """Search reviews by comment text"""

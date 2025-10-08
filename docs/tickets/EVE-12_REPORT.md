@@ -64,7 +64,7 @@ curl "http://localhost:5001/api/events/weekend?lng=-74.0060&lat=40.7128&radius=5
 The core functionality is implemented in `app/services.py` in the `EventService.get_events_this_weekend()` method:
 
 ```python
-def get_events_this_weekend(self, longitude: float, latitude: float, radius_km: float = 50) -> dict[str, Any]:
+def get_events_this_weekend(self, longitude: float, latitude: float, radiusKm: float = 50) -> dict[str, Any]:
     """Get events this weekend near a location"""
     db = self._ensure_db()
     
@@ -79,7 +79,7 @@ def get_events_this_weekend(self, longitude: float, latitude: float, radius_km: 
                     "coordinates": [longitude, latitude],
                 },
                 "distanceField": "distance",
-                "maxDistance": radius_km * 1000,  # Convert to meters
+                "maxDistance": radiusKm * 1000,  # Convert to meters
                 "spherical": True,
                 "key": "location"  # Specify which 2dsphere index to use
             }
@@ -183,7 +183,7 @@ Weekend range: 2025-09-19 18:00:00+00:00 to 2025-09-21 23:59:00+00:00
     $geoNear: {
       near: { type: "Point", coordinates: [lng, lat] },
       distanceField: "distance",
-      maxDistance: radius_km * 1000,
+      maxDistance: radiusKm * 1000,
       spherical: true,
       key: "location"
     }

@@ -240,7 +240,7 @@ class GeocodingService:
             try:
                 lng, lat = coordinates
                 directions_url = self.generate_directions_url(destination_coords=(lng, lat))
-                updated_data["directions_url"] = directions_url
+                updated_data["directionsUrl"] = directions_url
             except Exception as e:
                 # Don't fail if directions URL generation fails
                 print(f"Warning: Failed to generate directions URL: {str(e)}")

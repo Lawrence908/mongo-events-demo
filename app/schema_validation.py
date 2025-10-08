@@ -176,8 +176,8 @@ def get_events_schema() -> Dict[str, Any]:
                     "properties": {
                         "virtual": {"bsonType": "bool"},
                         "recurring": {"bsonType": "bool"},
-                        "age_restriction": {"bsonType": "string"},
-                        "dress_code": {"bsonType": "string"}
+                        "ageRestriction": {"bsonType": "string"},
+                        "dressCode": {"bsonType": "string"}
                     },
                     "additionalProperties": True,
                     "description": "Flexible metadata for custom attributes"
@@ -332,7 +332,7 @@ def get_users_schema() -> Dict[str, Any]:
                 },
                 "profile": {
                     "bsonType": "object",
-                    "required": ["first_name", "last_name"],
+                    "required": ["firstName", "lastName"],
                     "properties": {
                         "firstName": {
                             "bsonType": "string",
@@ -440,7 +440,7 @@ def get_checkins_schema() -> Dict[str, Any]:
                 "checkInMethod": {
                     "bsonType": ["string", "null"],
                     "maxLength": 50,
-                    "enum": ["qr_code", "manual", "mobile_app", None],
+                    "enum": ["qrCode", "manual", "mobileApp", None],
                     "description": "Method used for check-in"
                 },
                 "location": {

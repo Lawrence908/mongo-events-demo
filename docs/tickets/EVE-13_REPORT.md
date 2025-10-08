@@ -38,7 +38,7 @@ def api_events_nearby():
         query_params = {
             "longitude": float(request.args.get("lng", 0)),
             "latitude": float(request.args.get("lat", 0)),
-            "radius_km": float(request.args.get("radius", 10)),
+            "radiusKm": float(request.args.get("radius", 10)),
             "limit": min(int(request.args.get("limit", 50)), 100),
         }
         
@@ -74,11 +74,11 @@ def api_events_weekend():
     try:
         longitude = float(request.args.get("lng", -74.0060))
         latitude = float(request.args.get("lat", 40.7128))
-        radius_km = float(request.args.get("radius", 50))
+        radiusKm = float(request.args.get("radius", 50))
         category = request.args.get("category")  # Optional category filter
         
         weekend_events = get_event_service().get_events_this_weekend(
-            longitude, latitude, radius_km, category=category
+            longitude, latitude, radiusKm, category=category
         )
         return jsonify(weekend_events)
 ```
@@ -106,7 +106,7 @@ def get_events_nearby(self, query: EventsNearbyQuery, category: Optional[str] = 
                     "coordinates": [query.longitude, query.latitude],
                 },
                 "distanceField": "distance",
-                "maxDistance": query.radius_km * 1000,
+                "maxDistance": query.radiusKm * 1000,
                 "spherical": True,
                 "key": "location"
             }
@@ -137,7 +137,7 @@ def get_events_nearby(self, query: EventsNearbyQuery, category: Optional[str] = 
 
 **Implementation**:
 ```python
-def get_events_this_weekend(self, longitude: float, latitude: float, radius_km: float = 50, category: Optional[str] = None) -> dict[str, Any]:
+def get_events_this_weekend(self, longitude: float, latitude: float, radiusKm: float = 50, category: Optional[str] = None) -> dict[str, Any]:
     """Get events this weekend near a location with optional category filtering"""
     db = self._ensure_db()
     
@@ -152,7 +152,7 @@ def get_events_this_weekend(self, longitude: float, latitude: float, radius_km: 
                     "coordinates": [longitude, latitude],
                 },
                 "distanceField": "distance",
-                "maxDistance": radius_km * 1000,
+                "maxDistance": radiusKm * 1000,
                 "spherical": True,
                 "key": "location"
             }

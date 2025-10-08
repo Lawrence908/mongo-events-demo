@@ -125,7 +125,7 @@ class TestModels:
             "venueId": ObjectId(),
             "qrCode": "QR123456",
             "ticketTier": "VIP",
-            "checkInMethod": "qr_code",
+            "checkInMethod": "qrCode",
             "metadata": {
                 "deviceInfo": "iPhone 13",
                 "ipAddress": "192.168.1.1",
@@ -139,7 +139,7 @@ class TestModels:
         assert checkin.venueId == checkin_data["venueId"]
         assert checkin.qrCode == "QR123456"
         assert checkin.ticketTier == "VIP"
-        assert checkin.checkInMethod == "qr_code"
+        assert checkin.checkInMethod == "qrCode"
 
 
 class TestAPI:

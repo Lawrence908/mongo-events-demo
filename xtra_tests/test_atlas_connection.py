@@ -51,12 +51,12 @@ def test_atlas_connection():
         print("\n🧪 Testing check-ins collection...")
         checkins = database.checkins
         sample_checkin = {
-            "event_id": ObjectId("507f1f77bcf86cd799439011"),
-            "user_id": ObjectId("507f1f77bcf86cd799439012"),
-            "venue_id": ObjectId("507f1f77bcf86cd799439013"),
-            "qr_code": "TEST_QR_123",
-            "check_in_time": datetime.now(),
-            "created_at": datetime.now()
+            "eventId": ObjectId("507f1f77bcf86cd799439011"),
+            "userId": ObjectId("507f1f77bcf86cd799439012"),
+            "venueId": ObjectId("507f1f77bcf86cd799439013"),
+            "qrCode": "TEST_QR_123",
+            "checkInTime": datetime.now(),
+            "createdAt": datetime.now()
         }
         
         result = checkins.insert_one(sample_checkin)
@@ -70,12 +70,12 @@ def test_atlas_connection():
         print("\n🧪 Testing reviews collection...")
         reviews = database.reviews
         sample_review = {
-            "event_id": ObjectId("507f1f77bcf86cd799439011"),
-            "user_id": ObjectId("507f1f77bcf86cd799439012"),
+            "eventId": ObjectId("507f1f77bcf86cd799439011"),
+            "userId": ObjectId("507f1f77bcf86cd799439012"),
             "rating": 5,
             "comment": "Great event!",
-            "created_at": datetime.now(),
-            "updated_at": datetime.now()
+            "createdAt": datetime.now(),
+            "updatedAt": datetime.now()
         }
         
         result = reviews.insert_one(sample_review)

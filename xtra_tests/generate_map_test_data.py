@@ -141,13 +141,13 @@ def generate_event() -> Dict[str, Any]:
             "type": "Point",
             "coordinates": [lng, lat]
         },
-        "start_date": start_date,
-        "end_date": end_date,
+        "startDate": start_date,
+        "endDate": end_date,
         "organizer": random.choice(ORGANIZERS),
-        "max_attendees": random.randint(10, 1000) if random.random() < 0.8 else None,
+        "maxAttendees": random.randint(10, 1000) if random.random() < 0.8 else None,
         "tags": [category.lower().replace(" ", "-"), "event", "local"],
-        "created_at": start_date - timedelta(days=random.randint(1, 30)),
-        "updated_at": start_date - timedelta(days=random.randint(1, 30))
+        "createdAt": start_date - timedelta(days=random.randint(1, 30)),
+        "updatedAt": start_date - timedelta(days=random.randint(1, 30))
     }
     
     return event
@@ -168,10 +168,10 @@ def save_to_json(events: List[Dict[str, Any]], filename: str = "map_test_events.
     """Save events to JSON file"""
     # Convert datetime objects to ISO format strings
     for event in events:
-        event["start_date"] = event["start_date"].isoformat()
-        event["end_date"] = event["end_date"].isoformat()
-        event["created_at"] = event["created_at"].isoformat()
-        event["updated_at"] = event["updated_at"].isoformat()
+        event["startDate"] = event["startDate"].isoformat()
+        event["endDate"] = event["endDate"].isoformat()
+        event["createdAt"] = event["createdAt"].isoformat()
+        event["updatedAt"] = event["updatedAt"].isoformat()
     
     with open(filename, 'w') as f:
         json.dump(events, f, indent=2)

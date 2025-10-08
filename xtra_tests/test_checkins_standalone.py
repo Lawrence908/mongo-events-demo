@@ -37,7 +37,7 @@ def test_checkin_models():
         "venueId": str(ObjectId()),
         "qrCode": "QR123456789",
         "ticketTier": "VIP",
-        "checkInMethod": "qr_code",
+        "checkInMethod": "qrCode",
         "location": {
             "type": "Point",
             "coordinates": [-74.0060, 40.7128]
@@ -63,19 +63,19 @@ def test_checkin_models():
     
     # Test with minimal fields
     minimal_data = {
-        "event_id": str(ObjectId()),
-        "user_id": str(ObjectId()),
-        "venue_id": str(ObjectId()),
-        "qr_code": "QR123"
+        "eventId": str(ObjectId()),
+        "userId": str(ObjectId()),
+        "venueId": str(ObjectId()),
+        "qrCode": "QR123"
     }
     
     minimal_checkin = CheckinCreate(**minimal_data)
-    assert minimal_checkin.event_id == ObjectId(minimal_data["event_id"])
-    assert minimal_checkin.user_id == ObjectId(minimal_data["user_id"])
-    assert minimal_checkin.venue_id == ObjectId(minimal_data["venue_id"])
-    assert minimal_checkin.qr_code == minimal_data["qr_code"]
-    assert minimal_checkin.ticket_tier is None
-    assert minimal_checkin.check_in_method is None
+    assert minimal_checkin.eventId == ObjectId(minimal_data["eventId"])
+    assert minimal_checkin.userId == ObjectId(minimal_data["userId"])
+    assert minimal_checkin.venueId == ObjectId(minimal_data["venueId"])
+    assert minimal_checkin.qrCode == minimal_data["qrCode"]
+    assert minimal_checkin.ticketTier is None
+    assert minimal_checkin.checkInMethod is None
     assert minimal_checkin.location is None
     assert minimal_checkin.metadata is None
     print("✅ Minimal CheckinCreate model validation passed")
@@ -101,18 +101,18 @@ def test_checkin_update():
     print("Testing CheckinUpdate model...")
     
     update_data = {
-        "qr_code": "QR987654321",
-        "ticket_tier": "General",
-        "check_in_method": "manual",
+        "qrCode": "QR987654321",
+        "ticketTier": "General",
+        "checkInMethod": "manual",
         "metadata": CheckinMetadata(
             device_info="Chrome Browser",
             ip_address="203.0.113.1"
         )
     }
     update = CheckinUpdate(**update_data)
-    assert update.qr_code == update_data["qr_code"]
-    assert update.ticket_tier == update_data["ticket_tier"]
-    assert update.check_in_method == update_data["check_in_method"]
+    assert update.qrCode == update_data["qrCode"]
+    assert update.ticketTier == update_data["ticketTier"]
+    assert update.checkInMethod == update_data["checkInMethod"]
     assert update.metadata.device_info == "Chrome Browser"
     print("✅ CheckinUpdate model validation passed")
 
@@ -184,18 +184,18 @@ def test_analytics_methods():
     
     # Mock aggregation results
     mock_stats = {
-        "total_checkins": 25,
-        "unique_users": 20,
-        "checkin_methods": {"qr_code": 15, "manual": 10},
+        "totalCheckins": 25,
+        "uniqueUsers": 20,
+        "checkinMethods": {"qrCode": 15, "manual": 10},
         "avg_checkin_time": datetime.now(timezone.utc)
     }
     mock_db.checkins.aggregate.return_value = [mock_stats]
     
     # Test attendance stats
     result = service.get_attendance_stats_by_event(str(ObjectId()))
-    assert result["total_checkins"] == 25
-    assert result["unique_users"] == 20
-    assert "qr_code" in result["checkin_methods"]
+    assert result["totalCheckins"] == 25
+    assert result["uniqueUsers"] == 20
+    assert "qrCode" in result["checkinMethods"]
     print("✅ Analytics methods passed")
 
 

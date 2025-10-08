@@ -31,12 +31,12 @@ class TestEnhancedCheckins:
     def sample_checkin_data(self):
         """Sample check-in data for testing"""
         return {
-            "event_id": str(ObjectId()),
-            "user_id": str(ObjectId()),
-            "venue_id": str(ObjectId()),
-            "qr_code": "QR123456789",
-            "ticket_tier": "VIP",
-            "check_in_method": "qr_code",
+            "eventId": str(ObjectId()),
+            "userId": str(ObjectId()),
+            "venueId": str(ObjectId()),
+            "qrCode": "QR123456789",
+            "ticketTier": "VIP",
+            "checkInMethod": "qrCode",
             "location": {
                 "type": "Point",
                 "coordinates": [-74.0060, 40.7128]
@@ -60,12 +60,12 @@ class TestEnhancedCheckins:
         """Test CheckinCreate model validation with enhanced fields"""
         # Test valid data
         checkin = CheckinCreate(**sample_checkin_data)
-        assert checkin.event_id == ObjectId(sample_checkin_data["event_id"])
-        assert checkin.user_id == ObjectId(sample_checkin_data["user_id"])
-        assert checkin.venue_id == ObjectId(sample_checkin_data["venue_id"])
-        assert checkin.qr_code == sample_checkin_data["qr_code"]
-        assert checkin.ticket_tier == sample_checkin_data["ticket_tier"]
-        assert checkin.check_in_method == sample_checkin_data["check_in_method"]
+        assert checkin.eventId == ObjectId(sample_checkin_data["eventId"])
+        assert checkin.userId == ObjectId(sample_checkin_data["userId"])
+        assert checkin.venueId == ObjectId(sample_checkin_data["venueId"])
+        assert checkin.qrCode == sample_checkin_data["qrCode"]
+        assert checkin.ticketTier == sample_checkin_data["ticketTier"]
+        assert checkin.checkInMethod == sample_checkin_data["checkInMethod"]
         assert checkin.location.type == "Point"
         assert checkin.metadata.device_info == "iPhone 13 Pro"
         assert checkin.metadata.staff_verified is True
@@ -84,16 +84,16 @@ class TestEnhancedCheckins:
     def test_checkin_create_with_minimal_data(self):
         """Test CheckinCreate with minimal required fields"""
         minimal_data = {
-            "event_id": str(ObjectId()),
-            "user_id": str(ObjectId()),
-            "venue_id": str(ObjectId()),
-            "qr_code": "QR123"
+            "eventId": str(ObjectId()),
+            "userId": str(ObjectId()),
+            "venueId": str(ObjectId()),
+            "qrCode": "QR123"
         }
         checkin = CheckinCreate(**minimal_data)
-        assert checkin.event_id == ObjectId(minimal_data["event_id"])
-        assert checkin.user_id == ObjectId(minimal_data["user_id"])
-        assert checkin.venue_id == ObjectId(minimal_data["venue_id"])
-        assert checkin.qr_code == minimal_data["qr_code"]
+        assert checkin.eventId == ObjectId(minimal_data["eventId"])
+        assert checkin.userId == ObjectId(minimal_data["userId"])
+        assert checkin.venueId == ObjectId(minimal_data["venueId"])
+        assert checkin.qrCode == minimal_data["qrCode"]
         assert checkin.ticket_tier is None
         assert checkin.check_in_method is None
         assert checkin.location is None

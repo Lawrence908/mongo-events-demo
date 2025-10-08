@@ -272,7 +272,7 @@ class TestEventServiceGeocoding:
         mock_service.validate_and_geocode_event.return_value = {
             "title": "Test Event",
             "category": "Test",
-            "start_date": test_start_date,
+            "startDate": test_start_date,
             "location": {
                 "type": "Point",
                 "coordinates": [-122.4194, 37.7749]
@@ -378,7 +378,7 @@ class TestEventServiceGeocoding:
                 "title": "Test Event",
                 "category": "Test",
                 "location": {"type": "Point", "coordinates": [-122.4194, 37.7749]},
-                "start_date": datetime.now()
+                "startDate": datetime.now()
             }
             mock_db.events = mock_collection
             mock_get_db.return_value = mock_db

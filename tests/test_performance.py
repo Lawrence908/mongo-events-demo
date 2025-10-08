@@ -243,7 +243,7 @@ def test_query_performance(metrics: PerformanceMetrics):
     for i in range(5):
         duration, weekend_events = run_performance_test("weekend_events", service.get_events_this_weekend, -74.0060, 40.7128, 50)
         weekend_times.append(duration)
-        metrics.add_metric("weekend_events", duration, weekend_events.get('total_events', 0))
+        metrics.add_metric("weekend_events", duration, weekend_events.get('totalEvents', 0))
     
     avg_weekend_time = statistics.mean(weekend_times)
     print(f"   Weekend events: {avg_weekend_time:.3f}s avg ({len(weekend_times)} runs)")
@@ -267,12 +267,12 @@ def test_query_performance(metrics: PerformanceMetrics):
     for i in range(5):
         duration, analytics = run_performance_test("analytics", service.get_analytics)
         analytics_times.append(duration)
-        metrics.add_metric("analytics", duration, analytics.get('total_events', 0))
+        metrics.add_metric("analytics", duration, analytics.get('totalEvents', 0))
     
     avg_analytics_time = statistics.mean(analytics_times)
     print(f"   Analytics query: {avg_analytics_time:.3f}s avg ({len(analytics_times)} runs)")
-    print(f"   Total events: {analytics.get('total_events', 0)}")
-    print(f"   Upcoming events: {analytics.get('upcoming_events', 0)}")
+    print(f"   Total events: {analytics.get('totalEvents', 0)}")
+    print(f"   Upcoming events: {analytics.get('upcomingEvents', 0)}")
     
     # Test 7: Cursor-based pagination
     print("\n📄 Test 7: Cursor-based Pagination Performance")

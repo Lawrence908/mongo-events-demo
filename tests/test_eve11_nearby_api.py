@@ -38,11 +38,11 @@ def test_nearby_events_api():
                     "type": "Point",
                     "coordinates": [-74.0060, 40.7128]  # NYC coordinates
                 },
-                "start_date": datetime(2024, 12, 25, 20, 0, 0),
-                "max_attendees": 100,
+                "startDate": datetime(2024, 12, 25, 20, 0, 0),
+                "maxAttendees": 100,
                 "organizer": "Test Organizer",
-                "created_at": datetime.now(timezone.utc),
-                "updated_at": datetime.now(timezone.utc)
+                "createdAt": datetime.now(timezone.utc),
+                "updatedAt": datetime.now(timezone.utc)
             }
             result = db.events.insert_one(test_event)
             print(f"   ✅ Created test event with ID: {result.inserted_id}")
@@ -58,7 +58,7 @@ def test_nearby_events_api():
         query = EventsNearbyQuery(
             longitude=-74.0060,  # NYC longitude
             latitude=40.7128,    # NYC latitude
-            radius_km=10,        # 10km radius
+            radiusKm=10,        # 10km radius
             limit=10
         )
         
@@ -113,7 +113,7 @@ def test_nearby_events_api():
         query = EventsNearbyQuery(
             longitude=-74.0060,
             latitude=40.7128,
-            radius_km=1,  # Smaller radius
+            radiusKm=1,  # Smaller radius
             limit=5
         )
         

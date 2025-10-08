@@ -121,28 +121,28 @@ class TestReviewModels:
         )
         assert review_data.rating == 5
         assert review_data.comment == "Great event!"
-        assert review_data.event_id is not None
-        assert review_data.venue_id is None
+        assert review_data.eventId is not None
+        assert review_data.venueId is None
 
     def test_review_create_valid_venue_review(self):
         """Test creating a valid venue review"""
         review_data = ReviewCreate(
-            venue_id="507f1f77bcf86cd799439013",
-            user_id="507f1f77bcf86cd799439012",
+            venueId="507f1f77bcf86cd799439013",
+            userId="507f1f77bcf86cd799439012",
             rating=4,
             comment="Nice venue!"
         )
         assert review_data.rating == 4
         assert review_data.comment == "Nice venue!"
-        assert review_data.venue_id is not None
-        assert review_data.event_id is None
+        assert review_data.venueId is not None
+        assert review_data.eventId is None
 
     def test_review_create_invalid_rating_low(self):
         """Test creating review with invalid low rating"""
         with pytest.raises(ValueError):
             ReviewCreate(
-                event_id="507f1f77bcf86cd799439011",
-                user_id="507f1f77bcf86cd799439012",
+                eventId="507f1f77bcf86cd799439011",
+                userId="507f1f77bcf86cd799439012",
                 rating=0,
                 comment="Bad rating"
             )
@@ -151,8 +151,8 @@ class TestReviewModels:
         """Test creating review with invalid high rating"""
         with pytest.raises(ValueError):
             ReviewCreate(
-                event_id="507f1f77bcf86cd799439011",
-                user_id="507f1f77bcf86cd799439012",
+                eventId="507f1f77bcf86cd799439011",
+                userId="507f1f77bcf86cd799439012",
                 rating=6,
                 comment="Bad rating"
             )
@@ -161,7 +161,7 @@ class TestReviewModels:
         """Test creating review without event_id or venue_id"""
         with pytest.raises(ValueError):
             ReviewCreate(
-                user_id="507f1f77bcf86cd799439012",
+                userId="507f1f77bcf86cd799439012",
                 rating=5,
                 comment="No target"
             )
@@ -170,9 +170,9 @@ class TestReviewModels:
         """Test creating review with both event_id and venue_id"""
         with pytest.raises(ValueError):
             ReviewCreate(
-                event_id="507f1f77bcf86cd799439011",
-                venue_id="507f1f77bcf86cd799439013",
-                user_id="507f1f77bcf86cd799439012",
+                eventId="507f1f77bcf86cd799439011",
+                venueId="507f1f77bcf86cd799439013",
+                userId="507f1f77bcf86cd799439012",
                 rating=5,
                 comment="Both targets"
             )
@@ -181,8 +181,8 @@ class TestReviewModels:
         """Test creating review with comment too long"""
         with pytest.raises(ValueError):
             ReviewCreate(
-                event_id="507f1f77bcf86cd799439011",
-                user_id="507f1f77bcf86cd799439012",
+                eventId="507f1f77bcf86cd799439011",
+                userId="507f1f77bcf86cd799439012",
                 rating=5,
                 comment="x" * 1001  # Too long
             )
@@ -215,10 +215,10 @@ class TestReviewService:
         
         assert review.rating == 5
         assert review.comment == "Amazing event!"
-        assert review.event_id is not None
-        assert review.venue_id is None
-        assert review.created_at is not None
-        assert review.updated_at is not None
+        assert review.eventId is not None
+        assert review.venueId is None
+        assert review.createdAt is not None
+        assert review.updatedAt is not None
 
     def test_create_venue_review(self, db, sample_venue, sample_user):
         """Test creating a venue review"""
@@ -235,8 +235,8 @@ class TestReviewService:
         
         assert review.rating == 4
         assert review.comment == "Great venue!"
-        assert review.venue_id is not None
-        assert review.event_id is None
+        assert review.venueId is not None
+        assert review.eventId is None
 
     def test_get_review_by_id(self, db, sample_event, sample_user):
         """Test getting review by ID"""
@@ -358,7 +358,7 @@ class TestReviewService:
         assert updated_review is not None
         assert updated_review.rating == 5
         assert updated_review.comment == "Updated comment"
-        assert updated_review.updated_at.timestamp() > created_review.updated_at.timestamp()
+        assert updated_review.updatedAt.timestamp() > created_review.updatedAt.timestamp()
 
     def test_delete_review(self, db, sample_event, sample_user):
         """Test deleting a review"""
@@ -400,7 +400,7 @@ class TestReviewService:
         stats = service.get_review_stats_by_event(sample_event)
         
         assert stats["total_reviews"] == 5
-        assert stats["average_rating"] == 4.2
+        assert stats["averageRating"] == 4.2
         assert stats["rating_distribution"]["5"] == 2
         assert stats["rating_distribution"]["4"] == 2
         assert stats["rating_distribution"]["3"] == 1
@@ -424,7 +424,7 @@ class TestReviewService:
         stats = service.get_review_stats_by_venue(sample_venue)
         
         assert stats["total_reviews"] == 4
-        assert stats["average_rating"] == 4.0
+        assert stats["averageRating"] == 4.0
         assert stats["rating_distribution"]["5"] == 2
         assert stats["rating_distribution"]["4"] == 1
         assert stats["rating_distribution"]["2"] == 1
