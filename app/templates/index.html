@@ -13,12 +13,26 @@
                 <div class="card-body">
                     <div class="row align-items-end">
                         <div class="col-md-3">
-                            <label class="form-label">Search Radius (km)</label>
-                            <input type="number" class="form-control" x-model="radius" min="1" max="100" step="1">
+                            <label class="form-label">
+                                <i class="bi bi-bullseye me-1"></i>
+                                Search Radius (km)
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" x-model="radius" min="1" max="10000" step="5">
+                                <span class="input-group-text bg-dark border-secondary text-muted">km</span>
+                            </div>
+                            <small class="text-muted">Click on map to search that area</small>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Max Results</label>
-                            <input type="number" class="form-control" x-model="maxResults" min="1" max="100" step="1">
+                            <label class="form-label">
+                                <i class="bi bi-list-ol me-1"></i>
+                                Max Results
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" x-model="maxResults" min="1" max="500" step="5">
+                                <span class="input-group-text bg-dark border-secondary text-muted">events</span>
+                            </div>
+                            <small class="text-muted invisible">Placeholder for alignment</small>
                         </div>
                         <div class="col-md-3">
                             <div class="form-check">
@@ -29,10 +43,19 @@
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <button class="btn btn-accent w-100" @click="searchEvents()">
-                                <span x-show="!loading">Search Events</span>
-                                <span x-show="loading" class="spinner-border spinner-border-sm me-2"></span>
-                                <span x-show="loading">Loading...</span>
+                            <button class="btn btn-accent w-100 position-relative" @click="searchEvents()" :disabled="loading">
+                                <template x-if="!loading">
+                                    <span class="d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-search me-2"></i>
+                                        Search Events
+                                    </span>
+                                </template>
+                                <template x-if="loading">
+                                    <span class="d-flex align-items-center justify-content-center">
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                        Searching...
+                                    </span>
+                                </template>
                             </button>
                         </div>
                     </div>
@@ -65,10 +88,44 @@
                 </div>
             </div>
             
+            <!-- Loading Skeleton -->
+            <div class="mt-4" x-show="loading && events.length === 0">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-controls"></div>
+                </div>
+                <div class="row">
+                    <template x-for="i in 6" :key="i">
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card event-card h-100">
+                                <div class="card-body">
+                                    <div class="skeleton-header mb-2"></div>
+                                    <div class="skeleton-text mb-2"></div>
+                                    <div class="skeleton-text mb-2"></div>
+                                    <div class="skeleton-text short"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            
             <!-- Search Results -->
             <div class="mt-4" x-show="filteredEvents().length > 0">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3>Found Events (<span x-text="filteredEvents().length"></span>)</h3>
+                    <div>
+                        <h3>Found Events (<span x-text="filteredEvents().length"></span>)</h3>
+                        <div class="d-flex gap-3 mt-1">
+                            <small class="text-muted">
+                                <i class="bi bi-geo-alt me-1"></i>
+                                <span x-text="radius"></span>km radius
+                            </small>
+                            <small class="text-muted" x-show="selectedCategories.length > 0">
+                                <i class="bi bi-funnel me-1"></i>
+                                <span x-text="selectedCategories.length"></span> categories
+                            </small>
+                        </div>
+                    </div>
                     <div class="d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center gap-2">
                             <label class="form-label mb-0">Events per page:</label>
@@ -97,9 +154,18 @@
                                     </div>
                                     <p class="card-text text-muted small" x-text="event.properties.description"></p>
                                     <div class="small text-muted">
-                                        <div><strong>Date:</strong> <span x-text="formatDate(event.properties.startDate)"></span></div>
-                                        <div x-show="event.properties.organizer"><strong>Organizer:</strong> <span x-text="event.properties.organizer"></span></div>
-                                        <div><strong>Distance:</strong> <span x-text="event.properties.distance"></span>m</div>
+                                        <div class="d-flex align-items-center mb-1">
+                                            <i class="bi bi-calendar-event me-2" style="color: var(--mdb-accent);"></i>
+                                            <strong>Date:</strong> <span x-text="formatDate(event.properties.startDate)" class="ms-1"></span>
+                                        </div>
+                                        <div x-show="event.properties.organizer" class="d-flex align-items-center mb-1">
+                                            <i class="bi bi-person me-2" style="color: var(--mdb-accent);"></i>
+                                            <strong>Organizer:</strong> <span x-text="event.properties.organizer" class="ms-1"></span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-geo-alt me-2" style="color: var(--mdb-accent);"></i>
+                                            <strong>Distance:</strong> <span x-text="event.properties.distance" class="ms-1"></span>m
+                                        </div>
                                     </div>
                                     <div class="mt-2">
                                         <a :href="`/events/${event.properties.id}`" class="btn btn-sm btn-outline-accent">View Details</a>
@@ -146,8 +212,19 @@
             </div>
             
             <!-- No Results Message -->
-            <div class="alert alert-info mt-4" x-show="searched && events.length === 0">
-                No events found in this area. Try increasing the search radius or searching a different location.
+            <div class="mt-4" x-show="searched && events.length === 0">
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-search" style="font-size: 4rem; color: var(--mdb-accent); opacity: 0.3;"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">No Events Found</h4>
+                    <p class="text-muted mb-4">We couldn't find any events in this area. Try:</p>
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <span class="badge bg-secondary">Increase search radius</span>
+                        <span class="badge bg-secondary">Try a different location</span>
+                        <span class="badge bg-secondary">Check category filters</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

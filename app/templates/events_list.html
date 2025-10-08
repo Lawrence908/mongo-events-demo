@@ -145,8 +145,9 @@
 function eventsList() {
     return {
         showOnMap(lat, lng) {
-            // Navigate to map view with coordinates
-            window.location.href = `/?lat=${lat}&lng=${lng}`;
+            // Open Google Maps in a new tab with the event location
+            const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+            window.open(googleMapsUrl, '_blank');
         }
     }
 }
