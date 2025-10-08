@@ -1,7 +1,7 @@
 # MongoDB Database Design - Events Demo
 
 ## Overview
-This document outlines the comprehensive database design for the MongoDB Events Demo, showcasing advanced MongoDB features including geospatial queries, text search, real-time updates, and performance optimization. The design demonstrates real-world applicability for event management systems while highlighting key NoSQL advantages over traditional relational databases.
+This document outlines the comprehensive database design for the EventSphere, showcasing advanced MongoDB features including geospatial queries, text search, real-time updates, and performance optimization. The design demonstrates real-world applicability for event management systems while highlighting key NoSQL advantages over traditional relational databases.
 
 ## Why NoSQL (MongoDB) for Event Management
 

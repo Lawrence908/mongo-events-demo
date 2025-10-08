@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test Data Generator for MongoDB Events Demo
+Test Data Generator for EventSphere
 Generates comprehensive test data including events, venues, users, checkins, and reviews
 Supports both JSON export and direct MongoDB seeding
 
@@ -1260,7 +1260,7 @@ def main():
     """Main function to generate comprehensive test data"""
     import argparse
     
-    parser = argparse.ArgumentParser(description='Generate comprehensive test data for MongoDB Events Demo')
+    parser = argparse.ArgumentParser(description='Generate comprehensive test data for EventSphere')
     parser.add_argument('--seed-db', action='store_true', help='Seed MongoDB database directly')
     parser.add_argument('--json-only', action='store_true', help='Generate JSON files only (default)')
     parser.add_argument('--clear-db', action='store_true', default=True, help='Clear existing database data before seeding')
@@ -1271,7 +1271,7 @@ def main():
     
     args = parser.parse_args()
     
-    print("MongoDB Events Demo - Comprehensive Test Data Generator")
+    print("EventSphere - Comprehensive Test Data Generator")
     print("=" * 60)
     
     # Generate data

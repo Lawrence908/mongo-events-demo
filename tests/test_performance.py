@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Performance Testing Script for MongoDB Events Demo
+Performance Testing Script for EventSphere
 Tests query performance with different indexes and data volumes
 Measures inserts, queries, aggregations, and pagination performance
 """
@@ -496,7 +496,7 @@ Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}
 
 ## Executive Summary
 
-This report contains performance test results for the MongoDB Events Demo application, including query performance, bulk operations, and concurrent access patterns.
+This report contains performance test results for the EventSphere application, including query performance, bulk operations, and concurrent access patterns.
 
 ## Test Results
 
@@ -563,7 +563,7 @@ Based on the performance test results:
 
 def main():
     """Main performance testing function"""
-    print("🚀 MongoDB Events Demo - Comprehensive Performance Testing")
+    print("🚀 EventSphere - Comprehensive Performance Testing")
     print("=" * 60)
     
     # Initialize metrics collector

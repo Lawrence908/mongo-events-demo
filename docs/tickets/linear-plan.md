@@ -1,4 +1,4 @@
-# Linear Backlog – Mongo Events Demo (32 tickets)
+# Linear Backlog – EventSphere (32 tickets)
 
 This is a living backlog to drive end-to-end delivery. Tickets are grouped by phases and include acceptance criteria (AC), estimates, and dependencies (Deps).
 

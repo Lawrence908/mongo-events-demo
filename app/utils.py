@@ -1,5 +1,5 @@
 """
-Utility functions for the MongoDB Events Demo application.
+Utility functions for the EventSphere application.
 """
 
 from datetime import datetime, timedelta, timezone

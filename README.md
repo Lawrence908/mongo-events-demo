@@ -1,4 +1,4 @@
-# MongoDB Events Demo
+# EventSphere
 
 A full-stack web application demonstrating MongoDB's geospatial capabilities with event management and mapping features. This project showcases the integration of modern web technologies with NoSQL database geospatial features to create an interactive event discovery platform.
 

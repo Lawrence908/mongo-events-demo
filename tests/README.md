@@ -1,6 +1,6 @@
-# Test Suite for MongoDB Events Demo
+# Test Suite for EventSphere
 
-This directory contains comprehensive tests for the MongoDB Events Demo application, all updated to use camelCase field names as required.
+This directory contains comprehensive tests for the EventSphere application, all updated to use camelCase field names as required.
 
 ## Test Structure
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cleanup and Regenerate Script for MongoDB Events Demo
+Cleanup and Regenerate Script for EventSphere
 This script helps clean up the old tickets collection and regenerate data properly
 """
 
@@ -58,7 +58,7 @@ def cleanup_database():
 
 def main():
     """Main function"""
-    print("MongoDB Events Demo - Database Cleanup and Regeneration")
+    print("EventSphere - Database Cleanup and Regeneration")
     print("=" * 60)
     
     # Step 1: Cleanup

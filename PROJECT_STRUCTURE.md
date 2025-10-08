@@ -1,4 +1,4 @@
-# MongoDB Events Demo - Project Structure
+# EventSphere - Project Structure
 
 ## 🏗️ Current Organization
 

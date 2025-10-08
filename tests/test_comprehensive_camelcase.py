@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive test suite for MongoDB Events Demo with camelCase field names.
+Comprehensive test suite for EventSphere with camelCase field names.
 This test consolidates the most important functionality tests.
 """
 

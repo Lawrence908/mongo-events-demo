@@ -1,11 +1,11 @@
 #!/bin/bash
-# MongoDB Events Demo - Quick Start Script
+# EventSphere - Quick Start Script
 #
 # This script helps you get started with the application
 
 set -e  # Exit on any error
 
-echo "🚀 MongoDB Events Demo - Quick Start"
+echo "🚀 EventSphere - Quick Start"
 echo "======================================"
 
 # Check if Python is available

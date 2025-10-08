@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Essential test runner for MongoDB Events Demo with camelCase field names.
+Essential test runner for EventSphere with camelCase field names.
 This runs the most important tests to verify the system is working.
 """
 

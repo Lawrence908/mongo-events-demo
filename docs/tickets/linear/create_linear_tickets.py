@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Linear Ticket Creator for MongoDB Events Demo
+Linear Ticket Creator for EventSphere
 Creates all tickets from the project plan automatically.
 
 Usage:
@@ -251,7 +251,7 @@ class LinearTicketCreator:
             return None
 
     def create_all_tickets(self):
-        """Create all tickets from the MongoDB Events Demo project plan."""
+        """Create all tickets from the EventSphere project plan."""
 
         # Ticket definitions from linear-plan.md
         tickets = [
@@ -260,7 +260,7 @@ class LinearTicketCreator:
                 "description": "Finalize `events`, `venues`, `users`, `checkins` schemas with JSON Schema validation.\n\n**Acceptance Criteria:**\n- Events collection enforces required fields and GeoJSON structure\n- Coordinate bounds validated\n- `DATABASE_DESIGN.md` matches implemented schema",
                 "priority": 1,
                 "labels": ["database", "schema"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "4h",
                 "dependencies": "",
             },
@@ -269,7 +269,7 @@ class LinearTicketCreator:
                 "description": "Ensure all indexes exist: 2dsphere, text, start_date, category+start_date, location+start_date, organizer+start_date, created_at, tags.\n\n**Acceptance Criteria:**\n- `list_indexes` shows all specified indexes\n- Index build idempotent at startup",
                 "priority": 1,
                 "labels": ["indexing", "performance"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "Schema finalization and validation",
             },
@@ -278,7 +278,7 @@ class LinearTicketCreator:
                 "description": "Verify create/get/update/delete paths and add unit tests.\n\n**Acceptance Criteria:**\n- Tests cover happy-path and invalid ObjectId\n- Update respects partial updates and timestamps",
                 "priority": 1,
                 "labels": ["backend", "testing"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "4h",
                 "dependencies": "Schema finalization and validation",
             },
@@ -287,7 +287,7 @@ class LinearTicketCreator:
                 "description": "Support `$text` search with `$meta: \"textScore\"` sorting and projection.\n\n**Acceptance Criteria:**\n- `/api/events?q=...` returns results sorted by relevance\n- Includes `score` in response for debugging",
                 "priority": 2,
                 "labels": ["search", "backend"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "Index suite implementation in app/database.py,CRUD services parity and unit tests",
             },
@@ -296,7 +296,7 @@ class LinearTicketCreator:
                 "description": "Implement `_id` cursor pagination in service and API responses.\n\n**Acceptance Criteria:**\n- Response contains `next_cursor`, `has_more`\n- Works with category and search filters",
                 "priority": 1,
                 "labels": ["performance", "backend"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "CRUD services parity and unit tests",
             },
@@ -305,7 +305,7 @@ class LinearTicketCreator:
                 "description": "Utility to compute Friday 6pm → Sunday 11:59pm in UTC.\n\n**Acceptance Criteria:**\n- Covered by unit tests for boundary conditions",
                 "priority": 3,
                 "labels": ["utils", "backend"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "2h",
                 "dependencies": "CRUD services parity and unit tests",
             },
@@ -314,7 +314,7 @@ class LinearTicketCreator:
                 "description": "`$geoNear` aggregation with radius and limit returning GeoJSON FeatureCollection.\n\n**Acceptance Criteria:**\n- `/api/events/nearby` returns valid GeoJSON\n- Distance in meters rounded to 2 decimals",
                 "priority": 1,
                 "labels": ["geo", "api"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "Index suite implementation in app/database.py",
             },
@@ -323,7 +323,7 @@ class LinearTicketCreator:
                 "description": "Combine `$geoNear` with weekend date-range filter.\n\n**Acceptance Criteria:**\n- `/api/events/weekend` responds within target latency on 10k docs",
                 "priority": 2,
                 "labels": ["geo", "api"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "Weekend window calculation util,Nearby events GeoJSON API",
             },
@@ -332,7 +332,7 @@ class LinearTicketCreator:
                 "description": "Add optional `category` to geospatial/date queries; verify compound index usage.\n\n**Acceptance Criteria:**\n- Explain shows index usage without collection scan",
                 "priority": 2,
                 "labels": ["geo", "search"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "Index suite implementation in app/database.py,Nearby events GeoJSON API,Weekend near-me discovery API",
             },
@@ -341,7 +341,7 @@ class LinearTicketCreator:
                 "description": "Simple page integrating map placeholder and fetch from nearby API.\n\n**Acceptance Criteria:**\n- Visual markers for events (can be mocked initially)",
                 "priority": 3,
                 "labels": ["frontend", "ux"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "Nearby events GeoJSON API",
             },
@@ -350,7 +350,7 @@ class LinearTicketCreator:
                 "description": "`$group` by hour and dayOfWeek with counts.\n\n**Acceptance Criteria:**\n- `/api/analytics` returns top 10 peak buckets",
                 "priority": 2,
                 "labels": ["analytics"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "CRUD services parity and unit tests",
             },
@@ -359,7 +359,7 @@ class LinearTicketCreator:
                 "description": "Counts per category; include average `max_attendees`.\n\n**Acceptance Criteria:**\n- Sorted by count desc; includes `avg_attendees`",
                 "priority": 2,
                 "labels": ["analytics"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "2h",
                 "dependencies": "CRUD services parity and unit tests",
             },
@@ -368,7 +368,7 @@ class LinearTicketCreator:
                 "description": "Group by year/month and sort ascending.\n\n**Acceptance Criteria:**\n- `/api/analytics` returns monthly series suitable for charting",
                 "priority": 3,
                 "labels": ["analytics"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "2h",
                 "dependencies": "CRUD services parity and unit tests",
             },
@@ -377,7 +377,7 @@ class LinearTicketCreator:
                 "description": "Validate analytics latency on 10k docs; document explain stats.\n\n**Acceptance Criteria:**\n- Each aggregation < 200ms on seeded dataset\n- Notes recorded in `docs/course-report.md`",
                 "priority": 3,
                 "labels": ["performance", "analytics"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "2h",
                 "dependencies": "Peak times aggregation,Category popularity aggregation,Monthly trends aggregation",
             },
@@ -386,7 +386,7 @@ class LinearTicketCreator:
                 "description": "Initialize SocketIO, events and analytics namespaces.\n\n**Acceptance Criteria:**\n- Server boots; client can connect and receive a welcome ping",
                 "priority": 1,
                 "labels": ["realtime", "backend"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "CRUD services parity and unit tests",
             },
@@ -395,7 +395,7 @@ class LinearTicketCreator:
                 "description": "Watch `events` collection; handle insert/update/delete.\n\n**Acceptance Criteria:**\n- Broadcasts `event_created`, `event_updated`, `event_deleted`",
                 "priority": 1,
                 "labels": ["realtime", "database"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "4h",
                 "dependencies": "Socket.IO server plumbing",
             },
@@ -404,7 +404,7 @@ class LinearTicketCreator:
                 "description": "Allow joining rooms keyed by location window or category; prepare for scoped broadcasts.\n\n**Acceptance Criteria:**\n- Join/leave acknowledge events; room naming stable",
                 "priority": 2,
                 "labels": ["realtime"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "MongoDB change streams listener",
             },
@@ -413,7 +413,7 @@ class LinearTicketCreator:
                 "description": "`/realtime` page shows feed of new/updated/deleted events and analytics pings.\n\n**Acceptance Criteria:**\n- Manual test: creating an event triggers client update",
                 "priority": 3,
                 "labels": ["frontend", "realtime"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "Socket.IO server plumbing,MongoDB change streams listener,Location/category rooms",
             },
@@ -422,7 +422,7 @@ class LinearTicketCreator:
                 "description": "Generate realistic events across US cities; JSON export.\n\n**Acceptance Criteria:**\n- `test_events.json` generated; passes JSON validation",
                 "priority": 1,
                 "labels": ["data", "tooling"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "Schema finalization and validation",
             },
@@ -431,7 +431,7 @@ class LinearTicketCreator:
                 "description": "Instructions for `mongoimport` and environment.\n\n**Acceptance Criteria:**\n- README section with exact commands",
                 "priority": 2,
                 "labels": ["docs", "tooling"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "1h",
                 "dependencies": "10k events generator",
             },
@@ -440,7 +440,7 @@ class LinearTicketCreator:
                 "description": "`test_performance.py` measures inserts, queries, aggregations, pagination.\n\n**Acceptance Criteria:**\n- Console summary and per-test timings; explain snapshots saved to disk",
                 "priority": 2,
                 "labels": ["testing", "performance"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "4h",
                 "dependencies": "10k events generator",
             },
@@ -449,7 +449,7 @@ class LinearTicketCreator:
                 "description": "Capture baseline metrics and include in `docs/course-report.md`.\n\n**Acceptance Criteria:**\n- Table of p50/p95 latencies per workload",
                 "priority": 2,
                 "labels": ["docs", "performance"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "Performance harness",
             },
@@ -458,7 +458,7 @@ class LinearTicketCreator:
                 "description": "Specify multi-document transaction steps for ticket booking.\n\n**Acceptance Criteria:**\n- Sequence diagram + pseudo code; failure modes listed",
                 "priority": 2,
                 "labels": ["design", "transactions"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "Schema finalization and validation,CRUD services parity and unit tests",
             },
@@ -467,7 +467,7 @@ class LinearTicketCreator:
                 "description": "Implement transaction: check capacity → decrement → create check-in.\n\n**Acceptance Criteria:**\n- Rollback on error; idempotent retry strategy noted",
                 "priority": 2,
                 "labels": ["backend", "transactions"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "6h",
                 "dependencies": "Booking flow design",
             },
@@ -476,7 +476,7 @@ class LinearTicketCreator:
                 "description": "Simulate concurrent bookings; measure conflicts and throughput.\n\n**Acceptance Criteria:**\n- Results table and discussion in course report",
                 "priority": 3,
                 "labels": ["testing", "performance"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "4h",
                 "dependencies": "Booking API (transactional)",
             },
@@ -485,7 +485,7 @@ class LinearTicketCreator:
                 "description": "Consistent error messages; Pydantic validations enforced on all APIs.\n\n**Acceptance Criteria:**\n- 4xx vs 5xx semantics correct; helpful error payloads",
                 "priority": 2,
                 "labels": ["quality", "security"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "3h",
                 "dependencies": "CRUD services parity and unit tests",
             },
@@ -494,7 +494,7 @@ class LinearTicketCreator:
                 "description": "Ensure ruff/black run clean; pre-commit or script documented.\n\n**Acceptance Criteria:**\n- Zero warnings; command documented in README",
                 "priority": 3,
                 "labels": ["devx"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "2h",
                 "dependencies": "",
             },
@@ -503,7 +503,7 @@ class LinearTicketCreator:
                 "description": "`.env` handling, required vars, non-default secrets for production profile.\n\n**Acceptance Criteria:**\n- App fails fast when critical env vars missing in prod mode",
                 "priority": 3,
                 "labels": ["security", "ops"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "2h",
                 "dependencies": "",
             },
@@ -512,7 +512,7 @@ class LinearTicketCreator:
                 "description": "Document available endpoints, params, sample responses.\n\n**Acceptance Criteria:**\n- `docs/api.md` created with examples and curl snippets",
                 "priority": 3,
                 "labels": ["docs", "api"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "2h",
                 "dependencies": "",
             },
@@ -521,7 +521,7 @@ class LinearTicketCreator:
                 "description": "Summarize outcomes: benchmarks, design decisions, trade-offs; slides or outline.\n\n**Acceptance Criteria:**\n- `docs/course-report.md` updated; final metrics and reflections included",
                 "priority": 2,
                 "labels": ["docs"],
-                "project": "MongoDB Events Demo",
+                "project": "EventSphere",
                 "estimated_time": "4h",
                 "dependencies": "Baseline performance report,Contention tests on seat inventory,Input validation & error handling audit,Linting and formatting CI (local/script),Configuration hardening,API documentation snapshot",
             },
@@ -564,7 +564,7 @@ class LinearTicketCreator:
 def main():
     """Main function to run the ticket creator."""
 
-    print("🎫 Linear Ticket Creator for MongoDB Events Demo")
+    print("🎫 Linear Ticket Creator for EventSphere")
     print("=" * 50)
 
     # Get configuration from user
@@ -597,7 +597,7 @@ def main():
         print("   • Your team ID is correct")
         print("   • You have permission to create tickets")
         print("   • All labels and projects exist")
-        print("   • Project 'MongoDB Events Demo' exists in your team")
+        print("   • Project 'EventSphere' exists in your team")
 
 
 if __name__ == "__main__":

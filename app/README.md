@@ -1,4 +1,4 @@
-# MongoDB Events Demo
+# EventSphere
 
 A comprehensive demonstration of MongoDB features including CRUD operations, text search, geospatial queries, aggregations, performance analysis, and transactions. Built with Flask, PyMongo, and modern frontend technologies.
 
