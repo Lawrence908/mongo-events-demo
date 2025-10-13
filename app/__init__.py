@@ -39,6 +39,11 @@ def create_app():
         """Home page with event map"""
         return render_template("index.html", max_events_limit=Config.MAX_EVENTS_LIMIT)
     
+    @app.route("/health")
+    def health():
+        """Health check endpoint"""
+        return jsonify({"status": "healthy", "service": "mongo-events-demo"})
+    
     @app.route("/realtime")
     def realtime_demo():
         """Real-time events demo page"""
@@ -519,7 +524,7 @@ app, socketio = create_app()
 
 
 if __name__ == "__main__":
-    host = os.getenv("HOST", "127.0.0.1")
+    host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("FLASK_ENV") == "development"
 
