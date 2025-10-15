@@ -55,6 +55,7 @@ services:
 networks:
   web:
     external: true
+    name: homelab-web
   mongo-events-internal:
     driver: bridge
 
