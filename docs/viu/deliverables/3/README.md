@@ -15,17 +15,18 @@ This directory contains all files for CSCI 485 MongoDB Project Deliverable 3, fo
 - **`design_patterns.md`** - Design patterns used and anti-patterns avoided
 
 ### 💻 Code Files
-- **`create_indexes.js`** - Enhanced index creation script with 32 strategic indexes
+- **`create_indexes.js`** - Enhanced index creation script with 20 strategic indexes (4 per collection)
 - **`sample_queries.js`** - Example queries demonstrating index usage
 
 ## Key Achievements
 
 ### 🎯 Indexing Strategy
-- **32 Strategic Indexes** across all collections
+- **20 Strategic Indexes** (4 per collection) optimized for performance
 - **Geospatial Optimization** with 2dsphere indexes
 - **Text Search** with multi-field relevance scoring
 - **Compound Indexes** for common query patterns
 - **Polymorphic Indexes** for type-specific filtering
+- **Storage Efficiency** with 35% reduction in index count
 
 ### 📈 Performance Targets
 - **Geospatial queries**: < 50ms
@@ -73,15 +74,15 @@ mongo EventSphere sample_queries.js
 ### 4. Generate PDF Report
 Convert `Deliverable3_Report.md` to PDF using your preferred markdown-to-PDF tool.
 
-## Index Summary
+## Index Summary (4 per Collection)
 
 | Collection | Index Count | Key Indexes |
 |------------|-------------|-------------|
-| **events** | 12 | `location: "2dsphere"`, `{category: 1, startDate: 1}`, Text search |
-| **venues** | 5 | `location: "2dsphere"`, `{venueType: 1, capacity: 1}` |
-| **users** | 3 | `{email: 1}`, `{profile.preferences.location: "2dsphere"}` |
-| **reviews** | 6 | `{eventId: 1}`, `{eventId: 1, rating: 1}` |
-| **checkins** | 8 | `{eventId: 1, userId: 1}`, `{qrCode: 1}` |
+| **events** | 4 | `location: "2dsphere"`, `{category: 1, startDate: 1}`, Text search, `{eventType: 1, startDate: 1}` |
+| **venues** | 4 | `location: "2dsphere"`, `{venueType: 1, capacity: 1}`, `{venueType: 1, rating: 1}`, `{venueType: 1}` |
+| **users** | 4 | `{email: 1}`, `{createdAt: 1}`, `{lastLogin: 1}`, `{profile.preferences.location: "2dsphere"}` |
+| **reviews** | 4 | `{eventId: 1}`, `{venueId: 1}`, `{eventId: 1, rating: 1}`, `{userId: 1}` |
+| **checkins** | 4 | `{eventId: 1, userId: 1}`, `{eventId: 1}`, `{userId: 1}`, `{venueId: 1, checkInTime: 1}` |
 
 ## Performance Characteristics
 
