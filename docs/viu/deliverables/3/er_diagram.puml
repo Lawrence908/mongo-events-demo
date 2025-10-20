@@ -1,0 +1,346 @@
+@startuml EventSphere_ER_Diagram
+
+!define MDB_GREEN #00ED64
+!define MDB_FOREST #00684A
+!define MDB_EVERGREEN #023430
+!define MDB_SLATE #001E2B
+!define MDB_ACCENT #00ED64
+!define BACKGROUND_DARK #0a0f0f
+!define CARD_DARK #0f151b
+!define TEXT_LIGHT #e2e8f0
+!define TEXT_MUTED #cbd5e1
+
+skinparam backgroundColor BACKGROUND_DARK
+skinparam entity {
+    BackgroundColor CARD_DARK
+    BorderColor MDB_ACCENT
+    FontColor TEXT_LIGHT
+    FontSize 12
+    FontStyle bold
+}
+skinparam ArrowColor MDB_ACCENT
+skinparam ClassAttributeFontColor TEXT_LIGHT
+skinparam defaultFontColor TEXT_LIGHT
+skinparam rectangle {
+    BackgroundColor CARD_DARK
+    BorderColor MDB_ACCENT
+    FontColor TEXT_LIGHT
+}
+skinparam class {
+    BackgroundColor CARD_DARK
+    BorderColor MDB_ACCENT
+    FontColor TEXT_LIGHT
+}
+skinparam component {
+    BackgroundColor CARD_DARK
+    BorderColor MDB_ACCENT
+    FontColor TEXT_LIGHT
+}
+skinparam relationship {
+    Color MDB_ACCENT
+    FontColor MDB_ACCENT
+    FontSize 10
+    FontStyle bold
+}
+skinparam attribute {
+    BackgroundColor MDB_SLATE
+    BorderColor MDB_FOREST
+    FontColor TEXT_MUTED
+    FontSize 10
+}
+skinparam note {
+    BackgroundColor CARD_DARK
+    BorderColor MDB_ACCENT
+    FontColor TEXT_LIGHT
+    FontSize 10
+}
+
+' Main Collections (Primary Entities)
+entity "USER" as user {
+    * user_id : ObjectId [PK]
+    --
+    email : String [UNIQUE]
+    schema_version : String
+    created_at : Date
+    last_login : Date
+}
+
+entity "EVENT" as event {
+    * event_id : ObjectId [PK]
+    --
+    title : String
+    description : String
+    category : String
+    event_type : String [ENUM: inPerson, virtual, hybrid, recurring]
+    schema_version : String
+    location : GeoJSON Point
+    venue_id : ObjectId [FK]
+    start_date : Date
+    end_date : Date
+    organizer : String
+    max_attendees : Number
+    current_attendees : Number
+    price : Number
+    currency : String
+    is_free : Boolean
+    status : String [ENUM: draft, published, cancelled, completed]
+    tags : String[]
+    created_at : Date
+    updated_at : Date
+}
+
+entity "VENUE" as venue {
+    * venue_id : ObjectId [PK]
+    --
+    name : String
+    venue_type : String [ENUM: conferenceCenter, park, restaurant, virtualSpace, stadium, theater]
+    schema_version : String
+    description : String
+    location : GeoJSON Point
+    capacity : Number
+    amenities : String[]
+    rating : Number
+    review_count : Number
+    created_at : Date
+    updated_at : Date
+}
+
+entity "REVIEW" as review {
+    * review_id : ObjectId [PK]
+    --
+    event_id : ObjectId [FK, OPTIONAL]
+    venue_id : ObjectId [FK, OPTIONAL]
+    user_id : ObjectId [FK]
+    rating : Number [1-5]
+    comment : String
+    schema_version : String
+    created_at : Date
+    updated_at : Date
+}
+
+entity "CHECKIN" as checkin {
+    * checkin_id : ObjectId [PK]
+    --
+    event_id : ObjectId [FK]
+    user_id : ObjectId [FK]
+    venue_id : ObjectId [FK]
+    checkin_time : Date
+    qr_code : String
+    ticket_tier : String
+    checkin_method : String
+    location : GeoJSON Point
+    metadata : Object
+    schema_version : String
+    created_at : Date
+}
+
+' Embedded Subdocuments (Internal Entities)
+entity "USER_PROFILE" as user_profile {
+    * user_id : ObjectId [FK]
+    --
+    first_name : String
+    last_name : String
+    preferences : Object
+}
+
+entity "USER_PREFERENCES" as user_preferences {
+    * user_id : ObjectId [FK]
+    --
+    categories : String[]
+    location : GeoJSON Point
+    radius_km : Number
+}
+
+entity "EVENT_TICKET" as event_ticket {
+    * event_id : ObjectId [FK]
+    * tier : String
+    --
+    price : Number
+    available : Number
+    sold : Number
+}
+
+entity "EVENT_ATTENDEE" as event_attendee {
+    * event_id : ObjectId [FK]
+    * user_id : ObjectId [FK]
+    --
+    checked_in : Boolean
+    checkin_time : Date
+}
+
+entity "EVENT_COMPUTED_STATS" as event_stats {
+    * event_id : ObjectId [FK]
+    --
+    total_tickets_sold : Number
+    total_revenue : Number
+    attendance_rate : Number
+    review_count : Number
+    average_rating : Number
+    last_updated : Date
+}
+
+entity "VENUE_ADDRESS" as venue_address {
+    * venue_id : ObjectId [FK]
+    --
+    street : String
+    city : String
+    state : String
+    zip_code : String
+    country : String
+}
+
+entity "VENUE_CONTACT" as venue_contact {
+    * venue_id : ObjectId [FK]
+    --
+    phone : String
+    email : String
+    website : String
+}
+
+entity "VENUE_PRICING" as venue_pricing {
+    * venue_id : ObjectId [FK]
+    --
+    hourly_rate : Number
+    daily_rate : Number
+    currency : String
+}
+
+entity "VENUE_AVAILABILITY" as venue_availability {
+    * venue_id : ObjectId [FK]
+    --
+    monday : Object
+    tuesday : Object
+    wednesday : Object
+    thursday : Object
+    friday : Object
+    saturday : Object
+    sunday : Object
+}
+
+entity "VENUE_COMPUTED_STATS" as venue_stats {
+    * venue_id : ObjectId [FK]
+    --
+    total_events_hosted : Number
+    average_attendance : Number
+    revenue_generated : Number
+    last_event_date : Date
+    last_updated : Date
+}
+
+' Polymorphic Type-Specific Entities
+entity "VIRTUAL_DETAILS" as virtual_details {
+    * event_id : ObjectId [FK]
+    --
+    platform : String
+    meeting_url : String
+    recording_available : Boolean
+    timezone : String
+}
+
+entity "RECURRING_DETAILS" as recurring_details {
+    * event_id : ObjectId [FK]
+    --
+    frequency : String [ENUM: daily, weekly, monthly, yearly]
+    end_recurrence : Date
+    exceptions : Date[]
+}
+
+entity "HYBRID_DETAILS" as hybrid_details {
+    * event_id : ObjectId [FK]
+    --
+    virtual_capacity : Number
+    in_person_capacity : Number
+    virtual_meeting_url : String
+}
+
+entity "EVENT_METADATA" as event_metadata {
+    * event_id : ObjectId [FK]
+    --
+    age_restriction : String
+    dress_code : String
+    accessibility_features : String[]
+}
+
+entity "CONFERENCE_CENTER_DETAILS" as conf_center_details {
+    * venue_id : ObjectId [FK]
+    --
+    breakout_rooms : Number
+    av_equipment : String[]
+    catering_available : Boolean
+}
+
+entity "PARK_DETAILS" as park_details {
+    * venue_id : ObjectId [FK]
+    --
+    outdoor_space : Boolean
+    parking_spaces : Number
+    restroom_facilities : Boolean
+}
+
+entity "VIRTUAL_SPACE_DETAILS" as virtual_space_details {
+    * venue_id : ObjectId [FK]
+    --
+    platform : String
+    max_concurrent_users : Number
+    recording_capability : Boolean
+}
+
+' Extended Reference Pattern
+entity "VENUE_REFERENCE" as venue_reference {
+    * event_id : ObjectId [FK]
+    --
+    name : String
+    city : String
+    capacity : Number
+    venue_type : String
+}
+
+' Main Collection Relationships
+user ||--o{ review : "writes"
+event ||--o{ review : "receives"
+venue ||--o{ review : "receives"
+
+user ||--o{ checkin : "performs"
+event ||--o{ checkin : "tracks"
+venue ||--o{ checkin : "hosts"
+
+venue ||--o{ event : "hosts"
+
+' Embedded Document Relationships
+user ||--|| user_profile : "has"
+user_profile ||--o| user_preferences : "contains"
+
+event ||--o{ event_ticket : "has"
+event ||--o{ event_attendee : "has"
+event ||--o| event_stats : "has"
+event ||--o| virtual_details : "has (if virtual)"
+event ||--o| recurring_details : "has (if recurring)"
+event ||--o| hybrid_details : "has (if hybrid)"
+event ||--o| event_metadata : "has"
+event ||--o| venue_reference : "has"
+
+venue ||--|| venue_address : "has"
+venue ||--o| venue_contact : "has"
+venue ||--o| venue_pricing : "has"
+venue ||--o| venue_availability : "has"
+venue ||--o| venue_stats : "has"
+venue ||--o| conf_center_details : "has (if conferenceCenter)"
+venue ||--o| park_details : "has (if park)"
+venue ||--o| virtual_space_details : "has (if virtualSpace)"
+
+' Notes explaining design decisions
+note right of event : "Polymorphic Types:\n- inPerson: Physical events\n- virtual: Online events\n- hybrid: Mixed events\n- recurring: Repeating events"
+
+note right of venue : "Polymorphic Types:\n- conferenceCenter: Meeting rooms\n- park: Outdoor spaces\n- restaurant: Dining venues\n- virtualSpace: Online platforms\n- stadium: Large venues\n- theater: Performance spaces"
+
+note right of review : "Either event_id OR venue_id\nmust be provided, not both"
+
+note right of checkin : "Bridge table for many-to-many\nrelationship between users\nand events with analytics"
+
+note right of event_ticket : "Embedded in EVENT collection\nfor performance optimization"
+
+note right of event_attendee : "Embedded in EVENT collection\nfor quick RSVP display"
+
+note right of venue_reference : "Extended Reference Pattern\nDenormalized venue data\nfor filtering performance"
+
+@enduml
