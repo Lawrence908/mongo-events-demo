@@ -10,7 +10,7 @@
 
 ## Table of Contents
 
-1. [Executive Summary](#executive-summary)
+1. [Overview](#overview)
 2. [Indexing Strategy & Justification](#indexing-strategy--justification)
 3. [Workload & Operations Analysis](#workload--operations-analysis)
 4. [Design Patterns Used & Anti-Patterns Avoided](#design-patterns-used--anti-patterns-avoided)
@@ -21,7 +21,7 @@
 
 ---
 
-## Executive Summary
+# **Event***Sphere* : Overview
 
 EventSphere is a comprehensive event management platform built on MongoDB, demonstrating advanced NoSQL database design principles. This deliverable focuses on performance optimization through strategic indexing, workload analysis, and relationship design. The system supports geospatial event discovery, full-text search, real-time check-ins, and comprehensive analytics across five core collections: events, venues, users, reviews, and checkins.
 
@@ -34,78 +34,76 @@ EventSphere is a comprehensive event management platform built on MongoDB, demon
 
 ---
 
-## Indexing Strategy & Justification
+## A. Indexing Strategy & Justification
 
-### Index Summary Table (4 per Collection)
+### 2. Index Summary Table
 
-| Collection | Index Key(s) | Type | Purpose / Query Supported | Frequency | Justification |
-|------------|--------------|------|---------------------------|-----------|---------------|
-| **events** | `location` | 2dsphere | Geospatial queries ($geoNear, $near) | High | Core feature for event discovery within radius |
-| **events** | `title, description, category, tags` | Text | Full-text search with relevance scoring | High | Primary search functionality across multiple fields |
-| **events** | `category, startDate` | Compound | Category + date filtering | High | Common user filter combination |
-| **events** | `eventType, startDate` | Compound | Polymorphic event type filtering | High | Filter by event type (virtual, hybrid, etc.) |
-| **venues** | `location` | 2dsphere | Geospatial venue discovery | High | Find venues near location |
-| **venues** | `venueType, capacity` | Compound | Polymorphic venue filtering | Medium | Filter venues by type and capacity |
-| **venues** | `venueType, rating` | Compound | Venue type + rating filtering | Medium | Quality-based venue selection |
-| **venues** | `venueType` | Single field | Basic venue type filtering | Medium | Fallback for simple type queries |
-| **reviews** | `eventId` | Single field | Reviews by event | High | Display reviews for specific events |
-| **reviews** | `venueId` | Single field | Reviews by venue | High | Display reviews for specific venues |
-| **reviews** | `eventId, rating` | Compound | Event rating aggregations | High | Calculate average ratings per event |
-| **reviews** | `userId` | Single field | User review history | Medium | User profile and history |
-| **checkins** | `eventId, userId` | Compound (Unique) | Prevent duplicate check-ins | High | Data integrity constraint |
-| **checkins** | `eventId` | Single field | Check-ins by event | High | Event attendance tracking |
-| **checkins** | `userId` | Single field | User attendance history | High | User profile and analytics |
-| **checkins** | `venueId, checkInTime` | Compound | Venue time analytics | Medium | Venue-specific temporal analysis |
-| **users** | `email` | Single field (Unique) | User authentication | High | Critical for login operations |
-| **users** | `createdAt` | Single field | User registration analytics | Medium | User growth analysis |
-| **users** | `lastLogin` | Single field | Active user identification | Medium | User engagement metrics |
-| **users** | `profile.preferences.location` | 2dsphere | Location-based user discovery | Low | Recommendation engine support |
+| Collection | Index Key(s) | Type | Purpose / Query Supported | 
+|------------|--------------|------|---------------------------|
+| **events** | `location` | 2dsphere | Geospatial queries ($geoNear, $near) |
+| **events** | `title, description, category, tags` | Text | Full-text search with relevance scoring |
+| **events** | `category, startDate` | Compound | Category + date filtering |
+| **events** | `eventType, startDate` | Compound | Polymorphic event type filtering |
+| **venues** | `location` | 2dsphere | Geospatial venue discovery |
+| **venues** | `venueType, capacity` | Compound | Polymorphic venue filtering |
+| **venues** | `name, description, amenities, address.city` | Text | Full-text venue search |
+| **venues** | `venueType, rating` | Compound | Venue type + rating filtering |
+| **reviews** | `eventId` | Single field | Reviews by event |
+| **reviews** | `venueId` | Single field | Reviews by venue |
+| **reviews** | `eventId, rating` | Compound | Event rating aggregations |
+| **reviews** | `userId` | Single field | User review history |
+| **checkins** | `eventId, userId` | Compound (Unique) | Prevent duplicate check-ins |
+| **checkins** | `eventId` | Single field | Check-ins by event |
+| **checkins** | `userId` | Single field | User attendance history |
+| **checkins** | `venueId, checkInTime` | Compound | Venue time analytics |
+| **users** | `email` | Single field (Unique) | User authentication |
+| **users** | `createdAt` | Single field | User registration analytics |
+| **users** | `lastLogin` | Single field | Active user identification |
+| **users** | `profile.preferences.location` | 2dsphere | Location-based user discovery |
 
-### Detailed Index Analysis
+### 3. Index Creation Script
 
-#### 1. Geospatial Indexes (2dsphere)
+The attached `create_indexes.js` file contains the index creation script.
+
+### 4. Index Reasoning
+
+#### a) Geospatial Indexes (2dsphere)
 
 **Events Collection - Location Index**
 - **Query Pattern**: Find events within X km of user location
 - **Frequency**: Very High (primary discovery feature)
-- **Performance Impact**: O(log n) - Excellent for large datasets
-- **Example Query**:
-  ```javascript
-  db.events.aggregate([
-    {
-      $geoNear: {
-        near: { type: "Point", coordinates: [-74.0060, 40.7128] },
-        distanceField: "distance",
-        maxDistance: 50000,
-        spherical: true
-      }
-    }
-  ])
-  ```
+- **Why this index type**: 2dsphere supports spherical distance queries on GeoJSON points, enabling $near/$geoNear for the map-based discovery I'd like to implement on a frontend, as described in the proposal and design docs.
 
-#### 2. Text Search Indexes
+**Venues Collection - Location Index**
+- **Query Pattern**: Find venues near event location or user location
+- **Frequency**: High (venue discovery and event creation)
+- **Why this index type**: 2dsphere is required for distance queries on venues' GeoJSON points, matching the way events are created and venues are selected.
+
+#### b) Text Search Indexes
 
 **Events Collection - Multi-field Text Index**
 - **Query Pattern**: Full-text search across title, description, category, and tags
 - **Frequency**: Very High (primary search functionality)
-- **Performance Impact**: O(log n) with relevance scoring
-- **Weighted Fields**: title(10), category(5), tags(3), description(1)
+- **Why this index type**: Text index provides tokenization, stemming, and relevance scoring across multiple fields, aligning with the full-text search requirement.
 
-#### 3. Compound Indexes for Common Query Patterns
+**Venues Collection - Multi-field Text Index**
+- **Query Pattern**: Full-text search across venue name, description, amenities, and city
+- **Frequency**: High (venue discovery and search functionality)
+- **Why this index type**: Text index lets users find venues by name, amenities, and city in a single search, which is superior to multiple regex filters.
+
+#### c) Compound Indexes for Common Query Patterns
 
 **Category + Date Filtering**
 - **Query Pattern**: "Technology events this weekend"
 - **Frequency**: Very High (most common user filter)
-- **Index**: `{category: 1, startDate: 1}`
-- **Performance**: Single index scan, very efficient
+- **Why this index type**: Compound index `{category: 1, startDate: 1}` supports equality on category and efficient range/sort on date consistent with discovery UI.
 
 **Geospatial + Date Filtering**
 - **Query Pattern**: "Events near me next month"
 - **Frequency**: High (location + time filtering)
-- **Index**: `{location: "2dsphere", startDate: 1}`
-- **Performance**: Single index scan with geospatial optimization
+- **Why this index type**: Combining `location` (2dsphere) with `startDate` in a compound index supports geo filtering with a time window in a single index path when needed.
 
-#### 4. Polymorphic Indexes
+#### d) Polymorphic Indexes
 
 **Event Type Filtering**
 - **Query Pattern**: Filter by event type (virtual, hybrid, in-person, recurring)
@@ -113,107 +111,124 @@ EventSphere is a comprehensive event management platform built on MongoDB, demon
 - **Indexes**: 
   - `{eventType: 1, startDate: 1}` - Type + date filtering
   - `{eventType: 1, category: 1}` - Type + category filtering
+- **Why this index type**: Compound indexes align to polymorphic queries in the architecture, enabling selective filtering on the discriminator with a secondary field.
 
-#### 5. Optimized Index Selection Strategy
+**Venue Type Filtering**
+- **Query Pattern**: "Conference centers with high capacity"
+- **Frequency**: Medium (venue selection and filtering)
+- **Indexes**:
+  - `{venueType: 1, capacity: 1}` - Type + capacity filtering
+  - `{venueType: 1, rating: 1}` - Type + quality filtering
+- **Why this index type**: Compound indexes on `venueType` plus a numeric field support the most common admin/user filters without requiring multiple single-field scans.
 
-**Frequency-Based Prioritization**
-- **High Frequency Queries**: Geospatial discovery, text search, category+date filtering
-- **Medium Frequency Queries**: Venue type filtering, user analytics, review aggregations
-- **Low Frequency Queries**: Location-based user discovery, advanced analytics
+#### e) Extended Reference Pattern Indexes
 
-**Compound Index Efficiency**
-- **Single Index Scan**: Compound indexes support multiple query patterns
-- **Storage Optimization**: 35% reduction in total indexes while maintaining performance
-- **Query Performance**: No degradation for critical operations
+**Venue Reference Optimization**
+- **Query Pattern**: Filter events by venue type or city without joins
+- **Frequency**: Medium (venue-based filtering)
+- **Indexes**:
+  - `{venueReference.venueType: 1, startDate: 1}` - Venue type + date
+  - `{venueReference.city: 1, startDate: 1}` - City + date
+  - `{venueReference.capacity: 1}` - Capacity sorting
+- **Why this index type**: These compound indexes on the denormalized venue reference fields make it easy to filter events by venue details right inside the events collection, so there's no need to join or look up in the `venues` collection.
 
----
+#### f) Analytics and Aggregation Indexes
 
-## Workload & Operations Analysis
+**Reviews Aggregation**
+- **Query Pattern**: Calculate average ratings per event/venue
+- **Frequency**: High (rating calculations)
+- **Indexes**:
+  - `{eventId: 1, rating: 1}` - Event rating aggregations
+  - `{venueId: 1, rating: 1}` - Venue rating aggregations
+- **Why this index type**: These compund indexes support rating calculations and aggregations.
 
-### Primary Database Operations Summary
+**Check-ins Analytics**
+- **Query Pattern**: Attendance patterns, peak hours, user behavior
+- **Frequency**: High (analytics and reporting)
+- **Indexes**:
+  - `{venueId: 1, checkInTime: 1}` - Venue time analytics
+  - `{userId: 1, checkInTime: 1}` - User attendance patterns
+- **Why this index type**: These compound indexes support attendance patterns and user behavior analytics.
 
-| Operation Type | Criticality | Frequency | Target Collection(s) | Indexes Optimized | Performance Target |
-|----------------|-------------|-----------|---------------------|-------------------|-------------------|
-| **Event Discovery (Geo + Date + Category)** | High | Very High | events | `location: "2dsphere"`, `{category: 1, startDate: 1}` | < 50ms |
-| **Full-Text Search** | High | Very High | events | Multi-field text index | < 100ms |
-| **Event Listing (Pagination)** | High | Very High | events | `{_id: 1, startDate: 1}` | < 25ms |
-| **User Check-in** | High | High | checkins, events | `{eventId: 1, userId: 1}`, `{qrCode: 1}` | < 30ms |
-| **Review Submission** | Medium | Medium | reviews | `{eventId: 1}`, `{venueId: 1}` | < 50ms |
-| **Venue Discovery** | Medium | Medium | venues | `{location: "2dsphere"}` | < 75ms |
-| **Analytics Queries** | Medium | Low | events, checkins, reviews | Various compound indexes | < 200ms |
+#### g) Data Integrity Indexes
 
-### Detailed Operation Analysis
-
-#### 1. Event Discovery Operations
-
-**Geospatial Event Discovery**
-- **Operation**: Find events within radius of user location
-- **Query Pattern**: `$geoNear` aggregation with distance filtering
-- **Frequency**: 1000+ queries per minute during peak hours
-- **Criticality**: High (core user experience)
-- **Performance**: O(log n) - Excellent for large datasets
-
-**Category + Date Filtering**
-- **Operation**: Filter events by category and date range
-- **Query Pattern**: Compound equality and range queries
-- **Frequency**: 800+ queries per minute
-- **Criticality**: High (primary filtering mechanism)
-- **Performance**: Single index scan, very efficient
-
-#### 2. Check-in Operations
-
-**User Check-in**
-- **Operation**: Record user attendance at event
-- **Query Pattern**: Insert with duplicate prevention
-- **Frequency**: 200+ operations per minute during event times
-- **Criticality**: High (core functionality)
-- **Transaction**: Multi-document transaction for data consistency
-
-#### 3. Analytics Operations
-
-**Attendance Analytics**
-- **Operation**: Calculate attendance statistics and patterns
-- **Query Pattern**: Aggregation pipelines with grouping
-- **Frequency**: 20+ queries per minute (scheduled)
-- **Criticality**: Medium (business intelligence)
+**Duplicate Prevention**
+- **Query Pattern**: Prevent duplicate check-ins per user/event
+- **Frequency**: High (data integrity)
+- **Index**: `{eventId: 1, userId: 1}` (Unique)
+- **Why this index type**: This unique compound index prevents duplicate check-ins per user/event at write time.
 
 ---
 
-## Design Patterns Used & Anti-Patterns Avoided
+## B. Workload & Operations Analysis
+
+### Most Common Database Operations
+
+| Operation | Type | Criticality | Frequency | Target Collection(s) |
+|-----------|------|-------------|-----------|----------------------|
+| Event discovery near a location (with optional date/category filters) | Read | High | Many per minute | events |
+| Full-text event search | Read | High | Many per minute | events |
+| Filter events by type (virtual/in-person/hybrid/recurring) | Read | High | Many per minute | events |
+| User check-in (prevent duplicates) | Write | High | Many per minute (during events) | checkins |
+| Fetch reviews for an event/venue | Read | Medium | Several per minute | reviews |
+| Venue discovery near a location | Read | Medium | Several per minute | venues |
+| User login by email | Read | High | Many per minute | users |
+| Attendance analytics by venue/time | Aggregate | Medium | Few per hour | checkins |
+| User attendance history | Read | Medium | Several per minute | checkins |
+| Event updates (CRUD) | Update/Write | Medium | Several per minute | events |
+
+### Why these operations are indexed
+
+- Event discovery: 2dsphere on `events.location` and a compound `{category, startDate}` so map + date/category filters stay fast.
+- Full-text search: Text index on `events.title, description, category, tags` to surface relevant results with one query.
+- Event type filters: `{eventType, startDate}` to pair the discriminator with the common date window.
+- Check-ins: Unique `{eventId, userId}` to hard‑stop duplicates at write time.
+- Reviews: `{eventId}`, `{venueId}`, and `{eventId, rating}` to load reviews quickly and support averages.
+- Venues: 2dsphere on `venues.location` for "near me", plus `{venueType, capacity}` for selection flows.
+- Users: Unique `{email}` for quick login lookups; `{lastLogin}` and `{createdAt}` for simple reporting.
+
+---
+
+## C. Design Patterns Used & Anti-Patterns Avoided
 
 ### Design Patterns Used
 
 #### 1. Extended Reference Pattern
 
-**Implementation**: Events store denormalized venue data for performance optimization.
+**Why this pattern was used**: Events store denormalized venue data for easier querying of venue details.
 
 ```javascript
 // Event document with extended venue reference
 {
   "_id": ObjectId("..."),
   "title": "Tech Conference 2024",
-  "venueId": ObjectId("venue123"),
+  "venueId": ObjectId("venue..."),
   "venueReference": {
     "name": "Convention Center",
     "city": "San Francisco",
     "capacity": 5000,
     "venueType": "conferenceCenter"
-  }
+  },
+  // ... other fields
 }
 ```
 
 **Benefits**:
-- Query Performance: Avoid joins when filtering events by venue type or city
-- Reduced Lookups: Venue information available in event queries without additional database calls
-- Filtering Capability: Enable venue-based filtering without expensive joins
+- **Query Performance**: Avoids joins when filtering events by venue type or city
+- **Reduced Lookups**: Venue information is available in event queries without additional database calls
+- **Better User Experience**: Event listings show venue details immediately without extra queries
 
 #### 2. Computed Pattern
 
-**Implementation**: Pre-calculated statistics stored in documents to improve query performance.
+**Why this pattern was used**: Pre-calculated statistics stored in documents to improve query performance and provide a single source of truth for statistics.
 
 ```javascript
 // Event with computed statistics
 {
+  "_id": ObjectId("..."),
+  "title": "Tech Conference 2024",
+  "currentAttendees": 150,
+  "maxAttendees": 200,
   "computedStats": {
     "totalTicketsSold": 180,
     "totalRevenue": 45000,
@@ -226,14 +241,21 @@ EventSphere is a comprehensive event management platform built on MongoDB, demon
 ```
 
 **Benefits**:
-- Performance: Eliminates expensive aggregations for dashboard queries
-- Consistency: Single source of truth for statistics
-- Scalability: Reduces database load during peak usage
+- **Performance**: Eliminates expensive aggregations for dashboard queries
+- **Consistency**: Single source of truth for statistics
+- **Real-time Updates**: Statistics updated via application triggers
+
+**When stats are updated**:
+- Tickets are sold/refunded
+- Reviews are added/updated
+- Events are created/completed
+- Check-ins happen
 
 #### 3. Polymorphic Pattern
 
 **Implementation**: Single collection with type-specific fields for different entity types.
 
+##### Event Polymorphism
 ```javascript
 // Virtual event
 {
@@ -257,6 +279,35 @@ EventSphere is a comprehensive event management platform built on MongoDB, demon
 }
 ```
 
+##### Venue Polymorphism
+```javascript
+// Conference center venue
+{
+  "venueType": "conferenceCenter",
+  "conferenceCenterDetails": {
+    "breakoutRooms": 12,
+    "avEquipment": ["Video Conferencing", "Projectors", "Whiteboards"],
+    "cateringAvailable": true
+  }
+}
+
+// Park venue
+{
+  "venueType": "park",
+  "parkDetails": {
+    "outdoorSpace": true,
+    "parkingSpaces": 200,
+    "restroomFacilities": true
+  }
+}
+```
+
+**Benefits**:
+- **Schema Flexibility**: Different types can have specialized attributes
+- **Query Efficiency**: Filter by type using discriminator field
+- **Maintainability**: Single collection for related entity types
+- **Extensibility**: Easy to add new types without schema changes
+
 #### 4. Schema Versioning Pattern
 
 **Implementation**: All collections include `schemaVersion` field for future evolution.
@@ -270,268 +321,135 @@ EventSphere is a comprehensive event management platform built on MongoDB, demon
 }
 ```
 
-#### 5. Bridge Collection Pattern
-
-**Implementation**: `checkins` collection serves as bridge for many-to-many relationship between users and events.
+**Benefits**:
+- **Safe Evolution**: Add new fields without breaking existing data
+- **Gradual Migration**: Update documents in batches by version
+- **Rollback Capability**: Revert to previous schema if needed
 
 ### Anti-Patterns Avoided
 
-#### 1. Over-Embedding Large Subdocuments
+#### 1. Bloated Documents
 
-**What We Avoided**: Storing large, frequently changing data as embedded documents.
+**Anti-Pattern**: Storing large, too much data in a single document.
 
-**Why We Avoided It**:
-- Document Size Limit: MongoDB has 16MB document size limit
-- Write Performance: Updating user document becomes expensive
-- Memory Usage: Large documents consume excessive RAM
+**Why I avoided this anti-pattern**:
+- **Document Size Limit**: MongoDB has 16MB document size limit
+- **Write Performance**: Updating user document becomes expensive
+- **Memory Usage**: Large documents consume excessive RAM, and make for less efficient queries.
+- **Query Performance**: Filtering embedded arrays is inefficient, making it harder to query reviews.
 
-**Our Solution**: Separate `reviews` collection with references.
+**My Solution**: Separate `reviews` collection with references to `users` and `events`.
 
-#### 2. Over-Indexing (Too Many Indexes Slowing Down Writes)
+#### 2. Over-Indexing
 
-**What We Avoided**: Creating indexes for every possible query without considering write performance.
+**Anti-pattern**: Creating indexes for every possible query without considering write performance.
 
-**Why We Avoided It**:
-- Write Performance: Each index slows down insert/update operations
-- Storage Overhead: Excessive index storage requirements
-- Memory Usage: Too many indexes consume excessive RAM
+**What I did wrong initially**: I had 30+ indexes across all collections, including single-field indexes on every possible filter field.
 
-**Our Solution**: Strategic compound indexes that support multiple query patterns.
+**Why this was bad**:
+- **Write Performance**: Each index slows down insert/update operations
+- **Storage Overhead**: Index storage was larger than data storage
+- **Memory Usage**: Too many indexes consumed excessive RAM
 
-#### 3. Missing Indexes on Frequent Queries
+**My solution**: Reduced to 4 indexes per collection, focusing on compound indexes that support multiple query patterns.
 
-**What We Avoided**: Not creating indexes for commonly executed queries.
+#### 3. Over-Embedding Large Subdocuments
 
-**Our Solution**: Comprehensive indexing strategy with compound indexes for common query patterns.
+**Anti-pattern**: Storing large arrays or subdocuments that grow unbounded.
 
-#### 4. Using Regex Without Index Support
+**Why I avoided this**: Instead of embedding all user check-ins in the `users` collection, I created a separate `checkins` collection.
 
-**What We Avoided**: Using regular expressions on unindexed fields.
+**What would have been bad**:
+- **Document Size**: User documents would grow indefinitely with each check-in
+- **Write Performance**: Updating a user document becomes slower as it grows
+- **Query Performance**: Filtering embedded arrays is inefficient
 
-**Our Solution**: Text indexes for full-text search with relevance scoring.
-
-#### 5. Inefficient Pagination
-
-**What We Avoided**: Using offset-based pagination for large datasets.
-
-**Our Solution**: Cursor-based pagination with compound indexes.
+**My solution**: Separate `checkins` collection with references to `users` and `events`, enabling efficient analytics queries without bloating user documents.
 
 ---
 
-## Relationship & Schema Diagrams
+## D. Relationship & Schema Diagrams
 
-### Entity Relationship (ER) Diagram
+### 1. ER Diagram
 
-The ER diagram shows the logical relationships between entities in the EventSphere system:
+The ER diagram below provides a detailed view of the database schema and relationships:
 
-- **Users** can write multiple **Reviews** for events or venues
-- **Users** can check into multiple **Events** (many-to-many via **Checkins**)
-- **Events** can be hosted at **Venues** (one-to-many)
-- **Events** can receive multiple **Reviews**
-- **Venues** can host multiple **Events**
+![Entity Relationship Diagram](er_diagram.png)
 
-**Key Relationships**:
-- 1:Many - Venue:Events (reference from events.venueId)
-- Many:Many - Users:Events via checkins bridge
-- 1:Many - User:Reviews (user can write multiple reviews)
-- 1:Many - Event:Reviews (event can receive multiple reviews)
+>*Figure 1: EventSphere Entity Relationship Diagram - Detailed schema showing key fields and relationships between entities.*
 
-### MongoDB Collection Relationship Diagram
+### 2. Collection Relationship Diagram
 
-The collection diagram shows the actual MongoDB implementation with embedding and referencing decisions:
+The following diagram illustrates the relationships between the five core collections in EventSphere:
 
-**Embedded Documents**:
-- `tickets[]` in events - Always displayed together
-- `attendees[]` in events - Quick RSVP display
-- `address` in venues - Always needed with venue info
-- `computedStats` in events and venues - Pre-calculated for performance
+![Collection Relationship Diagram](collection_diagram.png)
 
-**Referenced Documents**:
-- `venueId` in events - Venues shared across multiple events
-- `userId` in checkins - Users referenced across many events
-- `eventId` in checkins - Events referenced by many check-ins
+>*Figure 2: EventSphere Collection Relationships - Shows the relationships between events, venues, users, reviews, and checkins collections with their key fields and reference patterns.*
 
-**Bridge Collection**:
-- `checkins` collection serves as bridge for many-to-many user↔event relationship
-- Denormalized `venueId` for analytics performance
-- Unique constraint on `{eventId: 1, userId: 1}` to prevent duplicates
+### Key Relationships Explained
+
+1. **Events ↔ Venues**: Events reference venues through `venueId` and include denormalized venue data in `venueReference` for performance
+2. **Events ↔ Users**: Users can create events (creator relationship) and check into events (many-to-many through checkins)
+3. **Events ↔ Reviews**: Reviews reference events through `eventId` for event-specific feedback
+4. **Venues ↔ Reviews**: Reviews reference venues through `venueId` for venue-specific feedback
+5. **Users ↔ Checkins**: Users have many checkins, creating attendance history
+6. **Events ↔ Checkins**: Events have many checkins, tracking attendance
 
 ---
 
-## GridFS and GeoJSON Implementation
+## GeoJSON
 
 ### GeoJSON Implementation
+GeoJSON is used to store geospatial data to support geospatial operations. Types of GeoJSON objects used are Point, LineString, and Polygon. One can then query the database for geospatial data using the $geoNear and $near operators, as well as the 2dsphere index.
 
-EventSphere extensively uses GeoJSON for geospatial data storage and queries:
+EventSphere leverages MongoDB's native GeoJSON Point support for geospatial operations which is used in the `events` and `venues` collections.
 
-#### GeoJSON Point Storage
 ```javascript
-// Event location
+// Event location using GeoJSON Point
 {
   "location": {
     "type": "Point",
-    "coordinates": [-123.93446771957665, 49.10036536726016]
+    "coordinates": [-122.4194, 37.7749] // [longitude, latitude]
   }
 }
 
-// User preference location
+// Venue location using GeoJSON Point
 {
-  "profile": {
-    "preferences": {
-      "location": {
-        "type": "Point",
-        "coordinates": [-80.48434831242973, 43.52343446108092]
+  "location": {
+    "type": "Point", 
+    "coordinates": [-122.4194, 37.7749]
+  }
+}
+```
+
+### Geospatial Query Examples
+
+```javascript
+// Find events within 10km of user location
+db.events.find({
+  location: {
+    $near: {
+      $geometry: {
+        type: "Point",
+        coordinates: [-122.4194, 37.7749]
       },
-      "radiusKm": 38
+      $maxDistance: 10000 // 10km in meters
     }
   }
-}
-```
+})
 
-#### 2dsphere Index Support
-```javascript
-// Geospatial index for events
-db.events.createIndex({ location: "2dsphere" })
-
-// Geospatial index for venues
-db.venues.createIndex({ location: "2dsphere" })
-```
-
-#### Geospatial Queries
-```javascript
-// Find events within 50km of NYC
-db.events.aggregate([
+// Find venues within 5km using aggregation
+db.venues.aggregate([
   {
     $geoNear: {
-      near: { type: "Point", coordinates: [-74.0060, 40.7128] },
+      near: {
+        type: "Point",
+        coordinates: [-122.4194, 37.7749]
+      },
       distanceField: "distance",
-      maxDistance: 50000,
+      maxDistance: 5000,
       spherical: true
     }
   }
 ])
 ```
-
-**Benefits of GeoJSON Implementation**:
-- Native MongoDB support for geospatial queries
-- Efficient radius-based event discovery
-- Integration with mapping libraries
-- Support for complex geospatial analytics
-
-### GridFS Consideration
-
-While EventSphere doesn't currently implement GridFS, the system is designed to support it for future file storage needs:
-
-**Potential GridFS Use Cases**:
-- Event images and promotional materials
-- User profile pictures
-- Event documents and handouts
-- QR code images for check-ins
-
-**GridFS Schema Design**:
-```javascript
-// fs.files collection metadata
-{
-  "_id": ObjectId("..."),
-  "filename": "event_poster_123.jpg",
-  "contentType": "image/jpeg",
-  "metadata": {
-    "eventId": ObjectId("event123"),
-    "uploadedBy": ObjectId("user456"),
-    "category": "event_poster",
-    "isPublic": true,
-    "uploadDate": ISODate("2024-01-15T10:30:00Z")
-  },
-  "length": 245760,
-  "chunkSize": 261120,
-  "uploadDate": ISODate("2024-01-15T10:30:00Z")
-}
-```
-
-**GridFS Indexes**:
-```javascript
-// Indexes for GridFS metadata queries
-db.fs.files.createIndex({ "metadata.eventId": 1 })
-db.fs.files.createIndex({ "metadata.uploadedBy": 1 })
-db.fs.files.createIndex({ "metadata.category": 1 })
-db.fs.files.createIndex({ "uploadDate": 1 })
-```
-
----
-
-## Performance Analysis
-
-### Expected Performance Characteristics
-
-**Query Performance Targets** (10,000+ events):
-- Geospatial queries: < 50ms
-- Text search: < 100ms
-- Compound queries: < 75ms
-- Pagination: < 25ms (cursor-based)
-- Analytics aggregations: < 200ms
-- Review queries: < 30ms
-- Check-in queries: < 25ms
-
-### Index Performance Analysis
-
-**Index Size Estimates**:
-- Geospatial indexes: ~15% of collection size
-- Text indexes: ~20% of collection size
-- Compound indexes: ~10% of collection size
-- Single field indexes: ~5% of collection size
-- **Total index overhead**: ~50% of collection size
-
-**Memory Usage**:
-- Indexes cached in RAM: Essential for performance
-- Working set: Indexes + frequently accessed documents
-- Memory allocation: 60% for indexes, 40% for data
-
-### Scalability Considerations
-
-**Horizontal Scaling Readiness**:
-- Sharding Strategy: By geography (`location` field) or time (`startDate`)
-- Index Distribution: Indexes will be distributed across shards
-- Query Routing: Geospatial queries naturally partition by location
-
-**Performance Monitoring**:
-- Query Profiling: Monitor slow queries and optimize accordingly
-- Index Usage: Track index utilization and remove unused indexes
-- Memory Usage: Ensure indexes fit in available RAM
-- Connection Pooling: Optimize for concurrent user access
-
----
-
-## Conclusion
-
-EventSphere demonstrates comprehensive MongoDB capabilities through strategic indexing, workload optimization, and advanced design patterns. The system achieves excellent performance characteristics while maintaining data integrity and supporting complex query patterns.
-
-### Key Achievements
-
-1. **Optimized Indexing Strategy**: 20 strategic indexes (4 per collection) optimized for real-world query patterns
-2. **Geospatial Excellence**: Native GeoJSON support with 2dsphere indexes for location-based discovery
-3. **Polymorphic Design**: Flexible schema supporting multiple event and venue types
-4. **Performance Optimization**: Sub-50ms response times for critical operations
-5. **Storage Efficiency**: 35% reduction in index count while maintaining performance
-6. **Scalability Readiness**: Horizontal scaling strategy with sharding support
-7. **Design Pattern Implementation**: Extended Reference, Computed, Polymorphic, and Schema Versioning patterns
-8. **Anti-Pattern Avoidance**: Strategic decisions to prevent common MongoDB pitfalls
-
-### Future Enhancements
-
-1. **GridFS Integration**: File storage for event images and documents
-2. **Advanced Analytics**: Machine learning integration for recommendation engines
-3. **Real-time Features**: WebSocket integration for live updates
-4. **Mobile Optimization**: Offline support and mobile-specific queries
-5. **Enterprise Features**: Multi-tenancy and advanced security
-
-The EventSphere database design showcases production-ready MongoDB implementation with comprehensive indexing, optimal performance characteristics, and scalable architecture suitable for real-world event management applications.
-
----
-
-**Total Indexes Created**: 20 (4 per collection)  
-**Performance Target Achievement**: <50ms for critical operations  
-**Storage Optimization**: 35% reduction in index count  
-**Design Patterns Implemented**: 5  
-**Anti-Patterns Avoided**: 7  
-**Geospatial Queries Supported**: Full GeoJSON implementation  
-**Scalability**: Horizontal scaling ready with sharding strategy
