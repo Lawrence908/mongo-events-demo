@@ -10,14 +10,12 @@
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Indexing Strategy & Justification](#indexing-strategy--justification)
-3. [Workload & Operations Analysis](#workload--operations-analysis)
-4. [Design Patterns Used & Anti-Patterns Avoided](#design-patterns-used--anti-patterns-avoided)
-5. [Relationship & Schema Diagrams](#relationship--schema-diagrams)
-6. [GridFS and GeoJSON Implementation](#gridfs-and-geojson-implementation)
-7. [Performance Analysis](#performance-analysis)
-8. [Conclusion](#conclusion)
+1. [Overview](#eventsphere--overview)
+2. [Indexing Strategy & Justification](#a-indexing-strategy--justification)
+3. [Workload & Operations Analysis](#b-workload--operations-analysis)
+4. [Design Patterns Used & Anti-Patterns Avoided](#c-design-patterns-used--anti-patterns-avoided)
+5. [Relationship & Schema Diagrams](#d-relationship--schema-diagrams)
+6. [GeoJSON Implementation](#geojson-implementation)
 
 ---
 
