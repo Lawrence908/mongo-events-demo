@@ -1,0 +1,183 @@
+// EventSphere Database Schema
+// Converted from PlantUML to DBML for DB Diagram
+
+// Main Collections (Primary Entities)
+Table USER {
+  user_id ObjectId [pk]
+  email string [unique, not null]
+  
+  Note: 'Main user collection with embedded profile data'
+}
+
+Table EVENT {
+  event_id ObjectId [pk]
+  venue_id ObjectId
+  
+  Note: 'Main event collection with polymorphic type support'
+}
+
+Table VENUE {
+  venue_id ObjectId [pk]
+  
+  Note: 'Main venue collection with polymorphic type support'
+}
+
+Table REVIEW {
+  review_id ObjectId [pk]
+  event_id ObjectId [note: 'Optional - either event_id or venue_id required']
+  venue_id ObjectId [note: 'Optional - either event_id or venue_id required']
+  user_id ObjectId
+  
+  Note: 'Either event_id OR venue_id must be provided, not both'
+}
+
+Table CHECKIN {
+  checkin_id ObjectId [pk]
+  event_id ObjectId
+  user_id ObjectId
+  venue_id ObjectId
+  
+  Note: 'Bridge table for many-to-many relationship between users and events with analytics'
+}
+
+// Embedded Subdocuments (Internal Entities)
+Table USER_PROFILE {
+  user_id ObjectId [pk]
+  
+  Note: 'Embedded in USER collection'
+}
+
+Table EVENT_TICKET {
+  event_id ObjectId [pk]
+  tier string [not null]
+  
+  Note: 'Embedded in EVENT collection for performance optimization'
+}
+
+Table EVENT_ATTENDEE {
+  event_id ObjectId [pk]
+  user_id ObjectId [pk]
+  
+  Note: 'Embedded in EVENT collection for quick RSVP display'
+}
+
+Table EVENT_COMPUTED_STATS {
+  event_id ObjectId [pk]
+  
+  Note: 'Embedded in EVENT collection'
+}
+
+Table VENUE_ADDRESS {
+  venue_id ObjectId [pk]
+  
+  Note: 'Embedded in VENUE collection'
+}
+
+Table VENUE_CONTACT {
+  venue_id ObjectId [pk]
+  
+  Note: 'Embedded in VENUE collection'
+}
+
+Table VENUE_PRICING {
+  venue_id ObjectId [pk]
+  
+  Note: 'Embedded in VENUE collection'
+}
+
+Table VENUE_AVAILABILITY {
+  venue_id ObjectId [pk]
+  
+  Note: 'Embedded in VENUE collection'
+}
+
+Table VENUE_COMPUTED_STATS {
+  venue_id ObjectId [pk]
+  
+  Note: 'Embedded in VENUE collection'
+}
+
+// Polymorphic Type-Specific Entities
+Table VIRTUAL_DETAILS {
+  event_id ObjectId [pk]
+  
+  Note: 'For virtual events only'
+}
+
+Table RECURRING_DETAILS {
+  event_id ObjectId [pk]
+  
+  Note: 'For recurring events only'
+}
+
+Table HYBRID_DETAILS {
+  event_id ObjectId [pk]
+  
+  Note: 'For hybrid events only'
+}
+
+Table EVENT_METADATA {
+  event_id ObjectId [pk]
+  
+  Note: 'Embedded in EVENT collection'
+}
+
+Table CONFERENCE_CENTER_DETAILS {
+  venue_id ObjectId [pk]
+  
+  Note: 'For conference center venues only'
+}
+
+Table PARK_DETAILS {
+  venue_id ObjectId [pk]
+  
+  Note: 'For park venues only'
+}
+
+Table VIRTUAL_SPACE_DETAILS {
+  venue_id ObjectId [pk]
+  
+  Note: 'For virtual space venues only'
+}
+
+// Extended Reference Pattern
+Table VENUE_REFERENCE {
+  event_id ObjectId [pk]
+  
+  Note: 'Extended Reference Pattern - Denormalized venue data for filtering performance'
+}
+
+// Relationships
+Ref: USER.user_id < REVIEW.user_id
+Ref: EVENT.event_id < REVIEW.event_id
+Ref: VENUE.venue_id < REVIEW.venue_id
+
+Ref: USER.user_id < CHECKIN.user_id
+Ref: EVENT.event_id < CHECKIN.event_id
+Ref: VENUE.venue_id < CHECKIN.venue_id
+
+Ref: VENUE.venue_id < EVENT.venue_id
+
+// Embedded document relationships (1:1)
+Ref: USER.user_id - USER_PROFILE.user_id
+Ref: EVENT.event_id - EVENT_COMPUTED_STATS.event_id
+Ref: VENUE.venue_id - VENUE_ADDRESS.venue_id
+Ref: VENUE.venue_id - VENUE_CONTACT.venue_id
+Ref: VENUE.venue_id - VENUE_PRICING.venue_id
+Ref: VENUE.venue_id - VENUE_AVAILABILITY.venue_id
+Ref: VENUE.venue_id - VENUE_COMPUTED_STATS.venue_id
+
+// Polymorphic relationships (1:0..1)
+Ref: EVENT.event_id - VIRTUAL_DETAILS.event_id
+Ref: EVENT.event_id - RECURRING_DETAILS.event_id
+Ref: EVENT.event_id - HYBRID_DETAILS.event_id
+Ref: EVENT.event_id - EVENT_METADATA.event_id
+Ref: EVENT.event_id - VENUE_REFERENCE.event_id
+
+Ref: VENUE.venue_id - CONFERENCE_CENTER_DETAILS.venue_id
+Ref: VENUE.venue_id - PARK_DETAILS.venue_id
+Ref: VENUE.venue_id - VIRTUAL_SPACE_DETAILS.venue_id
+
+// One-to-many relationships for embedded arrays
+Ref: EVENT.event_id < EVENT_TICKET.event_id
+Ref: EVENT.event_id < EVENT_ATTENDEE.event_id

@@ -1,0 +1,63 @@
+# Mongo Events Demo - Homelab Integration
+# Port 8140 - chrislawrence.ca/events
+
+services:
+  mongo-events:
+    build: .
+    container_name: mongo-events
+    restart: unless-stopped
+    networks:
+      - web
+      - mongo-events-internal
+    ports:
+      - "8140:5000"
+    depends_on:
+      mongo-events-db:
+        condition: service_healthy
+    environment:
+      - FLASK_ENV=production
+      - MONGODB_URI=mongodb://mongo-events-db:27017/eventsphere
+      - PORT=5000
+      - HOST=0.0.0.0  # Override the .env file setting
+    env_file:
+      - .env
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  mongo-events-db:
+    image: mongo:7
+    container_name: mongo-events-db
+    restart: unless-stopped
+    networks:
+      - mongo-events-internal
+    volumes:
+      - mongo_events_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=eventsphere
+    command: mongod --quiet --logpath /dev/null
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  web:
+    external: true
+    name: homelab-web
+  mongo-events-internal:
+    driver: bridge
+
+volumes:
+  mongo_events_data:

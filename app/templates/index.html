@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Events Map - MongoDB Events Demo{% endblock %}
+{% block title %}Events Map - EventSphere{% endblock %}
 
 {% block content %}
 <div x-data="eventsMap()">
@@ -9,16 +9,30 @@
             <h1 class="mb-4">Events Map</h1>
             
             <!-- Map Controls -->
-            <div class="card mb-4">
+            <div class="card mb-4 map-controls">
                 <div class="card-body">
                     <div class="row align-items-end">
                         <div class="col-md-3">
-                            <label class="form-label">Search Radius (km)</label>
-                            <input type="number" class="form-control" x-model="radius" min="1" max="100" step="1">
+                            <label class="form-label">
+                                <i class="bi bi-bullseye me-1"></i>
+                                Search Radius (km)
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" x-model="radius" min="1" max="10000" step="5">
+                                <span class="input-group-text bg-dark border-secondary text-muted">km</span>
+                            </div>
+                            <small class="text-muted">Click on map to search that area</small>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Max Results</label>
-                            <input type="number" class="form-control" x-model="maxResults" min="1" max="100" step="1">
+                            <label class="form-label">
+                                <i class="bi bi-list-ol me-1"></i>
+                                Max Results
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" x-model="maxResults" min="1" max="500" step="5">
+                                <span class="input-group-text bg-dark border-secondary text-muted">events</span>
+                            </div>
+                            <small class="text-muted invisible">Placeholder for alignment</small>
                         </div>
                         <div class="col-md-3">
                             <div class="form-check">
@@ -28,11 +42,39 @@
                                 </label>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-primary w-100" @click="searchEvents()">
-                                <span x-show="!loading">Search Events</span>
-                                <span x-show="loading" class="spinner-border spinner-border-sm me-2"></span>
-                                <span x-show="loading">Loading...</span>
+                        <div class="col-md-2">
+                            <button class="btn btn-accent w-100 position-relative" @click="searchEvents()" :disabled="loading">
+                                <template x-if="!loading">
+                                    <span class="d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-search me-2"></i>
+                                        Search Events
+                                    </span>
+                                </template>
+                                <template x-if="loading">
+                                    <span class="d-flex align-items-center justify-content-center">
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                        Searching...
+                                    </span>
+                                </template>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Category Filters -->
+                    <div class="mt-3">
+                        <h6 class="mb-2">Event Categories</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <template x-for="category in allCategories" :key="category">
+                                <button type="button"
+                                        class="btn btn-sm"
+                                        :class="selectedCategories.includes(category) ? 'btn-accent' : 'btn-outline-accent'"
+                                        @click="toggleCategory(category)">
+                                    <span class="me-1" x-text="getCategoryEmoji(category)"></span>
+                                    <span x-text="category"></span>
+                                </button>
+                            </template>
+                            <button type="button" class="btn btn-sm btn-outline-accent" @click="clearCategories()">
+                                <i class="bi bi-x-circle me-1"></i>Clear
                             </button>
                         </div>
                     </div>
@@ -46,27 +88,21 @@
                 </div>
             </div>
             
-            <!-- Search Results -->
-            <div class="mt-4" x-show="events.length > 0">
-                <h3>Found Events (<span x-text="events.length"></span>)</h3>
+            <!-- Loading Skeleton -->
+            <div class="mt-4" x-show="loading && events.length === 0">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-controls"></div>
+                </div>
                 <div class="row">
-                    <template x-for="event in events" :key="event.properties.id">
+                    <template x-for="i in 6" :key="i">
                         <div class="col-md-6 col-lg-4 mb-3">
                             <div class="card event-card h-100">
                                 <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title mb-0" x-text="event.properties.title"></h5>
-                                        <span class="badge bg-secondary category-badge" x-text="event.properties.category"></span>
-                                    </div>
-                                    <p class="card-text text-muted small" x-text="event.properties.description"></p>
-                                    <div class="small text-muted">
-                                        <div><strong>Date:</strong> <span x-text="formatDate(event.properties.start_date)"></span></div>
-                                        <div x-show="event.properties.organizer"><strong>Organizer:</strong> <span x-text="event.properties.organizer"></span></div>
-                                        <div><strong>Distance:</strong> <span x-text="event.properties.distance"></span>m</div>
-                                    </div>
-                                    <div class="mt-2">
-                                        <a :href="`/events/${event.properties.id}`" class="btn btn-sm btn-outline-primary">View Details</a>
-                                    </div>
+                                    <div class="skeleton-header mb-2"></div>
+                                    <div class="skeleton-text mb-2"></div>
+                                    <div class="skeleton-text mb-2"></div>
+                                    <div class="skeleton-text short"></div>
                                 </div>
                             </div>
                         </div>
@@ -74,9 +110,121 @@
                 </div>
             </div>
             
+            <!-- Search Results -->
+            <div class="mt-4" x-show="filteredEvents().length > 0">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h3>Found Events (<span x-text="filteredEvents().length"></span>)</h3>
+                        <div class="d-flex gap-3 mt-1">
+                            <small class="text-muted">
+                                <i class="bi bi-geo-alt me-1"></i>
+                                <span x-text="radius"></span>km radius
+                            </small>
+                            <small class="text-muted" x-show="selectedCategories.length > 0">
+                                <i class="bi bi-funnel me-1"></i>
+                                <span x-text="selectedCategories.length"></span> categories
+                            </small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="form-label mb-0">Events per page:</label>
+                            <select class="form-select form-select-sm" style="width: auto;" x-model="eventsPerPage" @change="goToPage(1)">
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                            </select>
+                        </div>
+                        <div class="text-muted small">
+                            Showing <span x-text="(currentPage - 1) * eventsPerPage + 1"></span> - 
+                            <span x-text="Math.min(currentPage * eventsPerPage, filteredEvents().length)"></span> 
+                            of <span x-text="filteredEvents().length"></span> events
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <template x-for="event in paginatedEvents()" :key="event.properties.id">
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card event-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title mb-0" x-text="event.properties.title"></h5>
+                                        <span class="badge category-badge" :style="`background-color: ${getCategoryColor(event.properties.category)}`" x-text="event.properties.category"></span>
+                                    </div>
+                                    <p class="card-text text-muted small" x-text="event.properties.description"></p>
+                                    <div class="small text-muted">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <i class="bi bi-calendar-event me-2" style="color: var(--mdb-accent);"></i>
+                                            <strong>Date:</strong> <span x-text="formatDate(event.properties.startDate)" class="ms-1"></span>
+                                        </div>
+                                        <div x-show="event.properties.organizer" class="d-flex align-items-center mb-1">
+                                            <i class="bi bi-person me-2" style="color: var(--mdb-accent);"></i>
+                                            <strong>Organizer:</strong> <span x-text="event.properties.organizer" class="ms-1"></span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-geo-alt me-2" style="color: var(--mdb-accent);"></i>
+                                            <strong>Distance:</strong> <span x-text="event.properties.distance" class="ms-1"></span>m
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a :href="`/events/${event.properties.id}`" class="btn btn-sm btn-outline-accent">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <!-- Pagination Controls -->
+                <nav aria-label="Events pagination" x-show="totalPages > 1">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                            <button class="page-link" @click="goToPage(1)" :disabled="currentPage === 1">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </button>
+                        </li>
+                        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                            <button class="page-link" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        </li>
+                        
+                        <!-- Page numbers -->
+                        <template x-for="page in getVisiblePages()" :key="page">
+                            <li class="page-item" :class="{ active: page === currentPage }">
+                                <button class="page-link" @click="goToPage(page)" x-text="page"></button>
+                            </li>
+                        </template>
+                        
+                        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                            <button class="page-link" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </li>
+                        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                            <button class="page-link" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
             <!-- No Results Message -->
-            <div class="alert alert-info mt-4" x-show="searched && events.length === 0">
-                No events found in this area. Try increasing the search radius or searching a different location.
+            <div class="mt-4" x-show="searched && events.length === 0">
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-search" style="font-size: 4rem; color: var(--mdb-accent); opacity: 0.3;"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">No Events Found</h4>
+                    <p class="text-muted mb-4">We couldn't find any events in this area. Try:</p>
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <span class="badge bg-secondary">Increase search radius</span>
+                        <span class="badge bg-secondary">Try a different location</span>
+                        <span class="badge bg-secondary">Check category filters</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -91,6 +239,8 @@ function eventsMap() {
         markersLayer: null,
         searchCircle: null,
         events: [],
+        allCategories: ['Technology','Music','Sports','Food & Drink','Arts & Culture','Business','Education','Health & Wellness'],
+        selectedCategories: [],
         loading: false,
         searched: false,
         radius: 10,
@@ -98,6 +248,10 @@ function eventsMap() {
         useCurrentLocation: false,
         currentLat: 40.7128,
         currentLng: -74.0060, // Default to NYC
+        
+        // Pagination properties
+        currentPage: 1,
+        eventsPerPage: 100,
         
         init() {
             this.initMap();
@@ -143,9 +297,9 @@ function eventsMap() {
             
             this.searchCircle = L.circle([this.currentLat, this.currentLng], {
                 radius: this.radius * 1000, // Convert to meters
-                fillColor: 'blue',
+                fillColor: '#00ED64',
                 fillOpacity: 0.1,
-                color: 'blue',
+                color: '#00ED64',
                 weight: 2,
                 opacity: 0.8
             }).addTo(this.map);
@@ -154,6 +308,7 @@ function eventsMap() {
         async searchEvents() {
             this.loading = true;
             this.searched = true;
+            this.currentPage = 1; // Reset to first page when searching
             
             if (this.useCurrentLocation) {
                 this.getCurrentLocation();
@@ -182,21 +337,23 @@ function eventsMap() {
         displayEventMarkers() {
             this.markersLayer.clearLayers();
             
-            this.events.forEach(event => {
+            this.filteredEvents().forEach(event => {
                 const [lng, lat] = event.geometry.coordinates;
                 
-                const marker = L.marker([lat, lng]).bindPopup(`
+                // Create custom icon based on category
+                const categoryIcon = this.getCategoryIcon(event.properties.category);
+                const marker = L.marker([lat, lng], { icon: categoryIcon }).bindPopup(`
                     <div class="popup-content">
                         <h6>${event.properties.title}</h6>
                         <p class="small mb-2">${event.properties.description || ''}</p>
                         <div class="small text-muted">
-                            <div><strong>Category:</strong> ${event.properties.category}</div>
-                            <div><strong>Date:</strong> ${this.formatDate(event.properties.start_date)}</div>
+                            <div><strong>Category:</strong> <span class="badge" style="background-color: ${this.getCategoryColor(event.properties.category)}">${event.properties.category}</span></div>
+                            <div><strong>Date:</strong> ${this.formatDate(event.properties.startDate)}</div>
                             ${event.properties.organizer ? `<div><strong>Organizer:</strong> ${event.properties.organizer}</div>` : ''}
                             <div><strong>Distance:</strong> ${event.properties.distance}m</div>
                         </div>
                         <div class="mt-2">
-                            <a href="/events/${event.properties.id}" class="btn btn-sm btn-primary">View Details</a>
+                            <a href="/events/${event.properties.id}" class="btn btn-sm btn-accent">View Details</a>
                         </div>
                     </div>
                 `);
@@ -210,6 +367,109 @@ function eventsMap() {
             }
         },
         
+        filteredEvents() {
+            if (this.selectedCategories.length === 0) {
+                return this.events;
+            }
+            return this.events.filter(e => this.selectedCategories.includes(e.properties.category));
+        },
+        
+        toggleCategory(category) {
+            if (this.selectedCategories.includes(category)) {
+                this.selectedCategories = this.selectedCategories.filter(c => c !== category);
+            } else {
+                this.selectedCategories = [...this.selectedCategories, category];
+            }
+            this.currentPage = 1; // Reset to first page when filtering
+            this.displayEventMarkers();
+        },
+        
+        clearCategories() {
+            this.selectedCategories = [];
+            this.currentPage = 1; // Reset to first page when clearing filters
+            this.displayEventMarkers();
+        },
+        
+        getCategoryIcon(category) {
+            // Define category-specific icons and colors
+            const categoryConfig = {
+                'Technology': { icon: '💻', color: '#0d6efd' },
+                'Music': { icon: '🎵', color: '#e83e8c' },
+                'Sports': { icon: '⚽', color: '#28a745' },
+                'Food & Drink': { icon: '🍕', color: '#fd7e14' },
+                'Arts & Culture': { icon: '🎨', color: '#6f42c1' },
+                'Business': { icon: '💼', color: '#6c757d' },
+                'Education': { icon: '📚', color: '#17a2b8' },
+                'Health & Wellness': { icon: '💪', color: '#20c997' },
+                'Entertainment': { icon: '🎭', color: '#ffc107' },
+                'Community': { icon: '🤝', color: '#dc3545' },
+                'Science': { icon: '🔬', color: '#6f42c1' },
+                'Fashion': { icon: '👗', color: '#e83e8c' },
+                'Travel': { icon: '✈️', color: '#17a2b8' },
+                'Photography': { icon: '📸', color: '#6c757d' },
+                'Gaming': { icon: '🎮', color: '#28a745' },
+                'Networking': { icon: '🤝', color: '#fd7e14' }
+            };
+            
+            const config = categoryConfig[category] || { icon: '📍', color: '#6c757d' };
+            
+            return L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="
+                    background-color: ${config.color};
+                    color: white;
+                    border: 2px solid white;
+                    border-radius: 50%;
+                    width: 30px;
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 14px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                ">${config.icon}</div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15],
+                popupAnchor: [0, -15]
+            });
+        },
+        
+        getCategoryColor(category) {
+            const categoryConfig = {
+                'Technology': '#007bff',
+                'Music': '#e83e8c',
+                'Sports': '#28a745',
+                'Food & Drink': '#fd7e14',
+                'Arts & Culture': '#6f42c1',
+                'Business': '#6c757d',
+                'Education': '#17a2b8',
+                'Health & Wellness': '#20c997',
+                'Entertainment': '#ffc107',
+                'Community': '#dc3545',
+                'Science': '#6f42c1',
+                'Fashion': '#e83e8c',
+                'Travel': '#17a2b8',
+                'Photography': '#6c757d',
+                'Gaming': '#28a745',
+                'Networking': '#fd7e14'
+            };
+            return categoryConfig[category] || '#6c757d';
+        },
+        
+        getCategoryEmoji(category) {
+            const map = {
+                'Technology': '💻',
+                'Music': '🎵',
+                'Sports': '⚽',
+                'Food & Drink': '🍕',
+                'Arts & Culture': '🎨',
+                'Business': '💼',
+                'Education': '📚',
+                'Health & Wellness': '💪'
+            };
+            return map[category] || '📍';
+        },
+        
         formatDate(dateStr) {
             return new Date(dateStr).toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -218,6 +478,53 @@ function eventsMap() {
                 hour: '2-digit',
                 minute: '2-digit'
             });
+        },
+        
+        // Pagination methods
+        get totalPages() {
+            return Math.ceil(this.filteredEvents().length / this.eventsPerPage);
+        },
+        
+        paginatedEvents() {
+            const filtered = this.filteredEvents();
+            const startIndex = (this.currentPage - 1) * this.eventsPerPage;
+            const endIndex = startIndex + this.eventsPerPage;
+            return filtered.slice(startIndex, endIndex);
+        },
+        
+        goToPage(page) {
+            if (page >= 1 && page <= this.totalPages) {
+                this.currentPage = page;
+            }
+        },
+        
+        getVisiblePages() {
+            const total = this.totalPages;
+            const current = this.currentPage;
+            const delta = 2; // Show 2 pages on each side of current page
+            const range = [];
+            const rangeWithDots = [];
+            let l;
+
+            for (let i = 1; i <= total; i++) {
+                if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+                    range.push(i);
+                }
+            }
+
+            range.forEach((i) => {
+                if (l) {
+                    if (i - l === 2) {
+                        rangeWithDots.push(l + 1);
+                    } else if (i - l !== 1) {
+                        rangeWithDots.push('...');
+                    }
+                }
+                rangeWithDots.push(i);
+                l = i;
+            });
+
+            return rangeWithDots;
         }
     }
 }

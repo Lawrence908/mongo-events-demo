@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ event.title }} - MongoDB Events Demo{% endblock %}
+{% block title %}{{ event.title }} - EventSphere{% endblock %}
 
 {% block content %}
 <div x-data="eventDetail()">
@@ -12,10 +12,10 @@
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <h1 class="card-title">{{ event.title }}</h1>
-                            <span class="badge bg-primary fs-6">{{ event.category }}</span>
+                            <span class="badge" style="background-color: var(--mdb-accent); color:#00150a;">{{ event.category }}</span>
                         </div>
                         <div class="text-end">
-                            <small class="text-muted">Created: {{ event.created_at.strftime('%Y-%m-%d') }}</small>
+                            <small class="text-muted">Created: {{ event.createdAt.strftime('%Y-%m-%d') }}</small>
                         </div>
                     </div>
                     
@@ -31,25 +31,25 @@
                             <h6>Event Details</h6>
                             <ul class="list-unstyled">
                                 <li class="mb-2">
-                                    <i class="bi bi-calendar text-primary me-2"></i>
-                                    <strong>Start:</strong> {{ event.start_date.strftime('%Y-%m-%d %H:%M') }}
+                                    <i class="bi bi-calendar text-success me-2"></i>
+                                    <strong>Start:</strong> {{ event.startDate.strftime('%Y-%m-%d %H:%M') }}
                                 </li>
-                                {% if event.end_date %}
+                                {% if event.endDate %}
                                     <li class="mb-2">
-                                        <i class="bi bi-calendar-check text-primary me-2"></i>
-                                        <strong>End:</strong> {{ event.end_date.strftime('%Y-%m-%d %H:%M') }}
+                                        <i class="bi bi-calendar-check text-success me-2"></i>
+                                        <strong>End:</strong> {{ event.endDate.strftime('%Y-%m-%d %H:%M') }}
                                     </li>
                                 {% endif %}
                                 {% if event.organizer %}
                                     <li class="mb-2">
-                                        <i class="bi bi-person text-primary me-2"></i>
+                                        <i class="bi bi-person text-success me-2"></i>
                                         <strong>Organizer:</strong> {{ event.organizer }}
                                     </li>
                                 {% endif %}
-                                {% if event.max_attendees %}
+                                {% if event.maxAttendees %}
                                     <li class="mb-2">
-                                        <i class="bi bi-people text-primary me-2"></i>
-                                        <strong>Max Attendees:</strong> {{ event.max_attendees }}
+                                        <i class="bi bi-people text-success me-2"></i>
+                                        <strong>Max Attendees:</strong> {{ event.maxAttendees }}
                                     </li>
                                 {% endif %}
                             </ul>
@@ -59,13 +59,13 @@
                             <h6>Location</h6>
                             <ul class="list-unstyled">
                                 <li class="mb-2">
-                                    <i class="bi bi-geo-alt text-primary me-2"></i>
+                                    <i class="bi bi-geo-alt text-success me-2"></i>
                                     <strong>Coordinates:</strong> 
                                     {{ "%.6f"|format(event.location.coordinates[1]) }}, 
                                     {{ "%.6f"|format(event.location.coordinates[0]) }}
                                 </li>
                                 <li class="mb-2">
-                                    <button class="btn btn-sm btn-outline-secondary" @click="showDirections()">
+                                    <button class="btn btn-sm btn-outline-accent" @click="showDirections()">
                                         <i class="bi bi-compass"></i> Get Directions
                                     </button>
                                 </li>
@@ -83,10 +83,10 @@
                     {% endif %}
                     
                     <div class="d-flex gap-2">
-                        <a href="{{ url_for('events_list') }}" class="btn btn-outline-secondary">
+                        <a href="{{ url_for('events_list') }}" class="btn btn-outline-accent">
                             <i class="bi bi-arrow-left"></i> Back to Events
                         </a>
-                        <button class="btn btn-primary" @click="shareEvent()">
+                        <button class="btn btn-accent" @click="shareEvent()">
                             <i class="bi bi-share"></i> Share Event
                         </button>
                     </div>
@@ -112,10 +112,10 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <button class="btn btn-outline-primary btn-sm" @click="addToCalendar()">
+                        <button class="btn btn-outline-accent btn-sm" @click="addToCalendar()">
                             <i class="bi bi-calendar-plus"></i> Add to Calendar
                         </button>
-                        <button class="btn btn-outline-success btn-sm" @click="findNearby()">
+                        <button class="btn btn-outline-accent btn-sm" @click="findNearby()">
                             <i class="bi bi-search"></i> Find Nearby Events
                         </button>
                     </div>
@@ -175,8 +175,8 @@ function eventDetail() {
         },
         
         addToCalendar() {
-            const startDate = new Date('{{ event.start_date.isoformat() }}');
-            const endDate = new Date('{{ event.end_date.isoformat() if event.end_date else event.start_date.isoformat() }}');
+            const startDate = new Date('{{ event.startDate.isoformat() }}');
+            const endDate = new Date('{{ event.endDate.isoformat() if event.endDate else event.startDate.isoformat() }}');
             
             const formatDate = (date) => {
                 return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';

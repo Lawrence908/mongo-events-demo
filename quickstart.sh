@@ -1,11 +1,11 @@
 #!/bin/bash
-# MongoDB Events Demo - Quick Start Script
+# EventSphere - Quick Start Script
 #
 # This script helps you get started with the application
 
 set -e  # Exit on any error
 
-echo "🚀 MongoDB Events Demo - Quick Start"
+echo "🚀 EventSphere - Quick Start"
 echo "======================================"
 
 # Check if Python is available
@@ -65,6 +65,6 @@ echo "1. Start MongoDB server (if not already running)"
 echo "2. Edit .env file with your MongoDB connection details"
 echo "3. Generate sample data: python data/generate_sample_data.py"
 echo "4. Start the application: python run.py"
-echo "5. Open http://localhost:5000 in your browser"
+echo "5. Open http://localhost:5010 in your browser"
 echo ""
 echo "For more details, see README.md"
