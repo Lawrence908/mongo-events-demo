@@ -52,7 +52,7 @@ Create or update `.env` file in the project root:
 
 ```bash
 # MongoDB Configuration
-MONGODB_URI=mongodb+srv://chrislawrencedev:Xc93FPujnvVD2Xb6@eventsphere.mzturli.mongodb.net/EventSphere?retryWrites=true&w=majority&appName=EventSphere
+MONGODB_URI=mongodb+srv://chrislawrencedev:<password>@eventsphere.mzturli.mongodb.net/EventSphere?retryWrites=true&w=majority&appName=EventSphere
 MONGODB_DB_NAME=EventSphere
 MONGODB_ATLAS_USERNAME=chrislawrencedev
 MONGODB_ATLAS_PASSWORD=Xc93FPujnvVD2Xb6
