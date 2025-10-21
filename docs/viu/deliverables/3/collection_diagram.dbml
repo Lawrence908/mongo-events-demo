@@ -1,0 +1,118 @@
+// EventSphere MongoDB Collection Diagram
+// Converted from PlantUML for DB Diagram visualization
+
+Project EventSphere {
+  database_type: 'MongoDB'
+  Note: '''
+  # EventSphere MongoDB Collections
+  
+  This diagram shows the MongoDB collection structure with embedding vs referencing decisions.
+  
+  ## Design Principles:
+  - **Embedding**: For data always accessed together (tickets, attendees, profile)
+  - **Referencing**: For shared data across documents (venues, users)
+  - **Polymorphic**: Type-specific fields for different event/venue types
+  - **Denormalization**: Extended references for performance
+  '''
+}
+
+// MongoDB Collections (represented as tables for DBML compatibility)
+
+Table events {
+  _id ObjectId [pk, note: 'Primary Key']
+  venueId ObjectId [note: 'REFERENCE - Venue shared across events']
+  venueReference json [note: 'EXTENDED REFERENCE - Denormalized venue data for filtering']
+  
+  // Embedded Subdocuments
+  tickets json [note: 'EMBEDDED - Always displayed with events']
+  attendees json [note: 'EMBEDDED - Quick RSVP display']
+  computedStats json [note: 'EMBEDDED - Pre-calculated for performance']
+  
+  // Polymorphic Fields
+  virtualDetails json [note: 'OPTIONAL - Virtual event specific data']
+  recurringDetails json [note: 'OPTIONAL - Recurring event specific data']
+  hybridDetails json [note: 'OPTIONAL - Hybrid event specific data']
+  
+  Note: '''
+  **EMBEDDING DECISIONS:**
+  • tickets[] - Always displayed with events
+  • attendees[] - Quick RSVP display  
+  • computedStats - Pre-calculated for performance
+  • venueReference - Extended reference for filtering
+  
+  **REFERENCING DECISIONS:**
+  • venueId - Referenced (venue shared across events)
+  '''
+}
+
+Table venues {
+  _id ObjectId [pk, note: 'Primary Key']
+  
+  // Embedded Subdocuments
+  address json [note: 'EMBEDDED - Always needed with venue']
+  computedStats json [note: 'EMBEDDED - Pre-calculated analytics']
+  
+  // Polymorphic Fields
+  conferenceCenterDetails json [note: 'OPTIONAL - Conference center specific data']
+  parkDetails json [note: 'OPTIONAL - Park specific data']
+  virtualSpaceDetails json [note: 'OPTIONAL - Virtual space specific data']
+  
+  Note: '''
+  **EMBEDDING DECISIONS:**
+  • address - Always needed with venue
+  • computedStats - Pre-calculated analytics
+  
+  **POLYMORPHIC DESIGN:**
+  • venueType discriminator
+  • Type-specific fields (conferenceCenterDetails, etc.)
+  '''
+}
+
+Table users {
+  _id ObjectId [pk, note: 'Primary Key']
+  
+  // Embedded Subdocuments
+  profile json [note: 'EMBEDDED - User preferences for performance']
+  
+  Note: '''
+  **EMBEDDED PROFILE:**
+  • User preferences embedded for performance
+  • Location data for geospatial queries
+  '''
+}
+
+Table reviews {
+  _id ObjectId [pk, note: 'Primary Key']
+  eventId ObjectId [note: 'REFERENCE - Either eventId OR venueId']
+  venueId ObjectId [note: 'REFERENCE - Either eventId OR venueId']
+  userId ObjectId [note: 'REFERENCE - User who wrote review']
+  
+  Note: '''
+  **REFERENCE DESIGN:**
+  • Either eventId OR venueId (not both)
+  • Referenced for shared data across many events
+  '''
+}
+
+Table checkins {
+  _id ObjectId [pk, note: 'Primary Key']
+  eventId ObjectId [note: 'REFERENCE - Event being checked into']
+  userId ObjectId [note: 'REFERENCE - User checking in']
+  venueId ObjectId [note: 'REFERENCE - Denormalized for analytics performance']
+  
+  Note: '''
+  **BRIDGE COLLECTION:**
+  • Many-to-many relationship between users and events
+  • Denormalized venueId for analytics performance
+  • Unique constraint on (eventId, userId)
+  '''
+}
+
+// Relationships (1:Many)
+Ref: events.venueId > venues._id
+Ref: reviews.eventId > events._id
+Ref: reviews.venueId > venues._id
+Ref: reviews.userId > users._id
+Ref: checkins.eventId > events._id
+Ref: checkins.userId > users._id
+Ref: checkins.venueId > venues._id

@@ -3,7 +3,7 @@
 
 **Student ID:** 664 870 797  
 **Student Name:** Chris Lawrence  
-**Project Title:** EventSphere - Event Discovery and Check-In System with Geospatial Analytics  
+**Project Title:** EventSphere - Event Discovery and Check-In System  
 **Due Date:** October 21, 2025  
 
 ---
@@ -23,14 +23,7 @@
 
 # **Event***Sphere* : Overview
 
-EventSphere is a comprehensive event management platform built on MongoDB, demonstrating advanced NoSQL database design principles. This deliverable focuses on performance optimization through strategic indexing, workload analysis, and relationship design. The system supports geospatial event discovery, full-text search, real-time check-ins, and comprehensive analytics across five core collections: events, venues, users, reviews, and checkins.
-
-**Key Achievements:**
-- **20 Strategic Indexes** (4 per collection) optimized for real-world query patterns
-- **Geospatial Optimization** with 2dsphere indexes for location-based discovery
-- **Polymorphic Design** supporting multiple event and venue types
-- **Advanced Analytics** with optimized aggregation pipelines
-- **Performance Targets** of <50ms for critical operations
+EventSphere is a comprehensive event management platform built on MongoDB, demonstrating advanced NoSQL database design principles. The system supports geospatial event discovery, full-text search, and real-time check-ins across five core collections: events, venues, users, reviews, and checkins.
 
 ---
 
@@ -405,19 +398,11 @@ GeoJSON is used to store geospatial data to support geospatial operations. Types
 EventSphere leverages MongoDB's native GeoJSON Point support for geospatial operations which is used in the `events` and `venues` collections.
 
 ```javascript
-// Event location using GeoJSON Point
+// Event or Venue location using GeoJSON Point
 {
   "location": {
     "type": "Point",
     "coordinates": [-122.4194, 37.7749] // [longitude, latitude]
-  }
-}
-
-// Venue location using GeoJSON Point
-{
-  "location": {
-    "type": "Point", 
-    "coordinates": [-122.4194, 37.7749]
   }
 }
 ```
@@ -438,18 +423,16 @@ db.events.find({
   }
 })
 
-// Find venues within 5km using aggregation
-db.venues.aggregate([
-  {
-    $geoNear: {
-      near: {
+// Find venues at least 5km away from user location
+db.venues.find({
+  location: {
+    $near: {
+      $geometry: {
         type: "Point",
         coordinates: [-122.4194, 37.7749]
       },
-      distanceField: "distance",
-      maxDistance: 5000,
-      spherical: true
+      $minDistance: 5000 // 5km in meters
     }
   }
-])
+})
 ```
