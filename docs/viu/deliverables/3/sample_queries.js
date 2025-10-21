@@ -1,37 +1,31 @@
-// Sample Queries for EventSphere - Demonstrating Index Usage
-// Deliverable 3 - Indexing, Workload Analysis & Relationship Design
+// Sample Queries for EventSphere
+// These queries demonstrate the usage of the indexes created in the create_indexes.js file.
 
 // ============================================================================
 // GEOSPATIAL QUERIES
 // ============================================================================
 
 // Find events near NYC using 2dsphere index
-db.events.aggregate([
-  {
-    $geoNear: {
-      near: { type: "Point", coordinates: [-74.0060, 40.7128] },
-      distanceField: "distance",
-      maxDistance: 50000,
-      spherical: true,
-      query: { status: "published" }
+db.events.find({
+  location: {
+    $near: {
+      $geometry: { type: "Point", coordinates: [-74.0060, 40.7128] },
+      $maxDistance: 50000
     }
   },
-  { $limit: 10 }
-]);
+  status: "published"
+}).limit(10);
 
 // Find conference centers near San Francisco
-db.venues.aggregate([
-  {
-    $geoNear: {
-      near: { type: "Point", coordinates: [-122.4194, 37.7749] },
-      distanceField: "distance",
-      maxDistance: 25000,
-      spherical: true,
-      query: { venueType: "conferenceCenter" }
+db.venues.find({
+  location: {
+    $near: {
+      $geometry: { type: "Point", coordinates: [-122.4194, 37.7749] },
+      $maxDistance: 25000
     }
   },
-  { $limit: 5 }
-]);
+  venueType: "conferenceCenter"
+}).limit(5);
 
 // ============================================================================
 // TEXT SEARCH QUERIES
@@ -90,21 +84,24 @@ db.events.find({
 }).sort({ _id: 1, startDate: 1 }).limit(20);
 
 // ============================================================================
-// ANALYTICS QUERIES
+// REVIEW QUERIES
 // ============================================================================
 
-// Average rating per event
-db.reviews.aggregate([
-  { $match: { eventId: { $exists: true } } },
-  { $group: { 
-    _id: "$eventId", 
-    avgRating: { $avg: "$rating" },
-    reviewCount: { $sum: 1 }
-  }},
-  { $match: { reviewCount: { $gte: 3 } } },
-  { $sort: { avgRating: -1 } },
-  { $limit: 10 }
-]);
+// Find reviews for a specific event
+db.reviews.find({
+  eventId: ObjectId("68ddb640c00b1dff057fbefc")
+}).sort({ rating: -1 }).limit(10);
+
+// Find reviews by a specific user
+db.reviews.find({
+  userId: ObjectId("68ddb640c00b1dff057fb511")
+}).sort({ createdAt: -1 });
+
+// Find high-rated reviews for events
+db.reviews.find({
+  eventId: { $exists: true },
+  rating: { $gte: 4 }
+}).sort({ rating: -1, createdAt: -1 }).limit(10);
 
 // ============================================================================
 // CHECK-IN OPERATIONS
@@ -115,3 +112,51 @@ db.checkins.findOne({
   eventId: ObjectId("68ddb640c00b1dff057fbefc"),
   userId: ObjectId("68ddb640c00b1dff057fb511")
 });
+
+// Find all check-ins for a specific event
+db.checkins.find({
+  eventId: ObjectId("68ddb640c00b1dff057fbefc")
+}).sort({ checkInTime: -1 });
+
+// Find all check-ins by a specific user
+db.checkins.find({
+  userId: ObjectId("68ddb640c00b1dff057fb511")
+}).sort({ checkInTime: -1 });
+
+// ============================================================================
+// VENUE QUERIES
+// ============================================================================
+
+// Find venues by type and capacity
+db.venues.find({
+  venueType: "conferenceCenter",
+  capacity: { $gte: 500 }
+}).sort({ capacity: -1 });
+
+// Find venues by type and rating
+db.venues.find({
+  venueType: "hotel",
+  rating: { $gte: 4 }
+}).sort({ rating: -1 });
+
+// Text search for venues
+db.venues.find({
+  $text: { $search: "conference center downtown" }
+}).sort({ score: { $meta: "textScore" } }).limit(5);
+
+// ============================================================================
+// USER QUERIES
+// ============================================================================
+
+// Find users by email (unique index)
+db.users.findOne({ email: "user@example.com" });
+
+// Find recently created users
+db.users.find({
+  createdAt: { $gte: new Date(Date.now() - 30*24*60*60*1000) }
+}).sort({ createdAt: -1 });
+
+// Find users with recent login activity
+db.users.find({
+  lastLogin: { $gte: new Date(Date.now() - 7*24*60*60*1000) }
+}).sort({ lastLogin: -1 });
