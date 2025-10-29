@@ -36,8 +36,13 @@ def create_app():
     # Routes
     @app.route("/")
     def index():
-        """Home page with event map"""
-        return render_template("index.html", max_events_limit=Config.MAX_EVENTS_LIMIT)
+        """Home page - landing page with phone mockup"""
+        return render_template("index.html")
+    
+    @app.route("/map")
+    def map_page():
+        """Events map page"""
+        return render_template("map.html", max_events_limit=Config.MAX_EVENTS_LIMIT)
     
     @app.route("/health")
     def health():

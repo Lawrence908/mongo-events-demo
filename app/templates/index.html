@@ -1,231 +1,219 @@
 {% extends "base.html" %}
 
-{% block title %}Events Map - EventSphere{% endblock %}
+{% block title %}EventSphere - Discover Events Near You{% endblock %}
 
 {% block content %}
-<div x-data="eventsMap()">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="mb-4">Events Map</h1>
-            
-            <!-- Map Controls -->
-            <div class="card mb-4 map-controls">
-                <div class="card-body">
-                    <div class="row align-items-end">
-                        <div class="col-md-3">
-                            <label class="form-label">
-                                <i class="bi bi-bullseye me-1"></i>
-                                Search Radius (km)
-                            </label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" x-model="radius" min="1" max="10000" step="5">
-                                <span class="input-group-text bg-dark border-secondary text-muted">km</span>
-                            </div>
-                            <small class="text-muted">Click on map to search that area</small>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">
-                                <i class="bi bi-list-ol me-1"></i>
-                                Max Results
-                            </label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" x-model="maxResults" min="1" max="500" step="5">
-                                <span class="input-group-text bg-dark border-secondary text-muted">events</span>
-                            </div>
-                            <small class="text-muted invisible">Placeholder for alignment</small>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" x-model="useCurrentLocation" id="useLocation">
-                                <label class="form-check-label" for="useLocation">
-                                    Use Current Location
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <button class="btn btn-accent w-100 position-relative" @click="searchEvents()" :disabled="loading">
-                                <template x-if="!loading">
-                                    <span class="d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-search me-2"></i>
-                                        Search Events
-                                    </span>
-                                </template>
-                                <template x-if="loading">
-                                    <span class="d-flex align-items-center justify-content-center">
-                                        <span class="spinner-border spinner-border-sm me-2"></span>
-                                        Searching...
-                                    </span>
-                                </template>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Category Filters -->
-                    <div class="mt-3">
-                        <h6 class="mb-2">Event Categories</h6>
-                        <div class="d-flex flex-wrap gap-2">
-                            <template x-for="category in allCategories" :key="category">
-                                <button type="button"
-                                        class="btn btn-sm"
-                                        :class="selectedCategories.includes(category) ? 'btn-accent' : 'btn-outline-accent'"
-                                        @click="toggleCategory(category)">
-                                    <span class="me-1" x-text="getCategoryEmoji(category)"></span>
-                                    <span x-text="category"></span>
-                                </button>
-                            </template>
-                            <button type="button" class="btn btn-sm btn-outline-accent" @click="clearCategories()">
-                                <i class="bi bi-x-circle me-1"></i>Clear
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Map Container -->
-            <div class="card">
-                <div class="card-body p-0">
-                    <div id="map" class="map-container"></div>
-                </div>
-            </div>
-            
-            <!-- Loading Skeleton -->
-            <div class="mt-4" x-show="loading && events.length === 0">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="skeleton-title"></div>
-                    <div class="skeleton-controls"></div>
-                </div>
-                <div class="row">
-                    <template x-for="i in 6" :key="i">
-                        <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card event-card h-100">
-                                <div class="card-body">
-                                    <div class="skeleton-header mb-2"></div>
-                                    <div class="skeleton-text mb-2"></div>
-                                    <div class="skeleton-text mb-2"></div>
-                                    <div class="skeleton-text short"></div>
+<div x-data="landingPage()">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="row align-items-center min-vh-75">
+                <div class="col-lg-6 offset-lg-1">
+                    <div class="hero-content">
+                        <h1 class="display-4 fw-bold mb-4">
+                            Discover Events 
+                            <span class="text-accent">Near You</span>
+                        </h1>
+                        <p class="lead mb-4">
+                            EventSphere uses MongoDB's powerful geospatial capabilities and Leaflet.js 
+                            to help you find amazing events happening around you. Built with Flask and 
+                            modern web technologies.
+                        </p>
+                        <div class="hero-features mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="hero-feature-card">
+                                        <div class="hero-feature-icon">
+                                            <i class="bi bi-geo-alt-fill"></i>
+                                        </div>
+                                        <div class="hero-feature-content">
+                                            <h6 class="mb-1">Geospatial Search</h6>
+                                            <small class="text-muted">Find events by location</small>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </div>
-            
-            <!-- Search Results -->
-            <div class="mt-4" x-show="filteredEvents().length > 0">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <h3>Found Events (<span x-text="filteredEvents().length"></span>)</h3>
-                        <div class="d-flex gap-3 mt-1">
-                            <small class="text-muted">
-                                <i class="bi bi-geo-alt me-1"></i>
-                                <span x-text="radius"></span>km radius
-                            </small>
-                            <small class="text-muted" x-show="selectedCategories.length > 0">
-                                <i class="bi bi-funnel me-1"></i>
-                                <span x-text="selectedCategories.length"></span> categories
-                            </small>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <label class="form-label mb-0">Events per page:</label>
-                            <select class="form-select form-select-sm" style="width: auto;" x-model="eventsPerPage" @change="goToPage(1)">
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                                <option value="200">200</option>
-                            </select>
-                        </div>
-                        <div class="text-muted small">
-                            Showing <span x-text="(currentPage - 1) * eventsPerPage + 1"></span> - 
-                            <span x-text="Math.min(currentPage * eventsPerPage, filteredEvents().length)"></span> 
-                            of <span x-text="filteredEvents().length"></span> events
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <template x-for="event in paginatedEvents()" :key="event.properties.id">
-                        <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card event-card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title mb-0" x-text="event.properties.title"></h5>
-                                        <span class="badge category-badge" :style="`background-color: ${getCategoryColor(event.properties.category)}`" x-text="event.properties.category"></span>
-                                    </div>
-                                    <p class="card-text text-muted small" x-text="event.properties.description"></p>
-                                    <div class="small text-muted">
-                                        <div class="d-flex align-items-center mb-1">
-                                            <i class="bi bi-calendar-event me-2" style="color: var(--mdb-accent);"></i>
-                                            <strong>Date:</strong> <span x-text="formatDate(event.properties.startDate)" class="ms-1"></span>
+                                <div class="col-md-6">
+                                    <div class="hero-feature-card">
+                                        <div class="hero-feature-icon">
+                                            <i class="bi bi-database"></i>
                                         </div>
-                                        <div x-show="event.properties.organizer" class="d-flex align-items-center mb-1">
-                                            <i class="bi bi-person me-2" style="color: var(--mdb-accent);"></i>
-                                            <strong>Organizer:</strong> <span x-text="event.properties.organizer" class="ms-1"></span>
-                                        </div>
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-geo-alt me-2" style="color: var(--mdb-accent);"></i>
-                                            <strong>Distance:</strong> <span x-text="event.properties.distance" class="ms-1"></span>m
+                                        <div class="hero-feature-content">
+                                            <h6 class="mb-1">MongoDB Atlas</h6>
+                                            <small class="text-muted">Powerful data storage</small>
                                         </div>
                                     </div>
-                                    <div class="mt-2">
-                                        <a :href="`/events/${event.properties.id}`" class="btn btn-sm btn-outline-accent">View Details</a>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="hero-feature-card">
+                                        <div class="hero-feature-icon">
+                                            <i class="bi bi-map"></i>
+                                        </div>
+                                        <div class="hero-feature-content">
+                                            <h6 class="mb-1">Interactive Maps</h6>
+                                            <small class="text-muted">Leaflet.js powered</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="hero-feature-card">
+                                        <div class="hero-feature-icon">
+                                            <i class="bi bi-lightning-charge"></i>
+                                        </div>
+                                        <div class="hero-feature-content">
+                                            <h6 class="mb-1">Real-time Updates</h6>
+                                            <small class="text-muted">Live event data</small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </template>
+                        <div class="hero-actions">
+                            <a href="{{ url_for('map_page') }}" class="btn btn-accent btn-lg me-3">
+                                <i class="bi bi-map me-2"></i>
+                                Explore Map
+                            </a>
+                            <a href="{{ url_for('events_list') }}" class="btn btn-outline-accent btn-lg">
+                                <i class="bi bi-list-ul me-2"></i>
+                                Browse Events
+                            </a>
+                        </div>
+                    </div>
                 </div>
                 
-                <!-- Pagination Controls -->
-                <nav aria-label="Events pagination" x-show="totalPages > 1">
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                            <button class="page-link" @click="goToPage(1)" :disabled="currentPage === 1">
-                                <i class="bi bi-chevron-double-left"></i>
-                            </button>
-                        </li>
-                        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                            <button class="page-link" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
-                                <i class="bi bi-chevron-left"></i>
-                            </button>
-                        </li>
-                        
-                        <!-- Page numbers -->
-                        <template x-for="page in getVisiblePages()" :key="page">
-                            <li class="page-item" :class="{ active: page === currentPage }">
-                                <button class="page-link" @click="goToPage(page)" x-text="page"></button>
-                            </li>
-                        </template>
-                        
-                        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                            <button class="page-link" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
-                                <i class="bi bi-chevron-right"></i>
-                            </button>
-                        </li>
-                        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                            <button class="page-link" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
-                                <i class="bi bi-chevron-double-right"></i>
-                            </button>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-            
-            <!-- No Results Message -->
-            <div class="mt-4" x-show="searched && events.length === 0">
-                <div class="text-center py-5">
-                    <div class="mb-4">
-                        <i class="bi bi-search" style="font-size: 4rem; color: var(--mdb-accent); opacity: 0.3;"></i>
-                    </div>
-                    <h4 class="text-muted mb-3">No Events Found</h4>
-                    <p class="text-muted mb-4">We couldn't find any events in this area. Try:</p>
-                    <div class="d-flex flex-wrap justify-content-center gap-2">
-                        <span class="badge bg-secondary">Increase search radius</span>
-                        <span class="badge bg-secondary">Try a different location</span>
-                        <span class="badge bg-secondary">Check category filters</span>
+                <div class="col-lg-5">
+                    <!-- Phone Mockup with Interactive Map -->
+                    <div class="phone-mockup">
+                        <div class="phone-frame">
+                            <div class="phone-screen">
+                                <div class="phone-header">
+                                    <div class="phone-status-bar">
+                                        <span class="time">9:41</span>
+                                        <div class="status-icons">
+                                            <i class="bi bi-signal-4"></i>
+                                            <i class="bi bi-wifi"></i>
+                                            <i class="bi bi-battery-full"></i>
+                                        </div>
+                                    </div>
+                                    <div class="phone-nav">
+                                        <h6 class="mb-0">EventSphere</h6>
+                                        <i class="bi bi-geo-alt-fill text-accent"></i>
+                                    </div>
+                                </div>
+                                <div id="demoMap" class="phone-map"></div>
+                                <div class="phone-controls">
+                                    <div class="demo-search-bar">
+                                        <i class="bi bi-search"></i>
+                                        <span>Search events near you...</span>
+                                    </div>
+                                    <div class="demo-categories">
+                                        <span class="demo-category active">All</span>
+                                        <span class="demo-category">Music</span>
+                                        <span class="demo-category">Tech</span>
+                                        <span class="demo-category">Food</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Technology Stack Section -->
+    <div class="tech-stack-section py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-12">
+                    <h2 class="h3 mb-3">Built With Modern Technologies</h2>
+                    <p class="text-muted">A full-stack web application showcasing geospatial data processing</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-3 col-sm-6">
+                    <div class="tech-card">
+                        <div class="tech-icon">
+                            <i class="bi bi-database"></i>
+                        </div>
+                        <h6>MongoDB</h6>
+                        <p class="small text-muted">Geospatial queries & indexing</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="tech-card">
+                        <div class="tech-icon">
+                            <i class="bi bi-gear"></i>
+                        </div>
+                        <h6>Flask</h6>
+                        <p class="small text-muted">Python web framework</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="tech-card">
+                        <div class="tech-icon">
+                            <i class="bi bi-map"></i>
+                        </div>
+                        <h6>Leaflet.js</h6>
+                        <p class="small text-muted">Interactive mapping</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="tech-card">
+                        <div class="tech-icon">
+                            <i class="bi bi-lightning-charge"></i>
+                        </div>
+                        <h6>Socket.IO</h6>
+                        <p class="small text-muted">Real-time features</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="features-section py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <h5>Geospatial Search</h5>
+                        <p>Find events within a specific radius using MongoDB's powerful 2dsphere indexes and $geoNear queries.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-funnel"></i>
+                        </div>
+                        <h5>Smart Filtering</h5>
+                        <p>Filter events by category, date range, and distance with real-time updates and pagination.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h5>Analytics Dashboard</h5>
+                        <p>Track event attendance, venue popularity, and user engagement patterns.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta-section py-5">
+        <div class="container text-center">
+            <h2 class="mb-4">Ready to Explore?</h2>
+            <p class="lead mb-4">Start discovering amazing events happening around you</p>
+            <a href="{{ url_for('map_page') }}" class="btn btn-accent btn-lg">
+                <i class="bi bi-rocket-takeoff me-2"></i>
+                Launch EventSphere
+            </a>
         </div>
     </div>
 </div>
@@ -233,298 +221,98 @@
 
 {% block scripts %}
 <script>
-function eventsMap() {
+function landingPage() {
     return {
         map: null,
-        markersLayer: null,
-        searchCircle: null,
-        events: [],
-        allCategories: ['Technology','Music','Sports','Food & Drink','Arts & Culture','Business','Education','Health & Wellness'],
-        selectedCategories: [],
-        loading: false,
-        searched: false,
-        radius: 10,
-        maxResults: 50,
-        useCurrentLocation: false,
-        currentLat: 40.7128,
-        currentLng: -74.0060, // Default to NYC
-        
-        // Pagination properties
-        currentPage: 1,
-        eventsPerPage: 100,
+        demoMarkers: [],
         
         init() {
-            this.initMap();
-            this.getCurrentLocation();
+            this.initDemoMap();
+            this.addDemoMarkers();
         },
         
-        initMap() {
-            this.map = L.map('map').setView([this.currentLat, this.currentLng], 13);
+        initDemoMap() {
+            // Initialize the demo map inside the phone mockup
+            this.map = L.map('demoMap', {
+                zoomControl: false,
+                attributionControl: false,
+                dragging: true,
+                touchZoom: true,
+                doubleClickZoom: true,
+                scrollWheelZoom: false,
+                boxZoom: false,
+                keyboard: false
+            }).setView([40.7128, -74.0060], 13);
             
+            // Add tile layer
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(this.map);
             
-            this.markersLayer = L.layerGroup().addTo(this.map);
-            
-            // Add click event to map
-            this.map.on('click', (e) => {
-                if (!this.useCurrentLocation) {
-                    this.currentLat = e.latlng.lat;
-                    this.currentLng = e.latlng.lng;
-                    this.showSearchArea();
-                }
-            });
-        },
-        
-        getCurrentLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    this.currentLat = position.coords.latitude;
-                    this.currentLng = position.coords.longitude;
-                    this.map.setView([this.currentLat, this.currentLng], 13);
-                    if (this.useCurrentLocation) {
-                        this.showSearchArea();
-                    }
-                });
-            }
-        },
-        
-        showSearchArea() {
-            if (this.searchCircle) {
-                this.map.removeLayer(this.searchCircle);
-            }
-            
-            this.searchCircle = L.circle([this.currentLat, this.currentLng], {
-                radius: this.radius * 1000, // Convert to meters
+            // Add a subtle search radius circle
+            L.circle([40.7128, -74.0060], {
+                radius: 2000,
                 fillColor: '#00ED64',
                 fillOpacity: 0.1,
                 color: '#00ED64',
                 weight: 2,
-                opacity: 0.8
+                opacity: 0.6
             }).addTo(this.map);
         },
         
-        async searchEvents() {
-            this.loading = true;
-            this.searched = true;
-            this.currentPage = 1; // Reset to first page when searching
+        addDemoMarkers() {
+            // Add some demo event markers
+            const demoEvents = [
+                { lat: 40.7589, lng: -73.9851, category: 'Music', icon: '🎵' },
+                { lat: 40.7505, lng: -73.9934, category: 'Technology', icon: '💻' },
+                { lat: 40.7614, lng: -73.9776, category: 'Food & Drink', icon: '🍕' },
+                { lat: 40.7489, lng: -73.9857, category: 'Arts & Culture', icon: '🎨' },
+                { lat: 40.7505, lng: -73.9934, category: 'Sports', icon: '⚽' }
+            ];
             
-            if (this.useCurrentLocation) {
-                this.getCurrentLocation();
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for location
-            }
-            
-            this.showSearchArea();
-            
-            try {
-                const response = await fetch(`/api/events/nearby?lat=${this.currentLat}&lng=${this.currentLng}&radius=${this.radius}&limit=${this.maxResults}`);
-                const data = await response.json();
+            demoEvents.forEach(event => {
+                const marker = L.marker([event.lat, event.lng], {
+                    icon: L.divIcon({
+                        className: 'demo-marker',
+                        html: `<div style="
+                            background-color: ${this.getCategoryColor(event.category)};
+                            color: white;
+                            border: 2px solid white;
+                            border-radius: 50%;
+                            width: 24px;
+                            height: 24px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 12px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                        ">${event.icon}</div>`,
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    })
+                }).addTo(this.map);
                 
-                if (response.ok) {
-                    this.events = data.features || [];
-                    this.displayEventMarkers();
-                } else {
-                    console.error('Error fetching events:', data.error);
-                }
-            } catch (error) {
-                console.error('Network error:', error);
-            }
-            
-            this.loading = false;
-        },
-        
-        displayEventMarkers() {
-            this.markersLayer.clearLayers();
-            
-            this.filteredEvents().forEach(event => {
-                const [lng, lat] = event.geometry.coordinates;
-                
-                // Create custom icon based on category
-                const categoryIcon = this.getCategoryIcon(event.properties.category);
-                const marker = L.marker([lat, lng], { icon: categoryIcon }).bindPopup(`
-                    <div class="popup-content">
-                        <h6>${event.properties.title}</h6>
-                        <p class="small mb-2">${event.properties.description || ''}</p>
-                        <div class="small text-muted">
-                            <div><strong>Category:</strong> <span class="badge" style="background-color: ${this.getCategoryColor(event.properties.category)}">${event.properties.category}</span></div>
-                            <div><strong>Date:</strong> ${this.formatDate(event.properties.startDate)}</div>
-                            ${event.properties.organizer ? `<div><strong>Organizer:</strong> ${event.properties.organizer}</div>` : ''}
-                            <div><strong>Distance:</strong> ${event.properties.distance}m</div>
-                        </div>
-                        <div class="mt-2">
-                            <a href="/events/${event.properties.id}" class="btn btn-sm btn-accent">View Details</a>
-                        </div>
+                marker.bindPopup(`
+                    <div class="demo-popup">
+                        <h6>Demo Event</h6>
+                        <p class="small mb-1">${event.category} Event</p>
+                        <small class="text-muted">Click "Explore Map" to see real events!</small>
                     </div>
                 `);
                 
-                this.markersLayer.addLayer(marker);
-            });
-            
-            if (this.events.length > 0) {
-                const group = new L.featureGroup(this.markersLayer.getLayers());
-                this.map.fitBounds(group.getBounds().pad(0.1));
-            }
-        },
-        
-        filteredEvents() {
-            if (this.selectedCategories.length === 0) {
-                return this.events;
-            }
-            return this.events.filter(e => this.selectedCategories.includes(e.properties.category));
-        },
-        
-        toggleCategory(category) {
-            if (this.selectedCategories.includes(category)) {
-                this.selectedCategories = this.selectedCategories.filter(c => c !== category);
-            } else {
-                this.selectedCategories = [...this.selectedCategories, category];
-            }
-            this.currentPage = 1; // Reset to first page when filtering
-            this.displayEventMarkers();
-        },
-        
-        clearCategories() {
-            this.selectedCategories = [];
-            this.currentPage = 1; // Reset to first page when clearing filters
-            this.displayEventMarkers();
-        },
-        
-        getCategoryIcon(category) {
-            // Define category-specific icons and colors
-            const categoryConfig = {
-                'Technology': { icon: '💻', color: '#0d6efd' },
-                'Music': { icon: '🎵', color: '#e83e8c' },
-                'Sports': { icon: '⚽', color: '#28a745' },
-                'Food & Drink': { icon: '🍕', color: '#fd7e14' },
-                'Arts & Culture': { icon: '🎨', color: '#6f42c1' },
-                'Business': { icon: '💼', color: '#6c757d' },
-                'Education': { icon: '📚', color: '#17a2b8' },
-                'Health & Wellness': { icon: '💪', color: '#20c997' },
-                'Entertainment': { icon: '🎭', color: '#ffc107' },
-                'Community': { icon: '🤝', color: '#dc3545' },
-                'Science': { icon: '🔬', color: '#6f42c1' },
-                'Fashion': { icon: '👗', color: '#e83e8c' },
-                'Travel': { icon: '✈️', color: '#17a2b8' },
-                'Photography': { icon: '📸', color: '#6c757d' },
-                'Gaming': { icon: '🎮', color: '#28a745' },
-                'Networking': { icon: '🤝', color: '#fd7e14' }
-            };
-            
-            const config = categoryConfig[category] || { icon: '📍', color: '#6c757d' };
-            
-            return L.divIcon({
-                className: 'custom-marker',
-                html: `<div style="
-                    background-color: ${config.color};
-                    color: white;
-                    border: 2px solid white;
-                    border-radius: 50%;
-                    width: 30px;
-                    height: 30px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 14px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                ">${config.icon}</div>`,
-                iconSize: [30, 30],
-                iconAnchor: [15, 15],
-                popupAnchor: [0, -15]
+                this.demoMarkers.push(marker);
             });
         },
         
         getCategoryColor(category) {
-            const categoryConfig = {
-                'Technology': '#007bff',
+            const colors = {
                 'Music': '#e83e8c',
-                'Sports': '#28a745',
+                'Technology': '#007bff',
                 'Food & Drink': '#fd7e14',
                 'Arts & Culture': '#6f42c1',
-                'Business': '#6c757d',
-                'Education': '#17a2b8',
-                'Health & Wellness': '#20c997',
-                'Entertainment': '#ffc107',
-                'Community': '#dc3545',
-                'Science': '#6f42c1',
-                'Fashion': '#e83e8c',
-                'Travel': '#17a2b8',
-                'Photography': '#6c757d',
-                'Gaming': '#28a745',
-                'Networking': '#fd7e14'
+                'Sports': '#28a745'
             };
-            return categoryConfig[category] || '#6c757d';
-        },
-        
-        getCategoryEmoji(category) {
-            const map = {
-                'Technology': '💻',
-                'Music': '🎵',
-                'Sports': '⚽',
-                'Food & Drink': '🍕',
-                'Arts & Culture': '🎨',
-                'Business': '💼',
-                'Education': '📚',
-                'Health & Wellness': '💪'
-            };
-            return map[category] || '📍';
-        },
-        
-        formatDate(dateStr) {
-            return new Date(dateStr).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        },
-        
-        // Pagination methods
-        get totalPages() {
-            return Math.ceil(this.filteredEvents().length / this.eventsPerPage);
-        },
-        
-        paginatedEvents() {
-            const filtered = this.filteredEvents();
-            const startIndex = (this.currentPage - 1) * this.eventsPerPage;
-            const endIndex = startIndex + this.eventsPerPage;
-            return filtered.slice(startIndex, endIndex);
-        },
-        
-        goToPage(page) {
-            if (page >= 1 && page <= this.totalPages) {
-                this.currentPage = page;
-            }
-        },
-        
-        getVisiblePages() {
-            const total = this.totalPages;
-            const current = this.currentPage;
-            const delta = 2; // Show 2 pages on each side of current page
-            const range = [];
-            const rangeWithDots = [];
-            let l;
-
-            for (let i = 1; i <= total; i++) {
-                if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
-                    range.push(i);
-                }
-            }
-
-            range.forEach((i) => {
-                if (l) {
-                    if (i - l === 2) {
-                        rangeWithDots.push(l + 1);
-                    } else if (i - l !== 1) {
-                        rangeWithDots.push('...');
-                    }
-                }
-                rangeWithDots.push(i);
-                l = i;
-            });
-
-            return rangeWithDots;
+            return colors[category] || '#6c757d';
         }
     }
 }
