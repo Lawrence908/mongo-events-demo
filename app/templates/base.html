@@ -17,6 +17,7 @@
     <script defer src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js"></script>
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/eventsphere-logo.png') }}">
     
     {% block head %}{% endblock %}
 </head>
@@ -25,8 +26,8 @@
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="bi bi-geo-alt-fill"></i>
-                EventSphere
+                <img src="{{ url_for('static', filename='img/eventsphere-logo-text-white-bg.png') }}" alt="EventSphere" height="36" class="align-text-bottom">
+                <span class="visually-hidden">EventSphere</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -80,7 +81,10 @@
     <!-- Footer -->
     <footer class="footer-dark py-4 mt-5">
         <div class="container text-center text-muted">
-            <p>&copy; Chris Lawrence - 2025 EventSphere. Built with Flask, MongoDB, and Leaflet.js</p>
+            <p class="mb-2">
+                <img src="{{ url_for('static', filename='img/eventsphere-logo-white.png') }}" alt="EventSphere" height="52" class="me-2 align-text-bottom">
+            </p>
+            <p class="mb-0">&copy; Chris Lawrence - 2025 EventSphere. Built with Flask, MongoDB, and Leaflet.js</p>
         </div>
     </footer>
 
