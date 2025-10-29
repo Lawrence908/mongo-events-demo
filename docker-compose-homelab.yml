@@ -8,7 +8,6 @@ services:
     restart: unless-stopped
     networks:
       - web
-      - mongo-events-internal
     ports:
       - "8140:5000"
     environment:

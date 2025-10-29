@@ -6,44 +6,41 @@
 <div x-data="eventsMap()">
     <div class="row">
         <div class="col-12">
-            <h1 class="mb-4">Events Map</h1>
+            <h2 class="mb-3">Events Map</h2>
             
             <!-- Map Controls -->
             <div class="card mb-4 map-controls">
                 <div class="card-body">
-                    <div class="row align-items-end">
-                        <div class="col-md-3">
+                    <!-- Search Controls Row -->
+                    <div class="row mb-3">
+                        <div class="col-lg-3 col-md-4 col-sm-6 col-6">
                             <label class="form-label">
                                 <i class="bi bi-bullseye me-1"></i>
                                 Search Radius (km)
                             </label>
                             <div class="input-group">
-                                <input type="number" class="form-control" x-model="radius" min="1" max="10000" step="5">
+                                <input type="number" class="form-control" x-model="radius" min="1" max="10000" step="5" style="max-width: 80px;">
                                 <span class="input-group-text bg-dark border-secondary text-muted">km</span>
                             </div>
-                            <small class="text-muted">Click on map to search that area</small>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-lg-3 col-md-4 col-sm-6 col-6">
                             <label class="form-label">
                                 <i class="bi bi-list-ol me-1"></i>
                                 Max Results
                             </label>
                             <div class="input-group">
-                                <input type="number" class="form-control" x-model="maxResults" min="1" max="500" step="5">
+                                <input type="number" class="form-control" x-model="maxResults" min="1" max="500" step="5" style="max-width: 80px;">
                                 <span class="input-group-text bg-dark border-secondary text-muted">events</span>
                             </div>
-                            <small class="text-muted invisible">Placeholder for alignment</small>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-check">
+                        <div class="col-lg-6 col-md-4 col-12">
+                            <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" x-model="useCurrentLocation" id="useLocation">
                                 <label class="form-check-label" for="useLocation">
                                     Use Current Location
                                 </label>
                             </div>
-                        </div>
-                        <div class="col-md-2">
-                            <button class="btn btn-accent w-100 position-relative" @click="searchEvents()" :disabled="loading">
+                            <button class="btn btn-accent w-100" @click="searchEvents()" :disabled="loading">
                                 <template x-if="!loading">
                                     <span class="d-flex align-items-center justify-content-center">
                                         <i class="bi bi-search me-2"></i>
@@ -59,23 +56,30 @@
                             </button>
                         </div>
                     </div>
+                    <div class="row mb-3">
+                        <div class="col-lg-3 col-md-4 col-sm-6 col-6">
+                            <small class="text-muted">Click on map to search that area</small>
+                        </div>
+                    </div>
                     
-                    <!-- Category Filters -->
-                    <div class="mt-3">
+                    <!-- Category Filters - Horizontal Scrollable -->
+                    <div>
                         <h6 class="mb-2">Event Categories</h6>
-                        <div class="d-flex flex-wrap gap-2">
-                            <template x-for="category in allCategories" :key="category">
-                                <button type="button"
-                                        class="btn btn-sm"
-                                        :class="selectedCategories.includes(category) ? 'btn-accent' : 'btn-outline-accent'"
-                                        @click="toggleCategory(category)">
-                                    <span class="me-1" x-text="getCategoryEmoji(category)"></span>
-                                    <span x-text="category"></span>
+                        <div class="category-scroll-container">
+                            <div class="d-flex gap-2 category-scroll">
+                                <template x-for="category in allCategories" :key="category">
+                                    <button type="button"
+                                            class="btn btn-sm category-btn flex-shrink-0"
+                                            :class="selectedCategories.includes(category) ? 'btn-accent' : 'btn-outline-accent'"
+                                            @click="toggleCategory(category)">
+                                        <span class="me-1" x-text="getCategoryEmoji(category)"></span>
+                                        <span x-text="category"></span>
+                                    </button>
+                                </template>
+                                <button type="button" class="btn btn-sm btn-outline-accent flex-shrink-0" @click="clearCategories()">
+                                    <i class="bi bi-x-circle me-1"></i>Clear
                                 </button>
-                            </template>
-                            <button type="button" class="btn btn-sm btn-outline-accent" @click="clearCategories()">
-                                <i class="bi bi-x-circle me-1"></i>Clear
-                            </button>
+                            </div>
                         </div>
                     </div>
                 </div>
