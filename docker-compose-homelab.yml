@@ -12,7 +12,7 @@ services:
       - "8140:5000"
     environment:
       - FLASK_ENV=production
-      - MONGODB_URI=mongodb+srv://chrislawrencedev:Xc93FPujnvVD2Xb6@eventsphere.mzturli.mongodb.net/?retryWrites=true&w=majority&appName=EventSphere
+      - MONGODB_URI=${MONGODB_URI}
       - MONGODB_DB_NAME=EventSphere
       - PORT=5000
       - HOST=0.0.0.0  # Override the .env file setting
